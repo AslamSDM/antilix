@@ -12,7 +12,7 @@ export function DockThemeToggle() {
   };
 
   return (
-    <button
+    <motion.button
       onClick={toggleTheme}
       className="w-full h-full flex items-center justify-center relative overflow-hidden rounded-full focus:outline-none"
       aria-label="Toggle theme"
@@ -41,6 +41,6 @@ export function DockThemeToggle() {
           <Sun size={28} strokeWidth={1.5} />
         </motion.div>
       </div>
-    </button>
+    </motion.button>
   );
 }

@@ -15,14 +15,7 @@ import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
 // Dynamically import Spline component to reduce initial bundle size
-const DynamicSpline = dynamic(() => import("@splinetool/react-spline"), {
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      Loading 3D scene...
-    </div>
-  ),
-  ssr: false, // Disable server-side rendering for this component
-});
+const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 
 // Using a more advanced Spline scene URL for a better experience
 const sent =
@@ -132,35 +125,35 @@ const HeroSection: React.FC = () => {
         );
 
         // For small screens, adjust camera or scale
-        if (isSmallScreen) {
-          try {
-            // Try to adjust the camera position for better viewing on small screens
-            const camera = splineApp.findObjectByName("Camera");
-            if (camera) {
-              // Move camera back to show more of the scene
-              camera.position.z += 1.5;
+        // if (isSmallScreen) {
+        //   try {
+        //     // Try to adjust the camera position for better viewing on small screens
+        //     const camera = splineApp.findObjectByName("Camera");
+        //     if (camera) {
+        //       // Move camera back to show more of the scene
+        //       camera.position.z += 1.5;
 
-              // Adjust field of view if available
-              if (camera.fov) {
-                camera.fov = Math.min(camera.fov * 1.2, 75); // Increase FOV slightly but cap it
-                camera.updateProjectionMatrix?.();
-              }
-            }
+        //       // Adjust field of view if available
+        //       if (camera.fov) {
+        //         camera.fov = Math.min(camera.fov * 1.2, 75); // Increase FOV slightly but cap it
+        //         camera.updateProjectionMatrix?.();
+        //       }
+        //     }
 
-            // Or scale the main scene container if camera adjustment isn't possible
-            const mainScene =
-              splineApp.findObjectByName("MainScene") ||
-              splineApp.findObjectByName("Scene") ||
-              splineApp.findObjectByType("Scene");
+        //     // Or scale the main scene container if camera adjustment isn't possible
+        //     const mainScene =
+        //       splineApp.findObjectByName("MainScene") ||
+        //       splineApp.findObjectByName("Scene") ||
+        //       splineApp.findObjectByType("Scene");
 
-            if (mainScene) {
-              // Scale down the scene for small screens
-              mainScene.scale.set(0.85, 0.85, 0.85);
-            }
-          } catch (error) {
-            console.error("Error adjusting Spline for small screens:", error);
-          }
-        }
+        //     if (mainScene) {
+        //       // Scale down the scene for small screens
+        //       mainScene.scale.set(0.85, 0.85, 0.85);
+        //     }
+        //   } catch (error) {
+        //     console.error("Error adjusting Spline for small screens:", error);
+        //   }
+        // }
       }
 
       setIsSplineReady(true);
@@ -293,11 +286,13 @@ const HeroSection: React.FC = () => {
           isSmallScreen ? "scale-[1.15] translate-y-10" : ""
         }`}
       >
-        <DynamicSpline
-          className="bg-black"
-          scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
-          onLoad={handleSplineLoad}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <DynamicSpline
+            className="bg-black"
+            scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+            onLoad={handleSplineLoad}
+          />
+        </Suspense>
       </div>
 
       {/* Foreground content - position adjusted for small screens */}
@@ -336,15 +331,13 @@ const HeroSection: React.FC = () => {
         >
           {sent}
         </motion.h1>
-        <Button>
-          <RippleButton
-            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            onClick={handleGetStarted}
-            disabled={getStartedClicked}
-          >
-            Get Started
-          </RippleButton>
-        </Button>
+        <RippleButton
+          className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          onClick={handleGetStarted}
+          disabled={getStartedClicked}
+        >
+          Get Started
+        </RippleButton>
       </motion.div>
     </section>
   );
