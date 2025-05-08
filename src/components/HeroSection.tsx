@@ -10,19 +10,11 @@ import { motion, useScroll } from "framer-motion";
 import { RippleButton } from "@/components/magicui/ripple-button"; // Using Magic UI ripple button
 import { Application } from "@splinetool/runtime";
 import { useRouter } from "next/navigation"; // For App Router
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
-// Dynamically import Spline component to reduce initial bundle size
-const DynamicSpline = dynamic(() => import("@splinetool/react-spline"), {
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      Loading 3D scene...
-    </div>
-  ),
-  ssr: false, // Disable server-side rendering for this component
-});
+import Spline from "@splinetool/react-spline";
 
 // Using a more advanced Spline scene URL for a better experience
 const sent =
@@ -168,9 +160,13 @@ const HeroSection: React.FC = () => {
     >
       {/* Spline Scene takes full background */}
       <div className="absolute inset-0 -z-10">
-        <DynamicSpline
+        {/* <DynamicSpline
           className="bg-black"
           scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+          onLoad={handleSplineLoad}
+        /> */}
+        <Spline
+          scene="https://prod.spline.design/EeG6Jz6Ywyi8BZOJ/scene.splinecode"
           onLoad={handleSplineLoad}
         />
       </div>
