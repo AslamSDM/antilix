@@ -2,14 +2,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import SplineSceneWrapper from "./SplineSceneWrapper";
-import ShimmerButton from "./magic-ui/ShimmerButton"; // Using Magic UI button
 import AnimatedGradientText from "./magic-ui/AnimatedGradientText";
+import { RippleButton } from "@/components/magicui/ripple-button";
+
 import { Application } from "@splinetool/runtime";
 import { useRouter } from "next/navigation"; // For App Router
+import Spline from "@splinetool/react-spline";
 
 // Using a more advanced Spline scene URL for a better experience
-const SPLINE_SCENE_URL_HERO =
-  "https://prod.spline.design/QUz7nubEnjtuGfIk/scene.splinecode";
 
 const HeroSection: React.FC = () => {
   const [splineApp, setSplineApp] = useState<Application | null>(null);
@@ -18,24 +18,8 @@ const HeroSection: React.FC = () => {
   const [getStartedClicked, setGetStartedClicked] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
+  const splineRef = useRef<any>(null);
   const router = useRouter();
-
-  const handleSplineLoad = useCallback((app: Application) => {
-    setSplineApp(app);
-    setIsSplineReady(true);
-    console.log("Hero Spline Scene Loaded and Ready.");
-    // Initialize any Spline animations or states here
-    setTimeout(() => {
-      if (app) {
-        try {
-          // Trigger an initial animation in Spline
-          app.emitEvent("onSceneLoaded" as any, "SceneController");
-        } catch (error) {
-          console.error("Error triggering initial animation:", error);
-        }
-      }
-    }, 500);
-  }, []);
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -66,19 +50,50 @@ const HeroSection: React.FC = () => {
     };
   }, []);
 
-  const handleGetStarted = () => {
+  // Handle Spline load event
+  const handleSplineLoad = useCallback((splineApp: Application) => {
+    setSplineApp(splineApp);
+    splineRef.current = splineApp;
+    setIsSplineReady(true);
+    console.log("Spline scene loaded successfully");
+  }, []);
+
+  const handleGetStarted = (e: React.MouseEvent) => {
     console.log("Get Started button clicked in HeroSection");
+
     setGetStartedClicked(true);
+
+    // Try to trigger animation in Spline object
+    if (splineRef.current) {
+      try {
+        // Try different events that might be set up in your Spline scene
+        const events = [
+          { event: "buttonClicked", object: "SceneController" },
+          { event: "getStarted", object: "ButtonObject" },
+          { event: "click", object: "Button" },
+          { event: "spin", object: "SplineObject" },
+        ];
+
+        // Try each event until one works
+        for (const { event, object } of events) {
+          try {
+            splineRef.current.emitEvent(event, object);
+            console.log(`Successfully emitted ${event} to ${object}`);
+            break;
+          } catch (e) {
+            // Continue trying other events
+          }
+        }
+      } catch (error) {
+        console.error("Failed to emit event to Spline:", error);
+      }
+    }
 
     // Create a ripple animation effect using a timeout
     setTimeout(() => {
       router.push("/about");
     }, 800); // Delay navigation to allow the Spline animation to play
   };
-
-  const resetGetStartedTrigger = useCallback(() => {
-    setGetStartedClicked(false);
-  }, []);
 
   // Enhanced animation variants
   const containerVariants = {
@@ -136,20 +151,11 @@ const HeroSection: React.FC = () => {
       ref={heroRef}
       className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8"
     >
-      {/* Animated background elements */}
-      {backgroundElements}
-
       {/* Spline Scene takes full background */}
       <div className="absolute inset-0 z-10">
-        <SplineSceneWrapper
-          splineSceneUrl={SPLINE_SCENE_URL_HERO}
-          onSplineLoad={handleSplineLoad}
-          mouseX={mousePos.x}
-          mouseY={mousePos.y}
-          scrollProgress={scrollY}
-          getStartedClicked={getStartedClicked}
-          resetGetStarted={resetGetStartedTrigger}
-          className="opacity-80 dark:opacity-60" // Slightly increased opacity
+        <Spline
+          scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+          onLoad={handleSplineLoad}
         />
       </div>
 
@@ -187,14 +193,15 @@ const HeroSection: React.FC = () => {
           interactive 3D objects. Move your mouse to interact with the scene.
         </motion.p>
 
-        <motion.div variants={itemVariants}>
-          <ShimmerButton
-            className="px-8 py-4 text-lg rounded-lg font-semibold"
+        <motion.div variants={itemVariants} className="relative">
+          <RippleButton
+            // className="px-8 py-4 text-lg font-semibold rounded-lg"
+            // rippleColor="rgba(var(--primary-rgb), 0.4)"
+            // duration="800ms"
             onClick={handleGetStarted}
-            shimmerColor="rgba(255,255,255,0.5)"
           >
             Get Started
-          </ShimmerButton>
+          </RippleButton>
         </motion.div>
 
         <motion.div variants={itemVariants} className="mt-16 animate-bounce">

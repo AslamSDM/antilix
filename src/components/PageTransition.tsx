@@ -6,30 +6,35 @@ import React, { useState, useEffect } from "react";
 const PageTransition = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const [isFirstRender, setIsFirstRender] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
-  // Disable transition animation on first render
+  // Disable transition animation on first render and set ready after a delay
   useEffect(() => {
     setIsFirstRender(false);
+
+    // A tiny delay to ensure transitions are properly handled
+    const timeout = setTimeout(() => {
+      setIsReady(true);
+    }, 10);
+
+    return () => clearTimeout(timeout);
   }, []);
 
-  // Enhanced variants for more sophisticated transitions
+  // Enhanced variants with specific focus on fade transitions between pages
   const variants = {
-    initial: (isFirstRender: boolean) => ({
-      opacity: isFirstRender ? 1 : 0,
-      x: isFirstRender ? 0 : "-100vw",
-      scale: isFirstRender ? 1 : 0.95,
+    initial: {
+      opacity: 0,
+      y: 20,
       filter: "blur(8px)",
-    }),
+    },
     in: {
       opacity: 1,
-      x: 0,
-      scale: 1,
+      y: 0,
       filter: "blur(0px)",
     },
     out: {
       opacity: 0,
-      x: "100vw",
-      scale: 1.05,
+      y: -20,
       filter: "blur(8px)",
     },
   };
@@ -38,18 +43,16 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
   const getTransition = (path: string) => {
     // Default transition
     const defaultTransition = {
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
-      duration: 0.7,
+      type: "tween",
+      ease: "easeInOut",
+      duration: 0.5,
     };
 
-    // For specific routes, customize the transition
-    if (path === "/about") {
+    // Specific transitions for routes
+    if (path === "/" || path === "/about") {
       return {
-        type: "spring",
-        stiffness: 400,
-        damping: 40,
+        type: "tween",
+        ease: "easeInOut",
         duration: 0.6,
       };
     }
@@ -57,17 +60,21 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     return defaultTransition;
   };
 
+  // Don't render anything until ready, prevents flash of content
+  if (isFirstRender) {
+    return null;
+  }
+
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait" initial={true}>
       <motion.div
         key={pathname}
-        custom={isFirstRender}
         variants={variants}
         initial="initial"
         animate="in"
         exit="out"
         transition={getTransition(pathname)}
-        className="overflow-x-hidden min-h-screen" // Prevent horizontal scrollbars during transition
+        className="w-full min-h-screen"
       >
         {children}
       </motion.div>
