@@ -1,14 +1,16 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import SplineSceneWrapper from "./SplineSceneWrapper";
-import AnimatedGradientText from "./magic-ui/AnimatedGradientText";
+import React, { useState, useEffect, useRef, useCallback, use } from "react";
+import { motion, useScroll } from "framer-motion";
 import { RippleButton } from "@/components/magicui/ripple-button"; // Using Magic UI ripple button
 import { Application } from "@splinetool/runtime";
 import { useRouter } from "next/navigation"; // For App Router
 import Spline from "@splinetool/react-spline";
+import { useTheme } from "next-themes";
+import { Button } from "./ui/button";
 
 // Using a more advanced Spline scene URL for a better experience
+const sent =
+  " Experience seamless Spline integration with advanced animations and interactive 3D objects. Move your mouse to interact with the scene.";
 
 const HeroSection: React.FC = () => {
   const [splineApp, setSplineApp] = useState<Application | null>(null);
@@ -18,7 +20,24 @@ const HeroSection: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
   const splineRef = useRef<any>(null);
+  const sentRef = useRef<HTMLSpanElement>(null);
   const router = useRouter();
+  const { scrollYProgress } = useScroll({
+    target: sentRef,
+    offset: ["start 0.5", "end 0.5"],
+  });
+  const themes = useTheme();
+
+  useEffect(() => {
+    // Update scroll position based on scrollYProgress
+    const unsubscribe = scrollYProgress.onChange((latest) => {
+      setScrollY(latest);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [scrollYProgress]);
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -53,6 +72,8 @@ const HeroSection: React.FC = () => {
   const handleSplineLoad = useCallback((splineApp: Application) => {
     setSplineApp(splineApp);
     splineRef.current = splineApp;
+    splineApp.setBackgroundColor("#e0f7fa");
+
     setIsSplineReady(true);
     console.log("Spline scene loaded successfully");
   }, []);
@@ -66,23 +87,20 @@ const HeroSection: React.FC = () => {
     if (splineRef.current) {
       try {
         // Try different events that might be set up in your Spline scene
-        const events = [
-          { event: "buttonClicked", object: "SceneController" },
-          { event: "getStarted", object: "ButtonObject" },
-          { event: "click", object: "Button" },
-          { event: "spin", object: "SplineObject" },
-        ];
+        // Try different rotation events
+        splineRef.current.emitEvent("rotate", "start");
+        splineRef.current.emitEvent("spin");
+        splineRef.current.emitEvent("mousehover");
 
-        // Try each event until one works
-        for (const { event, object } of events) {
-          try {
-            splineRef.current.emitEvent(event, object);
-            console.log(`Successfully emitted ${event} to ${object}`);
-            break;
-          } catch (e) {
-            // Continue trying other events
-          }
+        // Apply direct rotation manipulation if possible
+        const targetObject = splineRef.current.findObjectByName("MainObject");
+        if (targetObject) {
+          targetObject.rotation.y += Math.PI; // 180-degree rotation
+          targetObject.rotation.x += Math.PI / 4; // 45-degree tilt
         }
+
+        // Alternatively try animation sequence
+        splineRef.current.emitEventReverse("rotate");
       } catch (error) {
         console.error("Failed to emit event to Spline:", error);
       }
@@ -93,12 +111,18 @@ const HeroSection: React.FC = () => {
       router.push("/about");
     }, 800); // Delay navigation to allow the Spline animation to play
   };
-
+  useEffect(() => {
+    if (splineRef.current) {
+      splineRef.current.setBackgroundColor(
+        themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+      );
+    }
+  }, [themes.theme]);
   // Enhanced animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
-      opacity: 1,
+      opacity: scrollY > 0.21 ? 0 : 1,
       transition: {
         staggerChildren: 0.2,
         delayChildren: 0.3,
@@ -109,7 +133,8 @@ const HeroSection: React.FC = () => {
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
-      opacity: 1,
+      opacity: scrollY > 0.21 ? 0 : 1,
+
       y: 0,
       transition: {
         duration: 0.8,
@@ -144,6 +169,7 @@ const HeroSection: React.FC = () => {
         }}
       />
     ));
+  console.log("Background elements:", scrollYProgress, scrollY);
 
   return (
     <section
@@ -153,6 +179,7 @@ const HeroSection: React.FC = () => {
       {/* Spline Scene takes full background */}
       <div className="absolute inset-0 -z-10">
         <Spline
+          className="bg-black"
           scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
           onLoad={handleSplineLoad}
         />
@@ -165,43 +192,60 @@ const HeroSection: React.FC = () => {
         initial="hidden"
         animate={isSplineReady ? "visible" : "hidden"} // Animate text when Spline is ready
       >
-        <motion.div variants={itemVariants} className="mb-2">
-          <span className="inline-block py-1 px-3 rounded-full text-sm font-medium bg-secondary/30 text-secondary-foreground backdrop-blur-sm">
+        <motion.div
+          variants={itemVariants}
+          className="mb-2"
+          style={{
+            opacity: scrollY > 0.19 ? 0 : 1,
+          }}
+        >
+          <span className="inline-block py-1 px-3 rounded-full text-6xl font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm">
             Interactive Experience
           </span>
         </motion.div>
 
         <motion.h1
           variants={itemVariants}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4"
+          className="text-2xl font bold flex gap-1 flex-wrap md:text-xl max-w-2xl mb-8 text-foreground/80"
+          style={{
+            opacity: scrollY > 0.19 ? 0 : 1,
+          }}
         >
-          <AnimatedGradientText
-            duration={5}
-            fromColor="hsl(var(--primary))"
-            toColor="hsl(var(--accent))"
-          >
-            Dimension Next
-          </AnimatedGradientText>
+          {/* {sent.split(" ").map((word, index) => {
+
+            return (
+              <motion.span
+                key={index}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                ref={index === 0 ? sentRef : undefined}
+                style={{
+                  opacity:
+                    scrollY < 0.1
+                      ? 0
+                      : scrollY > 0.5
+                      ? 1
+                      : (scrollY - 0.1) / 0.4,
+                  transform: `translateY(${20 - scrollY * 20}px)`,
+                  transition: "opacity 0.3s, transform 0.3s",
+                  display: "inline-block",
+                }}
+              >
+                {word}{" "}
+              </motion.span>
+            );
+          })} */}
+          {sent}
         </motion.h1>
-
-        <motion.p
-          variants={itemVariants}
-          className="text-lg md:text-xl max-w-2xl mb-8 text-foreground/80"
-        >
-          Experience seamless Spline integration with advanced animations and
-          interactive 3D objects. Move your mouse to interact with the scene.
-        </motion.p>
-
-        <motion.div variants={itemVariants} className="relative">
+        <Button>
           <RippleButton
-            className="px-8 py-4 text-lg bg-black font-semibold rounded-lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             onClick={handleGetStarted}
-            rippleColor="#ADD8E6"
-            duration="2s"
+            disabled={getStartedClicked}
           >
             Get Started
           </RippleButton>
-        </motion.div>
+        </Button>
 
         {/* Scroll indicator removed */}
       </motion.div>

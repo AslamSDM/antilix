@@ -1,6 +1,5 @@
 "use client"; // Keep client component for potential Spline interactions
 import React, { useEffect, useState } from "react";
-import AnimatedGradientText from "@/components/magic-ui/AnimatedGradientText";
 import { motion } from "framer-motion";
 import ShimmerButton from "@/components/magic-ui/ShimmerButton";
 import { useRouter } from "next/navigation";
@@ -72,7 +71,7 @@ const AboutPage: React.FC = () => {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            <AnimatedGradientText>About Dimension Next</AnimatedGradientText>
+            About Dimension Next
           </h1>
 
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-10 text-muted-foreground">

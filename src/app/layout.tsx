@@ -6,8 +6,9 @@ import PageTransition from "@/components/PageTransition";
 import Link from "next/link";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
+import { Inter } from "next/font/google";
 
-const geistSans = Geist({
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -52,7 +53,7 @@ export default function RootLayout({
             {/* Account for fixed header height */}
 
             <main className="flex-grow">
-              <ScrollProgress className="top-[55px]" />
+              <ScrollProgress />
               <PageTransition>{children}</PageTransition>
               <FluxDock />
             </main>

@@ -1,6 +1,9 @@
 "use client";
 
 import HeroSection from "@/components/HeroSection";
+import ShimmerButton from "@/components/magic-ui/ShimmerButton";
+import { RainbowButton } from "@/components/magicui/rainbow-button";
+import { RippleButton } from "@/components/magicui/ripple-button";
 import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 import { motion } from "framer-motion";
 import { FileCode, Globe, Layers, MessageSquare, Zap } from "lucide-react";
@@ -9,7 +12,6 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-
       {/* Features Section */}
       <motion.section
         className="py-20 px-4 bg-gradient-to-b from-background to-muted z-50"

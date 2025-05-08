@@ -57,7 +57,16 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      ringColor: {
+        'ring': 'var(--ring)'
+      },
+      ringOpacity: {
+        '50': '0.5'
+      },
+      outlineColor: {
+        'ring': 'var(--ring)'
+      },
     },
   },
-  plugins: [require("@tailwindcss/forms")],
+  plugins: [require("@tailwindcss/forms"),require("tailwindcss-animate")],
 }
