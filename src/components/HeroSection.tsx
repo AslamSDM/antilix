@@ -39,40 +39,42 @@ const HeroSection: React.FC = () => {
     };
   }, [scrollYProgress]);
 
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        setMousePos({ x, y });
-      }
-    };
+  // useEffect(() => {
+  //   const handleMouseMove = (event: MouseEvent) => {
+  //     if (heroRef.current) {
+  //       const rect = heroRef.current.getBoundingClientRect();
+  //       const x = (event.clientX - rect.left) / rect.width;
+  //       const y = (event.clientY - rect.top) / rect.height;
+  //       setMousePos({ x, y });
+  //     }
+  //   };
 
-    const handleScroll = () => {
-      // Get normalized scroll position for the viewport height
-      const scrollPosition = window.scrollY;
-      const maxScroll = window.innerHeight * 0.8;
-      const normalized = Math.min(scrollPosition / maxScroll, 1);
-      setScrollY(normalized);
-    };
+  //   const handleScroll = () => {
+  //     // Get normalized scroll position for the viewport height
+  //     const scrollPosition = window.scrollY;
+  //     const maxScroll = window.innerHeight * 0.8;
+  //     const normalized = Math.min(scrollPosition / maxScroll, 1);
+  //     setScrollY(normalized);
+  //   };
 
-    // Add event listeners
-    const currentHeroRef = heroRef.current;
-    currentHeroRef?.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("scroll", handleScroll);
+  //   // Add event listeners
+  //   const currentHeroRef = heroRef.current;
+  //   currentHeroRef?.addEventListener("mousemove", handleMouseMove);
+  //   window.addEventListener("scroll", handleScroll);
 
-    return () => {
-      currentHeroRef?.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+  //   return () => {
+  //     currentHeroRef?.removeEventListener("mousemove", handleMouseMove);
+  //     window.removeEventListener("scroll", handleScroll);
+  //   };
+  // }, []);
 
   // Handle Spline load event
   const handleSplineLoad = useCallback((splineApp: Application) => {
     setSplineApp(splineApp);
     splineRef.current = splineApp;
-    splineApp.setBackgroundColor("#e0f7fa");
+    splineApp.setBackgroundColor(
+      themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+    );
 
     setIsSplineReady(true);
     console.log("Spline scene loaded successfully");
