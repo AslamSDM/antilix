@@ -3,8 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import SplineSceneWrapper from "./SplineSceneWrapper";
 import AnimatedGradientText from "./magic-ui/AnimatedGradientText";
-import { RippleButton } from "@/components/magicui/ripple-button";
-
+import { RippleButton } from "@/components/magicui/ripple-button"; // Using Magic UI ripple button
 import { Application } from "@splinetool/runtime";
 import { useRouter } from "next/navigation"; // For App Router
 import Spline from "@splinetool/react-spline";
@@ -159,9 +158,9 @@ const HeroSection: React.FC = () => {
         />
       </div>
 
-      {/* Foreground content */}
+      {/* Foreground content - positioned lower with mt-auto and bottom padding */}
       <motion.div
-        className="relative z-20 flex flex-col items-center text-center max-w-4xl mx-auto"
+        className=" z-20 flex flex-col items-center text-center max-w-4xl mx-auto mt-20 pb-16 md:pb-24"
         variants={containerVariants}
         initial="hidden"
         animate={isSplineReady ? "visible" : "hidden"} // Animate text when Spline is ready
@@ -195,31 +194,16 @@ const HeroSection: React.FC = () => {
 
         <motion.div variants={itemVariants} className="relative">
           <RippleButton
-            // className="px-8 py-4 text-lg font-semibold rounded-lg"
-            // rippleColor="rgba(var(--primary-rgb), 0.4)"
-            // duration="800ms"
+            className="px-8 py-4 text-lg bg-black font-semibold rounded-lg"
             onClick={handleGetStarted}
+            rippleColor="#ADD8E6"
+            duration="2s"
           >
             Get Started
           </RippleButton>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="mt-16 animate-bounce">
-          <div className="w-6 h-10 rounded-full border-2 border-foreground/30 flex items-start justify-center p-1">
-            <motion.div
-              className="w-1 h-2 bg-foreground/60 rounded-full"
-              animate={{ y: [0, 6, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </div>
-          <p className="text-xs mt-2 text-muted-foreground">
-            Scroll to explore
-          </p>
-        </motion.div>
+        {/* Scroll indicator removed */}
       </motion.div>
     </section>
   );

@@ -3,8 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import PageTransition from "@/components/PageTransition";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
+import { FluxDock } from "@/components/FluxDock";
+import { ScrollProgress } from "@/components/magicui/scroll-progress";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,43 +47,19 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/50">
-              <div className="container flex h-14 items-center justify-between">
-                <Link
-                  href="/"
-                  className="font-bold text-xl flex items-center gap-2"
-                >
-                  <div className="relative w-6 h-6 bg-primary/20 rounded-md overflow-hidden flex items-center justify-center">
-                    <div className="absolute w-4 h-4 rounded-full bg-primary/70" />
-                  </div>
-                  <span>FluxScape</span>
-                </Link>
-                <div className="flex items-center gap-6">
-                  <nav className="hidden md:flex items-center gap-6">
-                    <Link
-                      href="/"
-                      className="text-sm font-medium transition-colors hover:text-primary"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href="/about"
-                      className="text-sm font-medium transition-colors hover:text-primary"
-                    >
-                      About
-                    </Link>
-                  </nav>
-                  <ThemeToggle />
-                </div>
-              </div>
-            </header>
+            {/* Scroll progress bar at the top of the page */}
 
             {/* Account for fixed header height */}
-            <div className="h-14"></div>
 
             <main className="flex-grow">
+              <ScrollProgress className="top-[55px]" />
               <PageTransition>{children}</PageTransition>
+              <FluxDock />
             </main>
+
+            {/* Flux dock with integrated theme toggle */}
+
+            {/* Scroll indicator that appears at the top of the page */}
 
             <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
               <div className="container flex flex-col items-center justify-center gap-4 text-center">

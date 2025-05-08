@@ -1,6 +1,7 @@
 "use client";
 
 import HeroSection from "@/components/HeroSection";
+import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 import { motion } from "framer-motion";
 import { FileCode, Globe, Layers, MessageSquare, Zap } from "lucide-react";
 
@@ -41,6 +42,7 @@ export default function HomePage() {
         </div>
       </motion.section>
 
+      <VelocityScroll>FluxScape</VelocityScroll>
       {/* Showcase Section */}
       <motion.section
         className="py-20 px-4 bg-muted"
