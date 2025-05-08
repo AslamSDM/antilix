@@ -36,7 +36,7 @@ export const RippleButton = React.forwardRef<
     const createRipple = (event: MouseEvent<HTMLButtonElement>) => {
       const button = event.currentTarget;
       const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
+      const size = Math.max(rect.width, rect.height) * 2; // Increased to ensure full coverage
       const x = event.clientX - rect.left - size / 2;
       const y = event.clientY - rect.top - size / 2;
 
@@ -47,11 +47,12 @@ export const RippleButton = React.forwardRef<
     useEffect(() => {
       if (buttonRipples.length > 0) {
         const lastRipple = buttonRipples[buttonRipples.length - 1];
+        const durationMs = parseInt(duration);
         const timeout = setTimeout(() => {
           setButtonRipples((prevRipples) =>
             prevRipples.filter((ripple) => ripple.key !== lastRipple.key),
           );
-        }, parseInt(duration));
+        }, durationMs);
         return () => clearTimeout(timeout);
       }
     }, [buttonRipples, duration]);
@@ -70,7 +71,7 @@ export const RippleButton = React.forwardRef<
         <span className="pointer-events-none absolute inset-0">
           {buttonRipples.map((ripple) => (
             <span
-              className="absolute animate-rippling rounded-full bg-background opacity-30"
+              className="absolute rounded-full animate-rippling"
               key={ripple.key}
               style={{
                 width: `${ripple.size}px`,
@@ -78,7 +79,7 @@ export const RippleButton = React.forwardRef<
                 top: `${ripple.y}px`,
                 left: `${ripple.x}px`,
                 backgroundColor: rippleColor,
-                transform: `scale(0)`,
+                opacity: "0.7", // Start with higher opacity
               }}
             />
           ))}

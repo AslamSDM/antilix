@@ -52,10 +52,21 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        rippling: {
+          "0%": { 
+            transform: "scale(0)",
+            opacity: 0.7,
+          },
+          "100%": { 
+            transform: "scale(2)",
+            opacity: 0,
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "rippling": "rippling 600ms ease-out",
       },
       ringColor: {
         'ring': 'var(--ring)'
