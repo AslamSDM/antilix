@@ -12,7 +12,7 @@ export default function HomePage() {
 
       {/* Features Section */}
       <motion.section
-        className="py-20 px-4 bg-gradient-to-b from-background to-muted"
+        className="py-20 px-4 bg-gradient-to-b from-background to-muted z-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -42,7 +42,7 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <VelocityScroll>FluxScape</VelocityScroll>
+      <VelocityScroll className="bg-secondary">FluxScape</VelocityScroll>
       {/* Showcase Section */}
       <motion.section
         className="py-20 px-4 bg-muted"

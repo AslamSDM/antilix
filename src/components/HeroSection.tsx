@@ -148,10 +148,10 @@ const HeroSection: React.FC = () => {
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
     >
       {/* Spline Scene takes full background */}
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 -z-10">
         <Spline
           scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
           onLoad={handleSplineLoad}
