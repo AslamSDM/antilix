@@ -25,7 +25,7 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     initial: {
       opacity: 0,
       y: 20,
-      filter: "blur(8px)",
+      filter: "blur(100px)",
     },
     in: {
       opacity: 1,
@@ -35,7 +35,7 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     out: {
       opacity: 0,
       y: -20,
-      filter: "blur(8px)",
+      filter: "blur(100px)",
     },
   };
 
@@ -44,7 +44,7 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     // Default transition
     const defaultTransition = {
       type: "tween",
-      ease: "easeInOut",
+      ease: "easeIn",
       duration: 0.5,
     };
 
@@ -52,7 +52,7 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
     if (path === "/" || path === "/about") {
       return {
         type: "tween",
-        ease: "easeInOut",
+        ease: "easeIn",
         duration: 0.6,
       };
     }

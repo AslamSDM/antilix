@@ -1,12 +1,28 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback, use } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  Suspense,
+} from "react";
 import { motion, useScroll } from "framer-motion";
 import { RippleButton } from "@/components/magicui/ripple-button"; // Using Magic UI ripple button
 import { Application } from "@splinetool/runtime";
 import { useRouter } from "next/navigation"; // For App Router
-import Spline from "@splinetool/react-spline";
+import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
+
+// Dynamically import Spline component to reduce initial bundle size
+const DynamicSpline = dynamic(() => import("@splinetool/react-spline"), {
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      Loading 3D scene...
+    </div>
+  ),
+  ssr: false, // Disable server-side rendering for this component
+});
 
 // Using a more advanced Spline scene URL for a better experience
 const sent =
@@ -72,7 +88,9 @@ const HeroSection: React.FC = () => {
   const handleSplineLoad = useCallback((splineApp: Application) => {
     setSplineApp(splineApp);
     splineRef.current = splineApp;
-    splineApp.setBackgroundColor("#e0f7fa");
+    splineApp.setBackgroundColor(
+      themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+    );
 
     setIsSplineReady(true);
     console.log("Spline scene loaded successfully");
@@ -143,34 +161,6 @@ const HeroSection: React.FC = () => {
     },
   };
 
-  // Background animation elements
-  const backgroundElements = Array(5)
-    .fill(0)
-    .map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-3xl"
-        style={{
-          width: `${Math.random() * 200 + 100}px`,
-          height: `${Math.random() * 200 + 100}px`,
-          top: `${Math.random() * 80}%`,
-          left: `${Math.random() * 80}%`,
-          zIndex: 1,
-        }}
-        animate={{
-          x: [0, Math.random() * 60 - 30],
-          y: [0, Math.random() * 60 - 30],
-          scale: [1, Math.random() * 0.3 + 0.8, 1],
-        }}
-        transition={{
-          duration: Math.random() * 10 + 10,
-          repeat: Infinity,
-          repeatType: "reverse",
-        }}
-      />
-    ));
-  console.log("Background elements:", scrollYProgress, scrollY);
-
   return (
     <section
       ref={heroRef}
@@ -178,7 +168,7 @@ const HeroSection: React.FC = () => {
     >
       {/* Spline Scene takes full background */}
       <div className="absolute inset-0 -z-10">
-        <Spline
+        <DynamicSpline
           className="bg-black"
           scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
           onLoad={handleSplineLoad}
@@ -187,7 +177,7 @@ const HeroSection: React.FC = () => {
 
       {/* Foreground content - positioned lower with mt-auto and bottom padding */}
       <motion.div
-        className=" z-20 flex flex-col items-center text-center max-w-4xl mx-auto mt-20 pb-16 md:pb-24"
+        className=" z-20 flex flex-col items-center text-center max-w-4xl mx-auto mt-40 pb-16 md:pb-24"
         variants={containerVariants}
         initial="hidden"
         animate={isSplineReady ? "visible" : "hidden"} // Animate text when Spline is ready
@@ -199,14 +189,14 @@ const HeroSection: React.FC = () => {
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
         >
-          <span className="inline-block py-1 px-3 rounded-full text-6xl font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm">
+          <span className="inline-block py-1 px-3 rounded-full text-6xl font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm border border-secondary/20">
             Interactive Experience
           </span>
         </motion.div>
 
         <motion.h1
           variants={itemVariants}
-          className="text-2xl font bold flex gap-1 flex-wrap md:text-xl max-w-2xl mb-8 text-foreground/80"
+          className="text-2xl font-bold flex gap-1 flex-wrap md:text-xl max-w-2xl mb-8 text-foreground drop-shadow-md dark:text-foreground/90 dark:text-shadow-sm"
           style={{
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
