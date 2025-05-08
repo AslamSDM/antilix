@@ -88,13 +88,9 @@ const AboutPage: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="w-full h-full bg-gradient-to-tr from-primary/20 via-secondary/20 to-accent/20 relative">
+          <div className="w-full h-full bg-gradient-to-tr from-primary/20 via-secondary/20 to-accent/20 relative flex items-center justify-center">
             {/* <Spline scene="https://prod.spline.design/EeG6Jz6Ywyi8BZOJ/scene.splinecode" /> */}
-            {!isSplineReady && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
+            <Rocket className="w-24 h-24 text-primary/70 animate-pulse" />
           </div>
         </motion.div>
       </section>
