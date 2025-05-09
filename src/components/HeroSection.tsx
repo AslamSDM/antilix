@@ -119,6 +119,7 @@ const HeroSection: React.FC = () => {
 
       // Adjust the scene based on screen size
       if (splineApp) {
+        console.log("Spline scene loaded");
         // Set background color based on theme
         splineApp.setBackgroundColor(
           themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
@@ -192,7 +193,7 @@ const HeroSection: React.FC = () => {
 
     // Create a ripple animation effect using a timeout
     setTimeout(() => {
-      router.push("/about");
+      router.push("/");
     }, 800); // Delay navigation to allow the Spline animation to play
   };
   useEffect(() => {
@@ -278,7 +279,7 @@ const HeroSection: React.FC = () => {
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
+      className="relative min-h-screen w-screen flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
     >
       {/* Spline Scene takes full background with responsive adjustments */}
       <div
@@ -331,13 +332,13 @@ const HeroSection: React.FC = () => {
         >
           {sent}
         </motion.h1>
-        <RippleButton
+        {/* <RippleButton
           className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           onClick={handleGetStarted}
           disabled={getStartedClicked}
         >
           Get Started
-        </RippleButton>
+        </RippleButton> */}
       </motion.div>
     </section>
   );
