@@ -122,7 +122,12 @@ const HeroSection: React.FC = () => {
         console.log("Spline scene loaded");
         // Set background color based on theme
         splineApp.setBackgroundColor(
-          themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+          themes.theme == "system" ? "#0C0F0A" : "#e0f7fa"
+        );
+        console.log(
+          "Background color set based on theme",
+          themes.theme == "system" ? "#0C0F0A" : "#e0f7fa",
+          themes.theme
         );
 
         // For small screens, adjust camera or scale
@@ -202,7 +207,7 @@ const HeroSection: React.FC = () => {
         themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
       );
     }
-  }, [themes.theme]);
+  }, [themes.theme, splineRef]);
 
   // Effect to adjust Spline when window size changes
   useEffect(() => {
