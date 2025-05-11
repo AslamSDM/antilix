@@ -15,11 +15,19 @@ import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
 // Dynamically import Spline component to reduce initial bundle size
-const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
+const DynamicSpline = dynamic(() => import("@splinetool/react-spline"), {
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  ),
+  ssr: false, // Disable server-side rendering for this component
+});
 
-// Using a more advanced Spline scene URL for a better experience
-const sent =
-  " Experience seamless Spline integration with advanced animations and interactive 3D objects. Move your mouse to interact with the scene.";
+// Text content for the hero section
+const heroTitle = "Quantum-Proof Blockchain";
+const heroDescription =
+  "Quranium is the uncrackable foundation for the digital era. Our advanced Layer 1 DLT provides unprecedented security against both classical and quantum computing attacks.";
 
 // Hook to detect screen size
 const useWindowSize = () => {
@@ -82,34 +90,34 @@ const HeroSection: React.FC = () => {
     };
   }, [scrollYProgress]);
 
-  // useEffect(() => {
-  //   const handleMouseMove = (event: MouseEvent) => {
-  //     if (heroRef.current) {
-  //       const rect = heroRef.current.getBoundingClientRect();
-  //       const x = (event.clientX - rect.left) / rect.width;
-  //       const y = (event.clientY - rect.top) / rect.height;
-  //       setMousePos({ x, y });
-  //     }
-  //   };
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        setMousePos({ x, y });
+      }
+    };
 
-  //   const handleScroll = () => {
-  //     // Get normalized scroll position for the viewport height
-  //     const scrollPosition = window.scrollY;
-  //     const maxScroll = window.innerHeight * 0.8;
-  //     const normalized = Math.min(scrollPosition / maxScroll, 1);
-  //     setScrollY(normalized);
-  //   };
+    const handleScroll = () => {
+      // Get normalized scroll position for the viewport height
+      const scrollPosition = window.scrollY;
+      const maxScroll = window.innerHeight * 0.8;
+      const normalized = Math.min(scrollPosition / maxScroll, 1);
+      setScrollY(normalized);
+    };
 
-  //   // Add event listeners
-  //   const currentHeroRef = heroRef.current;
-  //   currentHeroRef?.addEventListener("mousemove", handleMouseMove);
-  //   window.addEventListener("scroll", handleScroll);
+    // Add event listeners
+    const currentHeroRef = heroRef.current;
+    currentHeroRef?.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("scroll", handleScroll);
 
-  //   return () => {
-  //     currentHeroRef?.removeEventListener("mousemove", handleMouseMove);
-  //     window.removeEventListener("scroll", handleScroll);
-  //   };
-  // }, []);
+    return () => {
+      currentHeroRef?.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   // Handle Spline load event
   const handleSplineLoad = useCallback(
@@ -119,65 +127,26 @@ const HeroSection: React.FC = () => {
 
       // Adjust the scene based on screen size
       if (splineApp) {
-        console.log("Spline scene loaded");
-        // Set background color based on theme
+        // Set background color based on theme - dark blue/purple theme for blockchain visualization
         splineApp.setBackgroundColor(
-          themes.theme == "system" ? "#0C0F0A" : "#e0f7fa"
-        );
-        console.log(
-          "Background color set based on theme",
-          themes.theme == "system" ? "#0C0F0A" : "#e0f7fa",
-          themes.theme
+          themes.theme === "dark" ? "#090A1A" : "#F0F4FF"
         );
 
         // For small screens, adjust camera or scale
-        // if (isSmallScreen) {
-        //   try {
-        //     // Try to adjust the camera position for better viewing on small screens
-        //     const camera = splineApp.findObjectByName("Camera");
-        //     if (camera) {
-        //       // Move camera back to show more of the scene
-        //       camera.position.z += 1.5;
-
-        //       // Adjust field of view if available
-        //       if (camera.fov) {
-        //         camera.fov = Math.min(camera.fov * 1.2, 75); // Increase FOV slightly but cap it
-        //         camera.updateProjectionMatrix?.();
-        //       }
-        //     }
-
-        //     // Or scale the main scene container if camera adjustment isn't possible
-        //     const mainScene =
-        //       splineApp.findObjectByName("MainScene") ||
-        //       splineApp.findObjectByName("Scene") ||
-        //       splineApp.findObjectByType("Scene");
-
-        //     if (mainScene) {
-        //       // Scale down the scene for small screens
-        //       mainScene.scale.set(0.85, 0.85, 0.85);
-        //     }
-        //   } catch (error) {
-        //     console.error("Error adjusting Spline for small screens:", error);
-        //   }
-        // }
       }
 
       setIsSplineReady(true);
-      console.log("Spline scene loaded successfully");
     },
     [themes.theme, isSmallScreen]
   );
 
-  const handleGetStarted = (e: React.MouseEvent) => {
-    console.log("Get Started button clicked in HeroSection");
-
+  const handleExplore = (e: React.MouseEvent) => {
     setGetStartedClicked(true);
 
     // Try to trigger animation in Spline object
     if (splineRef.current) {
       try {
         // Try different events that might be set up in your Spline scene
-        // Try different rotation events
         splineRef.current.emitEvent("rotate", "start");
         splineRef.current.emitEvent("spin");
         splineRef.current.emitEvent("mousehover");
@@ -198,16 +167,17 @@ const HeroSection: React.FC = () => {
 
     // Create a ripple animation effect using a timeout
     setTimeout(() => {
-      router.push("/");
+      router.push("/about");
     }, 800); // Delay navigation to allow the Spline animation to play
   };
+
   useEffect(() => {
     if (splineRef.current) {
       splineRef.current.setBackgroundColor(
-        themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+        themes.theme === "dark" ? "#090A1A" : "#F0F4FF"
       );
     }
-  }, [themes.theme, splineRef]);
+  }, [themes.theme]);
 
   // Effect to adjust Spline when window size changes
   useEffect(() => {
@@ -215,7 +185,7 @@ const HeroSection: React.FC = () => {
       try {
         // Set background based on theme
         splineRef.current.setBackgroundColor(
-          themes.theme === "dark" ? "#0C0F0A" : "#e0f7fa"
+          themes.theme === "dark" ? "#090A1A" : "#F0F4FF"
         );
 
         // Adjust for small screens whenever window size changes
@@ -272,7 +242,6 @@ const HeroSection: React.FC = () => {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: scrollY > 0.21 ? 0 : 1,
-
       y: 0,
       transition: {
         duration: 0.8,
@@ -281,24 +250,37 @@ const HeroSection: React.FC = () => {
     },
   };
 
+  // Particle effect for the blockchain theme
+  const BlockchainParticles = () => (
+    <div className="absolute inset-0 z-0">
+      <div className="absolute w-full h-full opacity-20 mix-blend-screen">
+        <div className="absolute h-2 w-2 rounded-full bg-primary top-1/4 left-1/4 animate-pulse"></div>
+        <div className="absolute h-3 w-3 rounded-full bg-secondary top-1/3 left-1/2 animate-pulse animation-delay-700"></div>
+        <div className="absolute h-2 w-2 rounded-full bg-primary top-1/2 left-1/3 animate-pulse animation-delay-500"></div>
+        <div className="absolute h-2 w-2 rounded-full bg-primary top-2/3 left-3/4 animate-pulse animation-delay-300"></div>
+        <div className="absolute h-3 w-3 rounded-full bg-secondary top-3/4 left-1/4 animate-pulse animation-delay-1000"></div>
+      </div>
+    </div>
+  );
+
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen w-screen flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
     >
+      <BlockchainParticles />
+
       {/* Spline Scene takes full background with responsive adjustments */}
       <div
         className={`absolute inset-0 -z-10 ${
           isSmallScreen ? "scale-[1.15] translate-y-10" : ""
         }`}
       >
-        <Suspense fallback={<div>Loading...</div>}>
-          <DynamicSpline
-            className="bg-black"
-            scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
-            onLoad={handleSplineLoad}
-          />
-        </Suspense>
+        <DynamicSpline
+          className="bg-black"
+          scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+          onLoad={handleSplineLoad}
+        />
       </div>
 
       {/* Foreground content - position adjusted for small screens */}
@@ -312,7 +294,7 @@ const HeroSection: React.FC = () => {
       >
         <motion.div
           variants={itemVariants}
-          className="mb-2"
+          className="mb-4"
           style={{
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
@@ -322,7 +304,7 @@ const HeroSection: React.FC = () => {
               isSmallScreen ? "text-4xl" : "text-6xl"
             } font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm border border-secondary/20`}
           >
-            Interactive Experience
+            {heroTitle}
           </span>
         </motion.div>
 
@@ -330,20 +312,45 @@ const HeroSection: React.FC = () => {
           variants={itemVariants}
           className={`${
             isSmallScreen ? "text-lg" : "text-2xl md:text-xl"
-          } font-bold flex gap-1 flex-wrap max-w-2xl mb-8 text-foreground drop-shadow-md dark:text-foreground/90 dark:text-shadow-sm`}
+          } font-bold flex flex-wrap max-w-2xl mb-8 text-foreground drop-shadow-md dark:text-foreground/90 dark:text-shadow-sm`}
           style={{
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
         >
-          {sent}
+          <span ref={sentRef}>{heroDescription}</span>
         </motion.h1>
-        {/* <RippleButton
-          className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          onClick={handleGetStarted}
-          disabled={getStartedClicked}
+
+        {/* <motion.div variants={itemVariants}>
+          <Button>
+            <RippleButton
+              className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              onClick={handleExplore}
+              disabled={getStartedClicked}
+            >
+              Explore Quranium
+            </RippleButton>
+          </Button>
+        </motion.div> */}
+
+        {/* Security badges */}
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-wrap justify-center gap-4 mt-8"
+          style={{ opacity: scrollY > 0.19 ? 0 : 1 }}
         >
-          Get Started
-        </RippleButton> */}
+          <div className="flex items-center bg-background/30 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
+            <span className="h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
+            <span className="text-xs font-medium">Quantum-Resistant</span>
+          </div>
+          <div className="flex items-center bg-background/30 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
+            <span className="h-2 w-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+            <span className="text-xs font-medium">Energy Efficient</span>
+          </div>
+          <div className="flex items-center bg-background/30 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
+            <span className="h-2 w-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+            <span className="text-xs font-medium">Layer 1 DLT</span>
+          </div>
+        </motion.div>
       </motion.div>
     </section>
   );

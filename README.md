@@ -1,25 +1,26 @@
-# FluxScape
+# Quranium
 
-FluxScape is a modern, interactive web application built with Next.js that showcases stunning 3D experiences using Spline. The project features a sleek UI with interactive components, smooth transitions, and dynamic themes.
+**The Uncrackable Foundation for the Digital Era**
 
-## ✨ Features
+Quranium is the future of digital security - Quantum-proof, Layer 1 DLT for the next generation. In a world where no other blockchain infrastructure can truly stand against today's and tomorrow's threats, Quranium is changing this with its truly uncrackable decentralized infrastructure.
 
-- **Interactive 3D Experiences** - Powered by Spline for immersive 3D content
-- **Responsive Design** - Optimized for all device sizes
-- **Dark/Light Mode** - Seamless theme switching with persistent user preference
-- **Modern UI Components** - Custom Magic UI components with animations and special effects
-- **Page Transitions** - Smooth transitions between pages
-- **Dock Component** - macOS-inspired dock for navigation
+## ✨ Key Features
 
-## 🚀 Tech Stack
+- **Quantum-Proof Security** - Built to withstand both classical and quantum computing attacks
+- **Layer 1 DLT** - Core decentralized ledger technology designed for maximum security and efficiency
+- **Future-Proof Infrastructure** - Designed for longevity in the evolving digital landscape
+- **Seamless Integration** - Compatible with existing and emerging blockchain ecosystems
+- **Scalable Architecture** - Handles growing transaction volumes without compromising security
+- **Energy Efficient** - Sustainable consensus mechanism with minimal environmental impact
 
-- [Next.js 15](https://nextjs.org/) - React framework with App Router
-- [TypeScript](https://www.typescriptlang.org/) - Type safety for JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [Framer Motion](https://www.framer.com/motion/) - Animation library for React
-- [Spline](https://spline.design/) - 3D design tool for the web
-- [shadcn/ui](https://ui.shadcn.com/) - Re-usable UI components
-- [next-themes](https://github.com/pacocoursey/next-themes) - Theme management for Next.js
+## 🚀 Technology
+
+- **Advanced Cryptography** - Utilizing post-quantum cryptographic algorithms
+- **Distributed Ledger** - Immutable and transparent transaction record
+- **Smart Contracts** - Secure and efficient execution of programmable transactions
+- **Consensus Mechanism** - Innovative approach to reaching network agreement
+- **Cross-Chain Compatibility** - Interoperability with other blockchain networks
+- **Developer-Friendly APIs** - Easy integration for developers and enterprises
 
 ## 🛠️ Getting Started
 
@@ -31,12 +32,14 @@ FluxScape is a modern, interactive web application built with Next.js that showc
 ### Installation
 
 1. Clone the repository
+
 ```bash
-git clone https://github.com/yourusername/fluxscape.git
-cd fluxscape
+git clone https://github.com/yourusername/quranium.git
+cd quranium
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 # or
@@ -44,84 +47,41 @@ yarn install
 ```
 
 3. Run the development server
+
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to explore Quranium
 
-## 📁 Project Structure
+## 📊 Use Cases
 
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── page.tsx         # Home page
-│   ├── about/           # About page
-│   └── layout.tsx       # Root layout
-├── components/          # React components
-│   ├── HeroSection.tsx  # Hero section with Spline integration
-│   ├── FluxDock.tsx     # Custom dock component
-│   ├── magic-ui/        # Magic UI components
-│   ├── magicui/         # Special effect components
-│   ├── providers/       # Context providers
-│   └── ui/              # UI components
-└── lib/                 # Utility functions
-```
+- **Financial Institutions** - Secure transaction processing resistant to future cryptographic threats
+- **Government Services** - Data protection for sensitive public sector information
+- **Healthcare** - Protecting patient data with unbreakable encryption
+- **Supply Chain** - Immutable record-keeping for global logistics
+- **Digital Identity** - Self-sovereign identity solutions that will stand the test of time
+- **IoT Security** - Protecting the growing network of connected devices
 
-## 🎨 Magic UI Components
+## 🔒 Security First Approach
 
-FluxScape includes several Magic UI components that add visual flair to the application:
+Quranium's architecture has been designed from the ground up with security as the primary concern:
 
-- **Ripple Button** - Buttons with ripple effects
-- **Shimmer Button** - Buttons with shimmer animations
-- **Text Animate** - Animated text components
-- **Dock** - Custom floating dock component
-- **Scroll Progress** - Visual indication of scroll position
-- **Confetti** - Celebration effects
+- **Post-Quantum Cryptography** - Resistant to attacks from quantum computers
+- **Zero-Knowledge Proofs** - Privacy-preserving transaction validation
+- **Formal Verification** - Mathematically proven security guarantees
+- **Regular Security Audits** - Continuous testing by leading cybersecurity firms
 
-## 🌙 Theming
+## 🌐 The Future of Blockchain
 
-FluxScape supports both light and dark modes. The theme is automatically detected from your system preferences but can be manually toggled using the theme switcher in the dock.
-
-## 📱 Responsive Design
-
-The application is fully responsive and optimized for all screen sizes, from mobile to desktop.
-
-## 🔧 Build for Production
-
-```bash
-npm run build
-# or
-yarn build
-```
-
-After building, you can preview the production build with:
-
-```bash
-npm run start
-# or
-yarn start
-```
-
-## 🚢 Deployment
-
-The easiest way to deploy FluxScape is using the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.
-
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+As traditional cryptography becomes vulnerable to advancing quantum computing, Quranium stands as the only truly future-proof solution in the blockchain space. Our technology represents not just an improvement on existing systems, but a fundamental rethinking of what secure distributed ledger technology can be.
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
-
-- [Spline](https://spline.design/) for the 3D design capabilities
-- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
-- [Next.js](https://nextjs.org/) team for the amazing framework
-- All the open-source libraries and tools that made this project possible
-
 ---
 
-Created with ❤️ by Your Name - May 2025
+© 2025 Quranium Foundation - Securing the digital future
