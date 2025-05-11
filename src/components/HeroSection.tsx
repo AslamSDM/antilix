@@ -14,15 +14,15 @@ import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
-// Dynamically import Spline component to reduce initial bundle size
-const DynamicSpline = dynamic(() => import("@splinetool/react-spline"), {
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  ),
-  ssr: false, // Disable server-side rendering for this component
-});
+// Lazy load Spline component using React.lazy instead of Next.js dynamic import
+const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
+
+// Fallback component for when Spline is loading
+const SplineLoadingFallback = () => (
+  <div className="w-full h-full flex items-center justify-center">
+    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 // Text content for the hero section
 const heroTitle = "Quantum-Proof Blockchain";
