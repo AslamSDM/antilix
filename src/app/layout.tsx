@@ -7,7 +7,6 @@ import Link from "next/link";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Inter } from "next/font/google";
-import { Header } from "@/components/Header";
 import { QuraniumLogo } from "@/components/QuraniumLogo";
 
 const geistSans = Inter({
@@ -50,11 +49,13 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
-            {/* Header with Quranium logo in the top corner */}
+            {/* Floating logo positioned absolutely */}
+            <div className="fixed top-6 left-6 z-50">
+              <QuraniumLogo />
+            </div>
 
-            <main className="flex-grow pt-[var(--header-height)]">
+            <main className="flex-grow">
               <ScrollProgress />
-              {/* <QuraniumLogo className="z-50" /> */}
               <PageTransition>{children}</PageTransition>
               <FluxDock />
             </main>

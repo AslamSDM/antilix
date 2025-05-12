@@ -90,35 +90,6 @@ const HeroSection: React.FC = () => {
     };
   }, [scrollYProgress]);
 
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        setMousePos({ x, y });
-      }
-    };
-
-    const handleScroll = () => {
-      // Get normalized scroll position for the viewport height
-      const scrollPosition = window.scrollY;
-      const maxScroll = window.innerHeight * 0.8;
-      const normalized = Math.min(scrollPosition / maxScroll, 1);
-      setScrollY(normalized);
-    };
-
-    // Add event listeners
-    const currentHeroRef = heroRef.current;
-    currentHeroRef?.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      currentHeroRef?.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
   // Handle Spline load event
   const handleSplineLoad = useCallback(
     (splineApp: Application) => {
@@ -139,37 +110,6 @@ const HeroSection: React.FC = () => {
     },
     [themes.theme, isSmallScreen]
   );
-
-  const handleExplore = (e: React.MouseEvent) => {
-    setGetStartedClicked(true);
-
-    // Try to trigger animation in Spline object
-    if (splineRef.current) {
-      try {
-        // Try different events that might be set up in your Spline scene
-        splineRef.current.emitEvent("rotate", "start");
-        splineRef.current.emitEvent("spin");
-        splineRef.current.emitEvent("mousehover");
-
-        // Apply direct rotation manipulation if possible
-        const targetObject = splineRef.current.findObjectByName("MainObject");
-        if (targetObject) {
-          targetObject.rotation.y += Math.PI; // 180-degree rotation
-          targetObject.rotation.x += Math.PI / 4; // 45-degree tilt
-        }
-
-        // Alternatively try animation sequence
-        splineRef.current.emitEventReverse("rotate");
-      } catch (error) {
-        console.error("Failed to emit event to Spline:", error);
-      }
-    }
-
-    // Create a ripple animation effect using a timeout
-    setTimeout(() => {
-      router.push("/about");
-    }, 800); // Delay navigation to allow the Spline animation to play
-  };
 
   useEffect(() => {
     if (splineRef.current) {
@@ -329,7 +269,7 @@ const HeroSection: React.FC = () => {
         {/* <motion.div variants={itemVariants}>
           <Button>
             <RippleButton
-              className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 transitioœn-colors"
               onClick={handleExplore}
               disabled={getStartedClicked}
             >
