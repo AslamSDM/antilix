@@ -7,6 +7,8 @@ import Link from "next/link";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Inter } from "next/font/google";
+import { Header } from "@/components/Header";
+import { QuraniumLogo } from "@/components/QuraniumLogo";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -19,14 +21,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FluxScape - 3D Web Experiences",
-  description: "Interactive 3D web experiences with Next.js and Spline",
+  title: "Quranium",
+  description: "Quantum-proof blockchain technology with advanced security",
   keywords: [
-    "3D web",
-    "Next.js",
-    "Spline",
-    "Interactive design",
-    "Web animations",
+    "Quantum-proof blockchain",
+    "Blockchain security",
+    "Quranium",
+    "Distributed ledger",
+    "Post-quantum cryptography",
   ],
 };
 
@@ -48,19 +50,14 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
-            {/* Scroll progress bar at the top of the page */}
+            {/* Header with Quranium logo in the top corner */}
 
-            {/* Account for fixed header height */}
-
-            <main className="flex-grow">
+            <main className="flex-grow pt-[var(--header-height)]">
               <ScrollProgress />
+              {/* <QuraniumLogo className="z-50" /> */}
               <PageTransition>{children}</PageTransition>
               <FluxDock />
             </main>
-
-            {/* Flux dock with integrated theme toggle */}
-
-            {/* Scroll indicator that appears at the top of the page */}
 
             <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
               <div className="container flex flex-col items-center justify-center gap-4 text-center">
@@ -80,7 +77,7 @@ export default function RootLayout({
                   </Link>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  &copy; {new Date().getFullYear()} FluxScape. All rights
+                  &copy; {new Date().getFullYear()} Quranium. All rights
                   reserved.
                   <br />
                   <span className="text-xs">
