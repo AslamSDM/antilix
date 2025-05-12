@@ -272,18 +272,26 @@ const HeroSection: React.FC = () => {
 
       {/* Spline Scene takes full background with responsive adjustments */}
       <div
-        className={`absolute inset-0 -z-10 ${
+        className={`absolute inset-0 -z-10 flex items-center justify-center w-full h-full ${
           isSmallScreen ? "scale-[1.15] translate-y-10" : ""
         }`}
+        style={{
+          left: "50%",
+          transform: `translateX(-50%) ${
+            isSmallScreen ? "scale(1.15) translateY(10px)" : ""
+          }`,
+        }}
       >
-        <DynamicSpline
-          className="bg-black"
-          scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
-          onLoad={handleSplineLoad}
-        />
+        <Suspense fallback={<SplineLoadingFallback />}>
+          <DynamicSpline
+            // scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+            scene="https://prod.spline.design/TzS95U5C42rKjFN4/scene.splinecode"
+            onLoad={handleSplineLoad}
+          />
+        </Suspense>
       </div>
       <motion.div
-        className={`z-20 flex flex-col items-center text-center max-w-4xl mx-auto ${
+        className={`z-[-10]flex flex-col items-center text-center max-w-4xl mx-auto ${
           isSmallScreen ? "mt-24 pb-12" : "mt-40 pb-16 md:pb-24"
         }`}
         variants={containerVariants}
@@ -292,7 +300,7 @@ const HeroSection: React.FC = () => {
       >
         <motion.div
           variants={itemVariants}
-          className="mb-4"
+          className="mb-4 -mt-10`"
           style={{
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
@@ -300,7 +308,7 @@ const HeroSection: React.FC = () => {
           <span
             className={`inline-block py-1 px-3 rounded-full ${
               isSmallScreen ? "text-4xl" : "text-6xl"
-            } font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm border border-secondary/20`}
+            } font-bold bg-secondary/30 text-secondary-foreground backdrop-blur-sm border border-secondary/20 `}
           >
             {heroTitle}
           </span>
@@ -310,7 +318,7 @@ const HeroSection: React.FC = () => {
           variants={itemVariants}
           className={`${
             isSmallScreen ? "text-lg" : "text-2xl md:text-xl"
-          } font-bold flex flex-wrap max-w-2xl mb-8 text-foreground drop-shadow-md dark:text-foreground/90 dark:text-shadow-sm`}
+          } font-bold flex flex-wrap max-w-2xl mb-8 text-foreground drop-shadow-md dark:text-foreground/90 dark:text-shadow-sm `}
           style={{
             opacity: scrollY > 0.19 ? 0 : 1,
           }}
@@ -333,7 +341,7 @@ const HeroSection: React.FC = () => {
         {/* Security badges */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-wrap justify-center gap-4 -mt-10"
+          className="flex flex-wrap justify-center gap-4 -mt-1"
           style={{ opacity: scrollY > 0.19 ? 0 : 1 }}
         >
           <div className="flex items-center bg-background/30 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">

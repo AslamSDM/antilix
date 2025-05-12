@@ -46,7 +46,7 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <div className="min-h-screen flex flex-col bg-background text-foreground">
             {/* Scroll progress bar at the top of the page */}
 
