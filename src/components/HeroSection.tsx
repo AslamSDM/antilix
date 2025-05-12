@@ -268,7 +268,7 @@ const HeroSection: React.FC = () => {
       ref={heroRef}
       className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
     >
-      <BlockchainParticles />
+      {/* <BlockchainParticles /> */}
 
       {/* Spline Scene takes full background with responsive adjustments */}
       <div
@@ -282,8 +282,6 @@ const HeroSection: React.FC = () => {
           onLoad={handleSplineLoad}
         />
       </div>
-
-      {/* Foreground content - position adjusted for small screens */}
       <motion.div
         className={`z-20 flex flex-col items-center text-center max-w-4xl mx-auto ${
           isSmallScreen ? "mt-24 pb-12" : "mt-40 pb-16 md:pb-24"
@@ -335,7 +333,7 @@ const HeroSection: React.FC = () => {
         {/* Security badges */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-wrap justify-center gap-4 mt-8"
+          className="flex flex-wrap justify-center gap-4 -mt-10"
           style={{ opacity: scrollY > 0.19 ? 0 : 1 }}
         >
           <div className="flex items-center bg-background/30 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
@@ -352,6 +350,7 @@ const HeroSection: React.FC = () => {
           </div>
         </motion.div>
       </motion.div>
+      {/* Foreground content - position adjusted for small screens */}
     </section>
   );
 };
