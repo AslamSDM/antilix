@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Diamond } from "lucide-react";
 
-interface AntilixhLogoProps {
+interface AntilixLogoProps {
   className?: string;
 }
 
-export function AntilixhLogo({ className }: AntilixhLogoProps) {
+export function AntilixLogo({ className }: AntilixLogoProps) {
   const { theme } = useTheme();
   const textColor = theme === "light" ? "#232028" : "#ffffff";
 

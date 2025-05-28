@@ -111,7 +111,7 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <VelocityScroll className="bg-secondary">ANTILIXH</VelocityScroll>
+      <VelocityScroll className="bg-secondary">ANTILIX</VelocityScroll>
       {/* Security Section */}
       <motion.section
         className="py-20 px-4 bg-gradient-to-b from-muted/80 via-muted to-background/90 relative overflow-hidden"
@@ -164,7 +164,7 @@ export default function HomePage() {
                   Luxury Gaming Experience
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  ANTILIXH delivers a premium web3 gaming platform that combines
+                  ANTILIX delivers a premium web3 gaming platform that combines
                   cutting-edge blockchain technology with elegant game design.
                   Our platform offers unparalleled transparency, fairness, and
                   excitement for sophisticated players who demand the best.
@@ -293,7 +293,7 @@ export default function HomePage() {
                 duration={1000}
                 startOnView={true}
               >
-                Join the ANTILIXH Presale
+                Join the ANTILIX Presale
               </HyperText>
             </div>
           </ScrollAnimationWrapper>
@@ -307,7 +307,7 @@ export default function HomePage() {
           </ScrollAnimationWrapper>
 
           <ScrollAnimationWrapper delay={400}>
-            <Link href={"/about"}>
+            <Link href={"/presale"}>
               <div className="relative inline-block">
                 <RainbowButton>
                   <ChevronRight className="w-5 h-5" />
@@ -356,7 +356,7 @@ function FeatureCard({
         title={title}
         icon={randomIcon as any}
         iconPosition="tr"
-        decorativeText="ANTILIXH"
+        decorativeText="ANTILIX"
         className="h-full"
       >
         <div className="mb-6 mt-2">{icon}</div>

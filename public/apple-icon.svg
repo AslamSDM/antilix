@@ -1,0 +1,6 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" fill="#111111"/>
+  <!-- Diamond Icon - Centered -->
+  <path d="M90 30L130 90L90 150L50 90L90 30Z" fill="#D4AF37" stroke="#D4AF37" stroke-width="3"/>
+  <path d="M90 50L120 90L90 130L60 90L90 50Z" fill="#FFFFFF" stroke="#D4AF37" stroke-width="1"/>
+</svg>

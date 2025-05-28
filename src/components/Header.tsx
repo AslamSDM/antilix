@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { DecorativeIcon } from "./DecorativeElements";
+import { WalletConnectButton } from "./WalletConnectButton";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/presale", label: "Presale" },
-  { href: "/about", label: "About" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export function Header() {
@@ -70,7 +71,10 @@ export function Header() {
             </Link>
           ))}
           <div className="h-5 w-px bg-white/20" />
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <WalletConnectButton />
+            {/* <ThemeToggle /> */}
+          </div>
         </nav>
 
         {/* Mobile Navigation Button */}
@@ -119,6 +123,10 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+
+            <div className="pt-2 border-t border-primary/10">
+              <WalletConnectButton className="w-full mt-2" />
+            </div>
           </div>
         </div>
       </motion.div>

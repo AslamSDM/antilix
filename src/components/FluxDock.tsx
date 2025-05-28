@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Info } from "lucide-react";
+import { Home, User, Sparkle } from "lucide-react";
 import { Dock, DockIcon } from "@/components/magicui/dock";
 import { DockThemeToggle } from "./DockThemeToggle";
 
@@ -26,19 +26,31 @@ export function FluxDock() {
           </div>
         </DockIcon>
       </Link>
-      <Link href="/about" className="block">
+      <Link href="/presale" className="block">
         <DockIcon
           className={`flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3 `}
         >
           <div className="flex flex-col items-center justify-center p-2">
-            <Info size={28} strokeWidth={1.5} />
-            {/* <span className="text-xs mt-2 opacity-90 font-medium">About</span> */}
+            <Sparkle size={28} strokeWidth={1.5} />
+            {/* <span className="text-xs mt-2 opacity-90 font-medium">Profile</span> */}
           </div>
         </DockIcon>
       </Link>
-      <DockIcon className="flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3">
+
+      <Link href="/profile" className="block">
+        <DockIcon
+          className={`flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3 `}
+        >
+          <div className="flex flex-col items-center justify-center p-2">
+            <User size={28} strokeWidth={1.5} />
+            {/* <span className="text-xs mt-2 opacity-90 font-medium">Profile</span> */}
+          </div>
+        </DockIcon>
+      </Link>
+
+      {/* <DockIcon className="flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3">
         <DockThemeToggle />
-      </DockIcon>
+      </DockIcon> */}
     </Dock>
   );
 }

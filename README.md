@@ -29,6 +29,29 @@ Quranium is the future of digital security - Quantum-proof, Layer 1 DLT for the 
 - Node.js 18.x or higher
 - npm or yarn
 
+## 🖼️ Favicons and Icons
+
+The project uses a combination of approaches to handle favicons:
+
+1. **Dynamic icons**: Using Next.js App Router's built-in support via `icon.tsx` and `apple-icon.tsx`
+2. **SVG favicons**: Modern browsers support SVG favicons directly with `/public/favicon.svg`
+3. **ICO favicons**: A basic favicon.ico is provided for older browsers
+
+### Generating production-quality favicons
+
+For production deployment, it's recommended to generate a proper favicon.ico file:
+
+1. Visit [favicon.io](https://favicon.io/) or a similar service
+2. Upload the project logo or use the existing SVG as a source
+3. Download the generated favicon package
+4. Replace the placeholder favicon.ico in the public directory
+
+You can also run this script to create a basic favicon from the SVG:
+
+```bash
+node scripts/create-simple-favicon.js
+```
+
 ### Installation
 
 1. Clone the repository

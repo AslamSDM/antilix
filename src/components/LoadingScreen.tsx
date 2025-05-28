@@ -70,7 +70,7 @@ const LoadingScreen: React.FC = () => {
         {/* Loading text */}
         <div className="text-center mt-24">
           <h2 className="text-3xl font-display text-primary animate-pulse">
-            ANTILIXH
+            ANTILIX
           </h2>
           <div className="h-8 mt-3">
             <p

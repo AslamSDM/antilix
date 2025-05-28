@@ -17,6 +17,9 @@ import { Button } from "./ui/button";
 import { ChevronRight } from "lucide-react";
 import { useLoading } from "./providers/loading-provider";
 import { HyperText } from "@/components/magicui/hyper-text";
+import { TextAnimate } from "./magicui/text-animate";
+import { InteractiveGridPattern } from "./magicui/interactive-grid-pattern";
+import { cn } from "@/lib/utils";
 
 // Lazy load Spline component using React.lazy instead of Next.js dynamic import
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
@@ -24,7 +27,7 @@ const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 // Text content for the hero section
 const heroTitle = "Premium Web3 Gaming";
 const heroDescription =
-  "ANTILIXH combines luxury casino experiences with cutting-edge blockchain technology. Join our presale to secure early access to the most exclusive web3 gaming platform.";
+  "ANTILIX combines luxury casino experiences with cutting-edge blockchain technology. Join our presale to secure early access to the most exclusive web3 gaming platform.";
 
 // Hook to detect screen size
 const useWindowSize = () => {
@@ -67,12 +70,30 @@ const HeroSection: React.FC = () => {
   const splineRef = useRef<any>(null);
   const sentRef = useRef<HTMLParagraphElement>(null);
   const router = useRouter();
-  const { scrollYProgress } = useScroll({
-    target: sentRef,
-    offset: ["start 0.5", "end 0.5"],
-  });
+  const { scrollYProgress } = useScroll();
   const themes = useTheme();
   const windowSize = useWindowSize();
+
+  // Track scroll position to hide hero section with improved sensitivity
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      // Convert to a value between 0 and 1 for opacity control
+      // Hide section completely after scrolling ~5% of the viewport height for faster disappearing
+      const scrollFactor = Math.min(
+        scrollPosition / (window.innerHeight * 0.05),
+        1
+      );
+      setScrollY(scrollFactor);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Initial call to ensure proper state on mount
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Determine if screen is small
   const isSmallScreen = windowSize.width < 768;
@@ -110,11 +131,11 @@ const HeroSection: React.FC = () => {
     [themes.theme, isSmallScreen, setProgress, completeLoading]
   );
 
-  // Enhanced animation variants
+  // Enhanced animation variants with scroll-based opacity
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
-      opacity: scrollY > 0.21 ? 0 : 1,
+      opacity: 1,
       transition: {
         staggerChildren: 0.2,
         delayChildren: 0.3,
@@ -125,7 +146,7 @@ const HeroSection: React.FC = () => {
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: {
-      opacity: scrollY > 0.21 ? 0 : 1,
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.8,
@@ -135,117 +156,123 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section
-      ref={heroRef}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background text-foreground p-4 md:p-8 sticky top-0 z-[-10]"
-    >
-      {/* <BlockchainParticles /> */}
-
-      {/* Spline Scene takes full background with responsive adjustments */}
-      <div
-        className={`absolute inset-0 -z-10 flex items-center justify-center w-full h-full ${
-          isSmallScreen ? "scale-[1.15] translate-y-10" : ""
-        }`}
+    <>
+      <section
+        ref={heroRef}
+        className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-background/60 backdrop-blur-sm text-foreground p-4 md:p-8 sticky top-0"
         style={{
-          left: "50%",
-          transform: `translateX(-50%) ${
-            isSmallScreen ? "scale(1.15) translateY(10px)" : ""
-          }`,
-          opacity: isSplineReady ? 1 : 0, // Hide until loaded
-          transition: "opacity 0.5s ease-in-out",
+          opacity: 1 - scrollY, // Fade out entire section based on scroll
+          transition: "opacity 0.2s ease-out, transform 0.2s ease-out",
+          visibility: scrollY >= 0.99 ? "hidden" : "visible", // Complete hide when fully scrolled
+          pointerEvents: scrollY >= 0.5 ? "none" : "auto", // Disable interactions when fading
+          zIndex: scrollY >= 0.5 ? -100 : 10, // Keep above the grid pattern when visible
+          transform: `translateY(${scrollY * -50}px)`, // Slight move up effect while disappearing
+          position: scrollY >= 0.99 ? "absolute" : "sticky", // Change to absolute when hidden to not interfere with scrolling
+          height: scrollY >= 0.99 ? "0" : "100vh", // Collapse height when fully hidden
         }}
       >
-        <Suspense fallback={<></>}>
-          <DynamicSpline
-            // scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
-            // scene="https://prod.spline.design/TzS95U5C42rKjFN4/scene.splinecode"
-            // scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode" // rotating logo
-            // scene="https://prod.spline.design/BBw6Kuk4CCjKtUve/scene.splinecode" // dna
-            scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
-            onLoad={handleSplineLoad}
-          />
-        </Suspense>
-      </div>
-      <motion.div
-        className={`z-10 relative ${
-          isSmallScreen ? "mt-24 pb-12 px-3" : "mt-40 pb-16 md:pb-24 px-5"
-        }`}
-        variants={containerVariants}
-        initial="hidden"
-        animate={isSplineReady ? "visible" : "hidden"} // Animate text when Spline is ready
-      >
+        {/* <BlockchainParticles /> */}
+
+        {/* Spline Scene takes full background with responsive adjustments */}
         <div
-          className="hero-glass-card mx-auto max-w-4xl"
+          className={`absolute inset-0 -z-10 flex items-center justify-center w-full h-full ${
+            isSmallScreen ? "scale-[1.15] translate-y-10" : ""
+          }`}
           style={{
-            transform: `perspective(1000px) rotateX(${
-              (mousePos.y * 2 - 1) * 1.5
-            }deg) rotateY(${(mousePos.x * 2 - 1) * 1.5}deg)`,
-            transition: "transform 0.5s ease-out",
+            left: "50%",
+            transform: `translateX(-50%) ${
+              isSmallScreen ? "scale(1.15) translateY(10px)" : ""
+            }`,
+            opacity: isSplineReady ? 1 - scrollY * 1.5 : 0, // Hide when scrolling and until loaded
+            transition: "opacity 0.5s ease-in-out",
+            visibility: scrollY >= 0.7 ? "hidden" : "visible", // Complete hide when significantly scrolled
           }}
         >
-          <div className="cut-corner-border"></div>
-          <div className="flex flex-col items-center text-center">
-            <motion.div
-              variants={itemVariants}
-              className="mb-8 -mt-4 pt-2"
-              style={{ opacity: scrollY > 0.19 ? 0 : 1 }}
-            >
-              <HyperText
-                className={`inline-block py-2 px-4 ${
-                  isSmallScreen ? "text-4xl" : "text-6xl"
-                } font-bold text-secondary-foreground font-display`}
-                duration={1200}
-                startOnView={true}
-                animateOnHover={true}
+          <Suspense fallback={<></>}>
+            <DynamicSpline
+              // scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+              // scene="https://prod.spline.design/TzS95U5C42rKjFN4/scene.splinecode"
+              // scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode" // rotating logo
+              // scene="https://prod.spline.design/BBw6Kuk4CCjKtUve/scene.splinecode" // dna
+              scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
+              onLoad={handleSplineLoad}
+            />
+          </Suspense>
+        </div>
+        <motion.div
+          className={`z-10 relative  w-[98%] md:w-[85%] lg:w-[75%]  h-[80vh] flex items-center justify-center ${
+            isSmallScreen ? "mt-24 pb-12 px-3" : "mt-40 pb-16 md:pb-24 px-5"
+          }`}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isSplineReady ? "visible" : "hidden"} // Always animate when Spline is ready
+          style={{
+            opacity: 1 - scrollY * 3, // Fade out even faster than the main section
+            transform: `translateY(${scrollY * -30}px)`, // Slight float effect while disappearing
+          }}
+        >
+          <div
+            className="hero-glass-card mx-auto w-full h-full flex items-center justify-center"
+            style={{
+              transform: `perspective(1000px) rotateX(${
+                (mousePos.y * 2 - 1) * 1.5
+              }deg) rotateY(${(mousePos.x * 2 - 1) * 1.5}deg)`,
+              transition: "transform 0.5s ease-out",
+            }}
+          >
+            <div className="cut-corner-border"></div>
+            <div className="flex flex-col items-center text-center">
+              <motion.div variants={itemVariants} className="mb-8 -mt-4 pt-2">
+                <HyperText
+                  className={`inline-block py-2 px-4 ${
+                    isSmallScreen ? "text-4xl" : "text-6xl"
+                  } font-bold text-secondary-foreground font-display`}
+                  duration={1200}
+                  startOnView={true}
+                  animateOnHover={true}
+                >
+                  {heroTitle}
+                </HyperText>
+              </motion.div>
+
+              <motion.div
+                variants={itemVariants}
+                className={`${
+                  isSmallScreen ? "text-lg" : "text-xl md:text-xl"
+                } flex flex-wrap max-w-3xl mb-10 px-6 text-foreground/90 dark:text-foreground/85 dark:text-shadow-sm leading-relaxed`}
               >
-                {heroTitle}
-              </HyperText>
-            </motion.div>
+                <p ref={sentRef} className="font-medium">
+                  {heroDescription}
+                </p>
+              </motion.div>
 
-            <motion.div
-              variants={itemVariants}
-              className={`${
-                isSmallScreen ? "text-lg" : "text-xl md:text-xl"
-              } flex flex-wrap max-w-3xl mb-10 px-6 text-foreground/90 dark:text-foreground/85 dark:text-shadow-sm leading-relaxed`}
-              style={{
-                opacity: scrollY > 0.19 ? 0 : 1,
-              }}
-            >
-              <p ref={sentRef} className="font-medium">
-                {heroDescription}
-              </p>
-            </motion.div>
-
-            {/* <motion.div variants={itemVariants}>
+              {/* <motion.div variants={itemVariants}>
               <Button>
                 <RippleButton
                   className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   onClick={handleExplore}
                   disabled={getStartedClicked}
                 >
-                  Join ANTILIXH Presale
+                  Join ANTILIX Presale
                 </RippleButton>
               </Button>
             </motion.div> */}
 
-            {/* Security badges */}
-            <motion.div
-              variants={itemVariants}
-              className="mb-4 mt-2"
-              style={{ opacity: scrollY > 0.19 ? 0 : 1 }}
-            >
-              <Link href="/presale">
-                <button className="px-8 py-3.5 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-md hover:from-primary hover:to-primary/90 transition-all duration-300 font-medium flex items-center mx-auto shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1">
-                  <span className="mr-2 text-base">Join Presale</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </Link>
-            </motion.div>
+              {/* Security badges */}
+              <motion.div variants={itemVariants} className="mb-4 mt-2">
+                <Link href="/presale">
+                  <button className="px-8 py-3.5 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-md hover:from-primary hover:to-primary/90 transition-all duration-300 font-medium flex items-center mx-auto shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1">
+                    <span className="mr-2 text-base">Join Presale</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </Link>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </motion.div>
-      {/* Foreground content - position adjusted for small screens */}
-    </section>
+        </motion.div>
+        {/* Foreground content - position adjusted for small screens */}
+      </section>
+    </>
   );
 };
 

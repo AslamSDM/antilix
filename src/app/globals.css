@@ -387,6 +387,7 @@
     from {
       transform: rotate(0deg);
     }
+
     to {
       transform: rotate(-360deg);
     }
@@ -447,7 +448,7 @@ html, body {
   }
 }
 
-/* Custom ANTILIXH Styles */
+/* Custom ANTILIX Styles */
 @layer components {
   /* Luxury Card with cut corners (1st and 3rd) */
   .luxury-card {
@@ -588,6 +589,31 @@ html, body {
     position: absolute;
     inset: 0;
     z-index: 5;
+    pointer-events: none;
+  }
+  
+  /* Grid pattern animations */
+  .grid-pattern-container {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .grid-background-animate {
+    animation: grid-pulse 10s ease-in-out infinite;
+  }
+  
+  @keyframes grid-pulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.3; }
+  }
+  
+  .grid-pattern-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 20%, rgba(0, 0, 0, 0.8) 100%);
     pointer-events: none;
   }
 }
