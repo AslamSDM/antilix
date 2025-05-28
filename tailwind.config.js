@@ -2,12 +2,15 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ["var(--font-display)", "serif"],
+      },
       colors: {
         border: "var(--border)",
         input: "var(--input)",
@@ -53,11 +56,11 @@ module.exports = {
           to: { height: 0 },
         },
         rippling: {
-          "0%": { 
+          "0%": {
             transform: "scale(0)",
             opacity: 0.7,
           },
-          "100%": { 
+          "100%": {
             transform: "scale(2)",
             opacity: 0,
           },
@@ -66,18 +69,18 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "rippling": "rippling 600ms ease-out",
+        rippling: "rippling 600ms ease-out",
       },
       ringColor: {
-        'ring': 'var(--ring)'
+        ring: "var(--ring)",
       },
       ringOpacity: {
-        '50': '0.5'
+        50: "0.5",
       },
       outlineColor: {
-        'ring': 'var(--ring)'
+        ring: "var(--ring)",
       },
     },
   },
-  plugins: [require("@tailwindcss/forms"),require("tailwindcss-animate")],
-}
+  plugins: [require("@tailwindcss/forms"), require("tailwindcss-animate")],
+};
