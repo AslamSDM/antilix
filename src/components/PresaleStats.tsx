@@ -77,7 +77,7 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
               duration: 0.6,
             }}
           >
-            {item.isString ? item.value : item.formatter(item.value)}
+            {item.value}
           </motion.div>
 
           <div className="text-sm text-gray-400">{item.label}</div>
