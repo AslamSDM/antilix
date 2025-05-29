@@ -11,8 +11,6 @@ import Link from "next/link";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Inter, Playfair_Display } from "next/font/google";
-import { AntilixLogo } from "@/components/AntilixLogo";
-import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 import { AnimatedBackgroundGrid } from "@/components/AnimatedBackgroundGrid";
 import { Header } from "@/components/Header";
 

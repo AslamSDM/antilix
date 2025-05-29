@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
       test: /\.(ico|png|jpg|jpeg|gif|svg)$/,
       type: "asset/resource",
     });
+    config.externals.push("pino-pretty", "lokijs", "encoding");
+
     return config;
   },
 };
