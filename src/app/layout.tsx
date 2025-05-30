@@ -89,62 +89,64 @@ export default function RootLayout({
       >
         <LoadingProvider>
           <Suspense fallback={<LoadingScreen />}>
-            <WalletProviders>
-              {/* Global loading screen */}
-              <LoadingScreen />
+            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+              <WalletProviders>
+                {/* Global loading screen */}
+                <LoadingScreen />
 
-              {/* Handle loading on navigation */}
-              <NavigationLoadingHandler />
+                {/* Handle loading on navigation */}
+                <NavigationLoadingHandler />
 
-              <div className="min-h-screen flex flex-col bg-background text-foreground">
-                {/* Navigation Header */}
-                <Header />
+                <div className="min-h-screen flex flex-col bg-background text-foreground">
+                  {/* Navigation Header */}
+                  <Header />
 
-                {/* Animated background grid pattern */}
-                <AnimatedBackgroundGrid className="z-0" />
+                  {/* Animated background grid pattern */}
+                  <AnimatedBackgroundGrid className="z-0" />
 
-                <main className="flex-grow relative z-20 pt-0">
-                  <ScrollProgress />
-                  <PageTransition>{children}</PageTransition>
-                  <FluxDock />
-                </main>
+                  <main className="flex-grow relative z-20 pt-0">
+                    <ScrollProgress />
+                    <PageTransition>{children}</PageTransition>
+                    <FluxDock />
+                  </main>
 
-                <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
-                  <div className="container flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="flex items-center justify-center space-x-4 mb-2">
-                      <Link
-                        href="/"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        Home
-                      </Link>
-                      <span className="text-muted-foreground/30">•</span>
-                      <Link
-                        href="/presale"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        Presale
-                      </Link>
-                      <span className="text-muted-foreground/30">•</span>
-                      <Link
-                        href="/profile"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        Profile
-                      </Link>
+                  <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
+                    <div className="container flex flex-col items-center justify-center gap-4 text-center">
+                      <div className="flex items-center justify-center space-x-4 mb-2">
+                        <Link
+                          href="/"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Home
+                        </Link>
+                        <span className="text-muted-foreground/30">•</span>
+                        <Link
+                          href="/presale"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Presale
+                        </Link>
+                        <span className="text-muted-foreground/30">•</span>
+                        <Link
+                          href="/profile"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Profile
+                        </Link>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        &copy; {new Date().getFullYear()} ANTILIX. All rights
+                        reserved.
+                        <br />
+                        <span className="text-xs">
+                          Premium Web3 Gaming Platform
+                        </span>
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      &copy; {new Date().getFullYear()} ANTILIX. All rights
-                      reserved.
-                      <br />
-                      <span className="text-xs">
-                        Premium Web3 Gaming Platform
-                      </span>
-                    </p>
-                  </div>
-                </footer>
-              </div>
-            </WalletProviders>
+                  </footer>
+                </div>
+              </WalletProviders>
+            </ThemeProvider>
           </Suspense>
         </LoadingProvider>
       </body>
