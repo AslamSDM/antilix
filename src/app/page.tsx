@@ -1,9 +1,7 @@
 "use client";
 
 import HeroSection from "@/components/HeroSection";
-import ShimmerButton from "@/components/magic-ui/ShimmerButton";
 import { RainbowButton } from "@/components/magicui/rainbow-button";
-import { RippleButton } from "@/components/magicui/ripple-button";
 import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 import { HyperText } from "@/components/magicui/hyper-text";
 import LuxuryCard from "@/components/LuxuryCard";
@@ -25,12 +23,7 @@ import {
   Heart,
   Club,
   Spade,
-  Gift,
   Shield,
-  Database,
-  Network,
-  Lock,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 

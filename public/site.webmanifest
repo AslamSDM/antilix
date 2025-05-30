@@ -1,0 +1,32 @@
+{
+  "name": "ANTILIX | Premium Web3 Gaming",
+  "short_name": "ANTILIX",
+  "description": "A luxury web3 gaming platform offering provably fair games and exclusive rewards",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#D4AF37",
+  "background_color": "#111111",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}

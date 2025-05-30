@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Users, Database, Clock, Gift } from "lucide-react";
-import { DecorativeIcon } from "./DecorativeElements";
 
 interface PresaleStatsProps {
   contributors: number;

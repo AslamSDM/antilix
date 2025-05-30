@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="96" fill="#111111"/>
+  <!-- Diamond Icon - Centered -->
+  <path d="M256 86L368 256L256 426L144 256L256 86Z" fill="#D4AF37" stroke="#D4AF37" stroke-width="8"/>
+  <path d="M256 138L342 256L256 374L170 256L256 138Z" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2"/>
+</svg>

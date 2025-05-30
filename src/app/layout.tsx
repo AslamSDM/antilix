@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next"; // Added Viewport
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -13,6 +13,7 @@ import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Inter, Playfair_Display } from "next/font/google";
 import { AnimatedBackgroundGrid } from "@/components/AnimatedBackgroundGrid";
 import { Header } from "@/components/Header";
+import { Suspense } from "react";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://antilix.com"), // Added metadataBase - REPLACE with your actual domain
   title: "ANTILIX | Premium Web3 Gaming Platform",
   description:
     "A luxury web3 gaming platform offering provably fair games and exclusive rewards",
@@ -59,6 +61,10 @@ export const metadata: Metadata = {
     title: "ANTILIX",
     statusBarStyle: "black-translucent",
   },
+};
+
+export const viewport: Viewport = {
+  // Added viewport export
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#111111" },
@@ -81,8 +87,8 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <LoadingProvider>
+        <LoadingProvider>
+          <Suspense fallback={<LoadingScreen />}>
             <WalletProviders>
               {/* Global loading screen */}
               <LoadingScreen />
@@ -139,8 +145,8 @@ export default function RootLayout({
                 </footer>
               </div>
             </WalletProviders>
-          </LoadingProvider>
-        </ThemeProvider>
+          </Suspense>
+        </LoadingProvider>
       </body>
     </html>
   );
