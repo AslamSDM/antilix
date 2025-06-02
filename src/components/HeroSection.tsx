@@ -20,6 +20,7 @@ import { HyperText } from "@/components/magicui/hyper-text";
 import { TextAnimate } from "./magicui/text-animate";
 import { InteractiveGridPattern } from "./magicui/interactive-grid-pattern";
 import { cn } from "@/lib/utils";
+import Spline from "@splinetool/react-spline";
 
 // Lazy load Spline component using React.lazy instead of Next.js dynamic import
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
@@ -90,7 +91,7 @@ const HeroSection: React.FC = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Initial call to ensure proper state on mount
-    handleScroll();
+    // handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -188,16 +189,18 @@ const HeroSection: React.FC = () => {
             visibility: scrollY >= 0.7 ? "hidden" : "visible", // Complete hide when significantly scrolled
           }}
         >
-          <Suspense fallback={<></>}>
-            <DynamicSpline
-              // scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
-              // scene="https://prod.spline.design/TzS95U5C42rKjFN4/scene.splinecode"
-              // scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode" // rotating logo
-              // scene="https://prod.spline.design/BBw6Kuk4CCjKtUve/scene.splinecode" // dna
-              scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
-              onLoad={handleSplineLoad}
-            />
-          </Suspense>
+          {/* <Suspense fallback={<></>}> */}
+          <Spline
+            // scene="https://prod.spline.design/uY4B5Bf0Qkau-Ucf/scene.splinecode"
+            // scene="https://prod.spline.design/TzS95U5C42rKjFN4/scene.splinecode"
+            // scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode" // rotating logo
+            // scene="https://prod.spline.design/BBw6Kuk4CCjKtUve/scene.splinecode" // dna
+            // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
+            // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
+            scene="https://prod.spline.design/3ETSH65uhct2x1US/scene.splinecode"
+            onLoad={handleSplineLoad}
+          />
+          {/* </Suspense> */}
         </div>
         <motion.div
           className={`z-10 relative  w-[98%] md:w-[85%] lg:w-[75%]  h-[80vh] flex items-center justify-center ${

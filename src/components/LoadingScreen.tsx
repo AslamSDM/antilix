@@ -9,11 +9,17 @@ const LoadingScreen: React.FC = () => {
   const { isLoading, progress } = useLoading();
   const [loadingStage, setLoadingStage] = useState(0);
   const [showText, setShowText] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [loadingTexts] = useState([
     "Shuffling cards...",
     "Setting up tables...",
     "Almost ready...",
   ]);
+
+  // Fix hydration mismatch by only rendering dynamic content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Simulate loading stages
   useEffect(() => {
@@ -86,7 +92,9 @@ const LoadingScreen: React.FC = () => {
           <div className="w-full h-1 bg-muted/30 rounded-full mt-4 overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${Math.max(5, progress * 100)}%` }}
+              style={{
+                width: mounted ? `${Math.max(5, progress * 100)}%` : "5%",
+              }}
             ></div>
           </div>
         </div>

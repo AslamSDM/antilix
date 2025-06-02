@@ -14,6 +14,11 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { AnimatedBackgroundGrid } from "@/components/AnimatedBackgroundGrid";
 import { Header } from "@/components/Header";
 import { Suspense } from "react";
+import localFont from "next/font/local";
+const blackBird = localFont({
+  src: "../../public/fonts/blackbird.otf",
+  variable: "--font-display",
+});
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -25,10 +30,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const playfairDisplay = Playfair_Display({
-  variable: "--font-display",
-  subsets: ["latin"],
-});
+// const playfairDisplay = Playfair_Display({
+//   variable: "--font-display",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://antilix.com"), // Added metadataBase - REPLACE with your actual domain
@@ -51,9 +56,7 @@ export const metadata: Metadata = {
       { url: "/favicon.ico", sizes: "32x32" },
       { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
     ],
-    apple: [
-      { url: "/apple-icon.svg", sizes: "180x180", type: "image/svg+xml" },
-    ],
+
     other: [{ rel: "mask-icon", url: "/favicon.svg", color: "#D4AF37" }],
   },
   manifest: "/site.webmanifest",
@@ -79,7 +82,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
+        className={` ${blackBird.className} antialiased`}
         style={
           {
             "--header-height": "3.5rem", // Define header height for use in other components
@@ -102,7 +105,7 @@ export default function RootLayout({
                   <Header />
 
                   {/* Animated background grid pattern */}
-                  <AnimatedBackgroundGrid className="z-0" />
+                  {/* <AnimatedBackgroundGrid className="z-0" /> */}
 
                   <main className="flex-grow relative z-20 pt-0">
                     <ScrollProgress />
@@ -110,7 +113,7 @@ export default function RootLayout({
                     <FluxDock />
                   </main>
 
-                  <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
+                  {/* <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
                     <div className="container flex flex-col items-center justify-center gap-4 text-center">
                       <div className="flex items-center justify-center space-x-4 mb-2">
                         <Link
@@ -143,7 +146,7 @@ export default function RootLayout({
                         </span>
                       </p>
                     </div>
-                  </footer>
+                  </footer> */}
                 </div>
               </WalletProviders>
             </ThemeProvider>
