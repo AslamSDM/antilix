@@ -34,7 +34,7 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
       >
-        <motion.h1 
+        <motion.h1
           className="text-6xl md:text-8xl font-normal text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

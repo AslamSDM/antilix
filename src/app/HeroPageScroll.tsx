@@ -114,10 +114,9 @@ const HeroPageScroll: React.FC = () => {
           }}
           className="absolute top-[35vh] right-10 max-w-xs text-right"
         >
-          <SpinningText
-            className="text-xl md:text-2xl text-white font-bold inline-block"
-            text="Blockchain Security"
-          />
+          <SpinningText className="text-xl md:text-2xl text-white font-bold inline-block">
+            Blockchain Security
+          </SpinningText>
           <p className="text-white/70 mt-2">
             Built on state-of-the-art blockchain technology
           </p>
@@ -140,11 +139,11 @@ const HeroPageScroll: React.FC = () => {
           style={{ opacity: opacityFeatures }}
           className="absolute top-[120vh] left-10 max-w-sm"
         >
-          <TypingAnimation
+          {/* <TypingAnimation
             className="text-xl md:text-2xl text-white font-bold"
-            sequence={["Exclusive VIP Rewards", 1000]}
+            text={["Exclusive VIP Rewards", 1000]}
             repeat={0}
-          />
+          /> */}
           <ul className="mt-4 space-y-2 text-white/80">
             <li>• Special bonuses and early access</li>
             <li>• Priority support and services</li>
