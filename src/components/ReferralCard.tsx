@@ -18,7 +18,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
   const [copied, setCopied] = useState(false);
 
   const handleCopyReferralLink = () => {
-    const referralLink = `https://antilixh.io/presale?ref=${referralCode}`;
+    const referralLink = `https://Litmex.io/presale?ref=${referralCode}`;
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
 
@@ -28,7 +28,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     }, 2000);
   };
 
-  const referralLink = `https://antilixh.io/presale?ref=${referralCode}`;
+  const referralLink = `https://Litmex.io/presale?ref=${referralCode}`;
 
   return (
     <LuxuryCard className={`p-6 ${className}`}>

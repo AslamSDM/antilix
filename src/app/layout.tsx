@@ -15,8 +15,9 @@ import { AnimatedBackgroundGrid } from "@/components/AnimatedBackgroundGrid";
 import { Header } from "@/components/Header";
 import { Suspense } from "react";
 import localFont from "next/font/local";
+import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 const blackBird = localFont({
-  src: "../../public/fonts/blackbird.otf",
+  src: "../../public/fonts/ductile.otf",
   variable: "--font-display",
 });
 
@@ -36,14 +37,14 @@ const geistMono = Geist_Mono({
 // });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://antilix.com"), // Added metadataBase - REPLACE with your actual domain
-  title: "ANTILIX | Premium Web3 Gaming Platform",
+  metadataBase: new URL("https://litmex.com"), // Added metadataBase - REPLACE with your actual domain
+  title: "Litmex | Premium Web3 Gaming Platform",
   description:
     "A luxury web3 gaming platform offering provably fair games and exclusive rewards",
   keywords: [
     "Web3 gaming",
     "Blockchain casino",
-    "ANTILIX",
+    "Litmex",
     "Crypto gambling",
     "NFT gaming",
     "Presale",
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   appleWebApp: {
-    title: "ANTILIX",
+    title: "Litmex",
     statusBarStyle: "black-translucent",
   },
 };
@@ -82,7 +83,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={` ${blackBird.className} antialiased`}
+        className={` ${geistMono.className} ${blackBird.variable} antialiased`}
         style={
           {
             "--header-height": "3.5rem", // Define header height for use in other components
@@ -138,7 +139,7 @@ export default function RootLayout({
                         </Link>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        &copy; {new Date().getFullYear()} ANTILIX. All rights
+                        &copy; {new Date().getFullYear()} Litmex. All rights
                         reserved.
                         <br />
                         <span className="text-xs">

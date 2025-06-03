@@ -78,7 +78,7 @@ const HeroPageScroll: React.FC = () => {
               startOnView={true}
               animateOnHover={true}
             >
-              ANTILIX
+              Litmex
             </HyperText>
             <motion.p
               className="mt-6 text-xl md:text-2xl text-white/80"
@@ -184,7 +184,7 @@ const HeroPageScroll: React.FC = () => {
         >
           <div className="max-w-xl mx-auto px-4">
             <LineShadowText className="text-3xl md:text-4xl text-white font-bold mb-8">
-              Join ANTILIX Presale
+              Join Litmex Presale
             </LineShadowText>
 
             <p className="text-white/80 text-lg mb-8">

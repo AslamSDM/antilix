@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import "../sections/animation-utils.css";
+import { HyperText } from "../magicui/hyper-text";
+import { VelocityScroll } from "../magicui/scroll-based-velocity";
 
 interface CtaSectionProps {
   isVisible: boolean;
@@ -13,7 +15,7 @@ interface CtaSectionProps {
 export default function CtaSection({ isVisible }: CtaSectionProps) {
   return (
     <motion.div
-      className="sticky top-0 left-0 w-screen h-screen z-10 overflow-hidden"
+      className="sticky top-0 left-0 w-screen h-screen z-10 overflow-hidden flex flex-col justify-between"
       animate={{
         opacity: isVisible ? 1 : 0,
       }}
@@ -27,35 +29,41 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         willChange: "opacity",
       }}
     >
+      <VelocityScroll className="z-[-10] absolute top-8 right-20">
+        <span className="text-5xl md:text-7xl font-display text-primary">
+          Join
+        </span>
+      </VelocityScroll>
+
       {/* Title - huge at bottom left */}
       <motion.div
-        className="title-text"
+        className="title-text absolute bottom-20 left-12"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
       >
         <motion.h1
-          className="text-6xl md:text-8xl font-normal text-white"
+          className="text-6xl md:text-8xl font-display text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Join Litmex Presale Now
+          Join Presale Now
         </motion.h1>
       </motion.div>
 
-      {/* Main content - center */}
+      {/* Main content - right side */}
       <motion.div
-        className="floating-text center-center floating-animation-slow"
+        className="floating-text floating-animation-slow absolute right-12 top-1/2 transform -translate-y-1/2"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <p className="text-xl text-white/90 max-w-lg text-center mb-8">
+        <p className="text-xl text-white/90 max-w-lg text-right mb-8">
           Early investors gain exclusive benefits, reduced fees, and priority
           access to premium features.
         </p>
-        <div className="flex justify-center">
+        <div className="flex justify-end">
           <Link href="/presale" className="inline-block">
             <button className="bg-primary text-primary-foreground px-8 py-4 text-lg hover:scale-105 transition-all duration-300 ease-out rounded-md flex items-center">
               <span className="mr-2">Buy LITMEX Tokens</span>
@@ -65,9 +73,9 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         </div>
       </motion.div>
 
-      {/* Additional text - bottom center */}
+      {/* Additional text - moved to bottom right */}
       <motion.div
-        className="floating-text center-bottom floating-animation"
+        className="floating-text floating-animation absolute right-12 bottom-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -77,9 +85,9 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         </p>
       </motion.div>
 
-      {/* Additional floating elements */}
+      {/* Additional floating elements - more spread out positions */}
       <motion.div
-        className="floating-text top-left floating-animation-fast"
+        className="floating-text floating-animation-fast absolute top-16 left-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: isVisible ? 0.7 : 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
@@ -88,12 +96,22 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
       </motion.div>
 
       <motion.div
-        className="floating-text top-right floating-animation"
+        className="floating-text floating-animation absolute top-1/3 left-1/4"
         initial={{ opacity: 0 }}
         animate={{ opacity: isVisible ? 0.7 : 0 }}
         transition={{ duration: 0.8, delay: 0.7 }}
       >
         <p className="text-lg text-primary/80">25% Bonus</p>
+      </motion.div>
+
+      {/* Additional floating elements for better distribution */}
+      <motion.div
+        className="floating-text floating-animation-slow absolute bottom-1/3 left-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isVisible ? 0.7 : 0 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+      >
+        <p className="text-lg text-primary/80">Exclusive Benefits</p>
       </motion.div>
     </motion.div>
   );

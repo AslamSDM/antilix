@@ -168,7 +168,7 @@ const PresaleClientContent = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-4 font-display">
-              <span className="text-primary">ANTILIXH</span> Presale
+              <span className="text-primary">Litmex</span> Presale
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-200/80 max-w-2xl mx-auto">
               Join the exclusive presale of the premium web3 gambling platform
@@ -235,7 +235,7 @@ const PresaleClientContent = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Name</span>
-                    <span className="font-medium">ANTILIXH Token</span>
+                    <span className="font-medium">Litmex Token</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Symbol</span>
@@ -445,7 +445,7 @@ const PresaleClientContent = () => {
         <div className="container mx-auto">
           <ScrollAnimationWrapper>
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
-              Why <span className="text-primary">Invest</span> in ANTILIXH?
+              Why <span className="text-primary">Invest</span> in Litmex?
             </h2>
           </ScrollAnimationWrapper>
 
@@ -530,8 +530,8 @@ const PresaleClientContent = () => {
 
           <div className="space-y-6">
             <FaqItem
-              question="What is ANTILIXH?"
-              answer="ANTILIXH is a premium web3 gambling platform that combines the excitement of gaming with blockchain technology. The platform offers provably fair games, exclusive rewards, and luxury experiences for its users."
+              question="What is Litmex?"
+              answer="Litmex is a premium web3 gambling platform that combines the excitement of gaming with blockchain technology. The platform offers provably fair games, exclusive rewards, and luxury experiences for its users."
               delay={100}
             />
             <FaqItem

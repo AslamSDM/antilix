@@ -16,6 +16,7 @@ import BettingMarketsSection from "@/components/sections/BettingMarketsSection";
 import StakeEarnSection from "@/components/sections/StakeEarnSection";
 import SecuritySection from "@/components/sections/SecuritySection";
 import CtaSection from "@/components/sections/CtaSection";
+import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 
 // Define the total "units" your animation and sections will span across.
 // This is arbitrary but helps map the 0-1 scrollYProgress to a more granular scale.
@@ -66,6 +67,7 @@ export default function HomePage() {
     setSplineApp(app);
     setIsLoading(false);
     console.log("Spline scene loaded successfully");
+    app.setBackgroundColor("transparent"); // Set background to transparent if needed
     // You might want to set an initial state for the Spline animation here if needed
     // app.setVariable("splineScrollValue", 0);
   }, []);
@@ -130,7 +132,7 @@ export default function HomePage() {
     activeSection === 4,
     activeSection === 5,
   ];
-  console.log("Section visibility:", sectionVisibility);
+  console.log("Section visibility:", scrollYProgress);
   // useSectionCentering(); // This might not be needed if sections are fixed centrally
 
   return (
@@ -150,9 +152,9 @@ export default function HomePage() {
       </AnimatePresence>
 
       {/* Sticky Spline container - z-index adjusted to be behind text sections but above background */}
-      <div className="sticky top-0 left-0 w-full h-screen z-10 bg-black overflow-hidden">
+      <div className="sticky top-0 left-0 w-full h-screen z-10  overflow-hidden">
         <motion.div
-          className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50 z-[1]"
+          className="absolute inset-0 "
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
@@ -206,7 +208,7 @@ export default function HomePage() {
       </div>
 
       {/* Sections container - we no longer need to center it since each section has absolute positioning */}
-      <div className="fixed inset-0 pointer-events-none z-20">
+      <div className="fixed inset-0 pointer-events-none ">
         {/* Each section will control its own pointer-events and positioning */}
         <AnimatePresence mode="wait">
           {sectionVisibility[0] && (
@@ -226,28 +228,6 @@ export default function HomePage() {
           )}
           {sectionVisibility[5] && <CtaSection isVisible={true} key="cta" />}
         </AnimatePresence>
-
-        {/* Visual section indicators on the right edge */}
-        <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 space-y-3 hidden md:block">
-          {sectionVisibility.map((isVisible, i) => (
-            <motion.div
-              key={`indicator-${i}`}
-              className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer`}
-              style={{
-                backgroundColor:
-                  activeSection === i
-                    ? "rgba(212, 175, 55, 0.9)"
-                    : "rgba(255, 255, 255, 0.3)",
-                transform: `scale(${activeSection === i ? 1.25 : 1})`,
-              }}
-              whileHover={{ scale: 1.5 }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              title={`Section ${i + 1}`}
-            />
-          ))}
-        </div>
       </div>
 
       {/* ---- THE KEY TO INCREASE SCROLL ---- */}

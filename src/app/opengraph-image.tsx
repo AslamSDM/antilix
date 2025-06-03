@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 export const runtime = "edge";
 
 // Image metadata
-export const alt = "ANTILIX - Premium Web3 Gaming Platform";
+export const alt = "Litmex - Premium Web3 Gaming Platform";
 export const size = {
   width: 1200,
   height: 630,

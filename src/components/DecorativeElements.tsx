@@ -28,7 +28,7 @@ export function DecorativeCorner({
 }
 
 export function DecorativeText({
-  text = "ANTILIX",
+  text = "Litmex",
   position = "left",
   className,
 }: DecorativeElementProps) {

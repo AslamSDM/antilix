@@ -28,7 +28,7 @@ const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 // Text content for the hero section
 const heroTitle = "Premium Web3 Gaming";
 const heroDescription =
-  "ANTILIX combines luxury casino experiences with cutting-edge blockchain technology. Join our presale to secure early access to the most exclusive web3 gaming platform.";
+  "Litmex combines luxury casino experiences with cutting-edge blockchain technology. Join our presale to secure early access to the most exclusive web3 gaming platform.";
 
 // Hook to detect screen size
 const useWindowSize = () => {
@@ -256,7 +256,7 @@ const HeroSection: React.FC = () => {
                   onClick={handleExplore}
                   disabled={getStartedClicked}
                 >
-                  Join ANTILIX Presale
+                  Join Litmex Presale
                 </RippleButton>
               </Button>
             </motion.div> */}

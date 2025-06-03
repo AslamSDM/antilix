@@ -35,7 +35,7 @@ export default function FutureGamblingSection({
         transition={{ duration: 0.6 }}
       >
         <motion.h1
-          className="text-6xl md:text-8xl font-normal text-white"
+          className="text-6xl md:text-8xl font-display text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -74,7 +74,7 @@ export default function FutureGamblingSection({
         animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <p className="text-lg text-primary/80 font-normal">
+        <p className="text-lg text-primary/80 font-display">
           Smart Contract Betting
         </p>
       </motion.div>

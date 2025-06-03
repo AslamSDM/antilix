@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { DecorativeIcon } from "./DecorativeElements";
 import { WalletConnectButton } from "./WalletConnectButton";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -40,18 +41,18 @@ export function Header() {
     >
       <div className="px-4 md:px-8 flex items-center justify-between">
         <Link href="/" className="flex items-center">
-          <span className="text-2xl font-display font-bold text-primary mr-1">
-            ANTI
-          </span>
-          <span className="text-2xl font-display font-bold">LIXH</span>
-          <div className="ml-1 opacity-70">
-            <DecorativeIcon icon="diamond" size="xs" />
-          </div>
+          <Image
+            src={"/lit_logo.png"}
+            alt="Litmex Logo"
+            width={70}
+            height={70}
+            className="mr-2"
+          />
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
+          {/* {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -69,10 +70,62 @@ export function Header() {
               )}
               <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
             </Link>
-          ))}
-          <div className="h-5 w-px bg-white/20" />
+          ))} */}
+          {/* <div className="h-5 w-px bg-white/20" /> */}
           <div className="flex items-center gap-4">
-            <WalletConnectButton />
+            <Link href="/presale">
+              <motion.button
+                className="bg-gradient-to-r from-primary to-[#8a63d2] text-white font-display py-2 px-4 rounded-md shadow-lg flex items-center justify-center border border-transparent hover:border-white/20 relative overflow-hidden"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-[#ff7e33] to-[#ff4b8b] opacity-0"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                />
+                {/* Ripple effect */}
+                <motion.span
+                  className="ripple absolute bg-white/30 rounded-full"
+                  initial={{
+                    width: 0,
+                    height: 0,
+                    opacity: 0.8,
+                    x: "-50%",
+                    y: "-50%",
+                  }}
+                  animate={{ width: 200, height: 200, opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                  style={{
+                    originX: "center",
+                    originY: "center",
+                    position: "absolute",
+                    pointerEvents: "none",
+                  }}
+                  key={Math.random()} // Force re-render on each tap
+                />
+                <span className="mr-1 relative z-10 inline-flex items-center">
+                  Buy Now
+                </span>
+                <motion.span
+                  className="relative z-10"
+                  initial={{ x: 0 }}
+                  animate={{
+                    x: [0, 5, 0],
+                    rotate: [0, 0, 5, 0],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.5,
+                    ease: "easeInOut",
+                  }}
+                >
+                  →
+                </motion.span>
+              </motion.button>
+            </Link>
+            {/* <WalletConnectButton /> */}
             {/* <ThemeToggle /> */}
           </div>
         </nav>

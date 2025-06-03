@@ -11,7 +11,7 @@ interface IntroSectionProps {
 export default function IntroSection({ isVisible }: IntroSectionProps) {
   return (
     <motion.div
-      className="sticky top-0 left-0 w-screen h-screen z-10 overflow-hidden"
+      className="sticky top-0 left-0 w-screen h-screen z-30 overflow-hidden"
       animate={{
         opacity: isVisible ? 1 : 0,
       }}
@@ -32,7 +32,7 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
         transition={{ duration: 0.6 }}
       >
         <motion.h1
-          className="text-6xl md:text-8xl font-normal text-white"
+          className="text-6xl md:text-8xl font-display text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
