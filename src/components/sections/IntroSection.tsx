@@ -11,7 +11,7 @@ interface IntroSectionProps {
 export default function IntroSection({ isVisible }: IntroSectionProps) {
   return (
     <motion.div
-      className="sticky top-0 left-0 w-screen h-screen z-30 overflow-hidden"
+      className="sticky top-0 left-0 w-screen h-screen z-50 overflow-hidden"
       animate={{
         opacity: isVisible ? 1 : 0,
       }}

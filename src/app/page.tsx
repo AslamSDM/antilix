@@ -152,9 +152,9 @@ export default function HomePage() {
       </AnimatePresence>
 
       {/* Sticky Spline container - z-index adjusted to be behind text sections but above background */}
-      <div className="sticky top-0 left-0 w-full h-screen z-10  overflow-hidden">
+      <div className="sticky top-0 left-0 w-full h-screen z-0 overflow-hidden">
         <motion.div
-          className="absolute inset-0 "
+          className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
@@ -169,7 +169,7 @@ export default function HomePage() {
         {/* Scroll hint that fades out as user starts scrolling */}
         {activeSection === 0 && (
           <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 flex flex-col items-center z-30"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 flex flex-col items-center z-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{
               opacity: mappedScrollProgress < 5 ? 1 : 0,
@@ -208,7 +208,7 @@ export default function HomePage() {
       </div>
 
       {/* Sections container - we no longer need to center it since each section has absolute positioning */}
-      <div className="fixed inset-0 pointer-events-none ">
+      <div className="fixed inset-0 pointer-events-none z-20">
         {/* Each section will control its own pointer-events and positioning */}
         <AnimatePresence mode="wait">
           {sectionVisibility[0] && (
