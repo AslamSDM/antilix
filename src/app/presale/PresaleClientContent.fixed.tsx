@@ -122,6 +122,7 @@ const PresaleClientContent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Create refs for each section to track scroll position
+  const heroSectionRef = useRef<HTMLElement>(null);
   const statsSectionRef = useRef<HTMLElement>(null);
   const detailsSectionRef = useRef<HTMLElement>(null);
   const tokenomicsSectionRef = useRef<HTMLElement>(null);
@@ -158,6 +159,7 @@ const PresaleClientContent = () => {
   // Track scroll position and update active section
   useEffect(() => {
     const sectionRefs = [
+      heroSectionRef,
       statsSectionRef,
       detailsSectionRef,
       tokenomicsSectionRef,
@@ -247,7 +249,7 @@ const PresaleClientContent = () => {
       {/* Section indicator */}
       <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50 hidden md:block">
         <SectionIndicator
-          sections={6}
+          sections={7}
           activeSection={activeSection}
           orientation="vertical"
         />
@@ -258,29 +260,120 @@ const PresaleClientContent = () => {
         <ScrollIndicator fadeAfter={0.2} />
       </div>
 
-      {/* Main presale section - Direct focus on stats and buying */}
+      {/* Hero section - With floating elements similar to homepage */}
+      <section
+        ref={heroSectionRef}
+        className="relative w-full min-h-screen overflow-hidden flex items-center z-10"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="absolute top-20 right-[10%] opacity-30 floating-animation-slow"
+        >
+          <DecorativeIcon icon="diamond" size="lg" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="absolute bottom-20 left-[15%] opacity-20 floating-animation"
+        >
+          <DecorativeIcon icon="spade" size="md" />
+        </motion.div>
+
+        {/* Title - similar to IntroSection */}
+        <motion.div
+          className="title-text absolute bottom-20 left-12"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h1
+            className="text-6xl md:text-8xl font-display text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            LITMEX Presale
+          </motion.h1>
+        </motion.div>
+
+        {/* VelocityScroll animation like home page */}
+        <VelocityScroll className="z-[-10] absolute top-8 right-20">
+          <span className="text-5xl md:text-7xl font-display text-primary">
+            Join
+          </span>
+        </VelocityScroll>
+
+        {/* Main content - right side */}
+        <motion.div
+          className="floating-text floating-animation-slow absolute right-12 top-1/2 transform -translate-y-1/2"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <p className="text-xl text-white/90 max-w-lg text-right mb-8">
+            Early investors gain exclusive benefits, reduced fees, and priority
+            access to premium features. Join now for maximum rewards.
+          </p>
+          <div className="flex justify-end">
+            <GlowButton className="px-8 py-4 text-lg flex items-center">
+              <span className="mr-2">Buy LITMEX Tokens</span>
+              <ChevronRight className="w-5 h-5" />
+            </GlowButton>
+          </div>
+        </motion.div>
+
+        {/* Additional floating elements */}
+        <motion.div
+          className="floating-text floating-animation-fast absolute top-16 left-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
+          <p className="text-lg text-primary/80">Early Access</p>
+        </motion.div>
+
+        <motion.div
+          className="floating-text floating-animation absolute top-1/3 left-1/4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
+        >
+          <p className="text-lg text-primary/80">15% Bonus</p>
+        </motion.div>
+
+        {/* Additional floating element */}
+        <motion.div
+          className="floating-text floating-animation-slow absolute bottom-1/3 left-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <p className="text-lg text-primary/80">Exclusive Benefits</p>
+        </motion.div>
+
+        {/* Bottom countdown text - bottom right */}
+        <motion.div
+          className="floating-text floating-animation absolute right-12 bottom-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          <p className="text-sm text-white/70">
+            Limited allocation available • Early bird bonus ends soon
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Presale stats */}
       <section
         ref={statsSectionRef}
         className="min-h-screen relative z-10 py-20 px-4 overflow-hidden flex flex-col justify-center"
       >
         <div className="container mx-auto relative">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-16"
-          >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center font-display">
-              <span className="text-primary">
-                <HyperText>LITMEX Token Presale</HyperText>
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-center max-w-2xl mx-auto text-white/80">
-              Join early for exclusive benefits, reduced fees, and priority
-              access
-            </p>
-          </motion.div>
-
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
             <span className="text-primary">
               <HyperText>Live Presale Statistics</HyperText>
@@ -307,187 +400,22 @@ const PresaleClientContent = () => {
               referralBonus="5%"
             />
 
-            {/* Direct Buy Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-16 max-w-2xl mx-auto"
-            >
-              <LuxuryCard
-                className="p-10 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
-                icon="diamond"
-                iconPosition="tl"
-                decorativeText="LITMEX"
-              >
-                <h3 className="text-3xl font-bold text-center mb-8">
-                  <span className="luxury-text">
-                    Purchase LITMEX Tokens Now
-                  </span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm mb-2 text-primary/80 font-semibold">
-                      Enter Amount (ETH)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full bg-black/50 border-2 border-primary/40 rounded-lg p-5 text-white focus:border-primary focus:ring-primary/30 focus:ring-2 focus:outline-none transition-all shadow-[0_0_10px_rgba(212,175,55,0.1)_inset]"
-                      placeholder="0.0"
-                      value={amountETH}
-                      onChange={(e) => setAmountETH(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-2 text-primary/80 font-semibold">
-                      You Receive
-                    </label>
-                    <div className="w-full bg-black/50 border-2 border-primary/40 rounded-lg p-5 text-white shadow-[0_0_10px_rgba(212,175,55,0.1)_inset]">
-                      <motion.span
-                        animate={{
-                          color: [
-                            "rgba(255, 255, 255, 1)",
-                            "rgba(212, 175, 55, 0.9)",
-                            "rgba(255, 255, 255, 1)",
-                          ],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="font-bold"
-                      >
-                        {tokensToReceive.toLocaleString(undefined, {
-                          maximumFractionDigits: 0,
-                        })}
-                      </motion.span>{" "}
-                      ANTX
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-8">
-                  <div className="text-primary/90 text-sm">
-                    Price: <span className="font-bold">0.00075 ETH</span>{" "}
-                    &nbsp;|&nbsp; Bonus:{" "}
-                    <span className="font-bold text-primary">+15%</span>
-                  </div>
-                  <motion.button
-                    onClick={handleCalculate}
-                    className="text-sm text-primary/80 hover:text-primary flex items-center gap-1 bg-black/30 px-4 py-2 rounded-full hover:bg-black/50 transition-all"
-                    whileHover={{ scale: 1.05, x: 2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Calculate <ArrowRight size={14} />
-                  </motion.button>
-                </div>
-                <div className="mt-10 text-center">
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <GlowButton className="px-12 py-5 text-lg font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-                      <Wallet className="w-5 h-5 mr-2" /> Connect Wallet &amp;
-                      Buy Tokens
-                    </GlowButton>
-                  </motion.div>
-                </div>
-                <p className="text-sm text-center text-primary/70 mt-6">
-                  Minimum purchase: 0.05 ETH | Tokens will be distributed after
-                  presale
-                </p>
-              </LuxuryCard>
-            </motion.div>
+            <div className="flex flex-col md:flex-row justify-center items-center gap-6 mt-10">
+              <div className="luxury-stat-card p-6 min-w-[200px]">
+                <h3 className="text-primary font-medium mb-1">Current Price</h3>
+                <p className="text-2xl font-bold">0.00075 ETH</p>
+              </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-col md:flex-row justify-center items-stretch gap-6 mt-10"
-            >
-              <LuxuryCard
-                className="min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-4"
-                animate={true}
-              >
-                <div className="text-center p-2">
-                  <DecorativeIcon
-                    icon="diamond"
-                    size="sm"
-                    className="mb-4 mx-auto animate-pulse-slow"
-                  />
-                  <h3 className="luxury-text font-medium mb-3 text-lg">
-                    Current Price
-                  </h3>
-                  <motion.p
-                    className="text-3xl font-bold luxury-text"
-                    animate={{
-                      textShadow: [
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                        "0px 0px 8px rgba(212, 175, 55, 0.7)",
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                      ],
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    0.00075 ETH
-                  </motion.p>
-                </div>
-              </LuxuryCard>
+              <div className="luxury-stat-card p-6 min-w-[200px]">
+                <h3 className="text-primary font-medium mb-1">Bonus</h3>
+                <p className="text-2xl font-bold">+15%</p>
+              </div>
 
-              <LuxuryCard
-                className="min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-4"
-                animate={true}
-              >
-                <div className="text-center p-2">
-                  <DecorativeIcon
-                    icon="crown"
-                    size="sm"
-                    className="mb-4 mx-auto animate-pulse-slow"
-                  />
-                  <h3 className="luxury-text font-medium mb-3 text-lg">
-                    Bonus
-                  </h3>
-                  <motion.p
-                    className="text-3xl font-bold luxury-text"
-                    animate={{
-                      textShadow: [
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                        "0px 0px 8px rgba(212, 175, 55, 0.7)",
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                      ],
-                    }}
-                    transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-                  >
-                    +15%
-                  </motion.p>
-                </div>
-              </LuxuryCard>
-
-              <LuxuryCard
-                className="min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-4"
-                animate={true}
-              >
-                <div className="text-center p-2">
-                  <DecorativeIcon
-                    icon="spade"
-                    size="sm"
-                    className="mb-4 mx-auto animate-pulse-slow"
-                  />
-                  <h3 className="luxury-text font-medium mb-3 text-lg">
-                    Hard Cap
-                  </h3>
-                  <motion.p
-                    className="text-3xl font-bold luxury-text"
-                    animate={{
-                      textShadow: [
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                        "0px 0px 8px rgba(212, 175, 55, 0.7)",
-                        "0px 0px 2px rgba(55, 128, 212, 0.3)",
-                      ],
-                    }}
-                    transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                  >
-                    500 ETH
-                  </motion.p>
-                </div>
-              </LuxuryCard>
-            </motion.div>
+              <div className="luxury-stat-card p-6 min-w-[200px]">
+                <h3 className="text-primary font-medium mb-1">Hard Cap</h3>
+                <p className="text-2xl font-bold">500 ETH</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -583,22 +511,58 @@ const PresaleClientContent = () => {
           </div>
 
           <ScrollAnimationWrapper delay={450}>
-            <div className="p-4 max-w-3xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.8 }}
-                className="flex items-center justify-center gap-6 flex-wrap"
-              >
-                <DecorativeIcon
-                  icon="diamond"
-                  size="lg"
-                  className="opacity-20"
-                />
-                <DecorativeIcon icon="crown" size="md" className="opacity-15" />
-                <DecorativeIcon icon="spade" size="lg" className="opacity-20" />
-              </motion.div>
-            </div>
+            <LuxuryCard className="p-8 max-w-3xl mx-auto">
+              <div className="flex items-center mb-6">
+                <Wallet className="w-8 h-8 text-primary mr-4" />
+                <h3 className="text-2xl font-bold">Token Calculator</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-2 text-gray-300">
+                    Amount in ETH
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full bg-black/50 border border-primary/30 rounded-md p-3 text-white"
+                    placeholder="0.0"
+                    value={amountETH}
+                    onChange={(e) => setAmountETH(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex justify-center">
+                  <motion.button
+                    onClick={handleCalculate}
+                    className="p-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/80 transition-all duration-200
+                      border border-primary/30"
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{
+                      boxShadow: "0 0 15px rgba(55, 128, 212, 0.3)",
+                    }}
+                  >
+                    <ArrowRight className="w-6 h-6" />
+                  </motion.button>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-2 text-gray-300">
+                    ANTX Tokens
+                  </label>
+                  <div className="w-full bg-black/50 border border-primary/30 rounded-md p-3 text-white">
+                    {tokensToReceive.toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 text-center">
+                <GlowButton className="flex items-center mx-auto">
+                  <span>Connect Wallet to Participate</span>
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </GlowButton>
+              </div>
+            </LuxuryCard>
           </ScrollAnimationWrapper>
         </div>
       </section>
@@ -617,37 +581,13 @@ const PresaleClientContent = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <ScrollAnimationWrapper delay={150}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="relative aspect-square max-w-md mx-auto"
-              >
+              <div className="relative aspect-square max-w-md mx-auto">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-full h-full rounded-full border-4 border-primary/10 flex items-center justify-center animate-pulse-slow shadow-glow">
-                    <div
-                      className="w-[80%] h-[80%] rounded-full border-4 border-primary/20 flex items-center justify-center animate-spin-slow"
-                      style={{ animationDirection: "reverse" }}
-                    >
-                      <div
-                        className="w-[60%] h-[60%] rounded-full border-4 border-primary/30 flex items-center justify-center animate-spin-slow"
-                        style={{ animationDuration: "20s" }}
-                      >
-                        <div className="w-[40%] h-[40%] rounded-full bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-xl font-bold shadow-[0_0_20px_rgba(212,175,55,0.5)]">
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.15, 1],
-                              textShadow: [
-                                "0 0 5px rgba(212, 175, 55, 0.5)",
-                                "0 0 20px rgba(212, 175, 55, 0.9)",
-                                "0 0 5px rgba(212, 175, 55, 0.5)",
-                              ],
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="luxury-text font-display"
-                          >
-                            ANTX
-                          </motion.div>
+                  <div className="w-full h-full rounded-full border-4 border-primary/10 flex items-center justify-center">
+                    <div className="w-[80%] h-[80%] rounded-full border-4 border-primary/20 flex items-center justify-center">
+                      <div className="w-[60%] h-[60%] rounded-full border-4 border-primary/30 flex items-center justify-center">
+                        <div className="w-[40%] h-[40%] rounded-full bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-xl font-bold">
+                          ANTX
                         </div>
                       </div>
                     </div>
@@ -659,95 +599,49 @@ const PresaleClientContent = () => {
                     const y = Math.sin(angle) * 45 + 50;
 
                     return (
-                      <motion.div
+                      <div
                         key={index}
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 260,
-                          damping: 20,
-                          delay: 0.2 * index,
-                        }}
                         className="absolute flex flex-col items-center"
                         style={{
                           left: `${x}%`,
                           top: `${y}%`,
                           transform: "translate(-50%, -50%)",
                         }}
-                        whileHover={{
-                          scale: 1.15,
-                          transition: { duration: 0.2 },
-                        }}
                       >
-                        <motion.div
-                          className={`w-5 h-5 rounded-full ${item.color} mb-2 border border-white/10 shadow-glow`}
-                          animate={{
-                            boxShadow: [
-                              "0 0 5px rgba(212, 175, 55, 0.2)",
-                              "0 0 12px rgba(212, 175, 55, 0.5)",
-                              "0 0 5px rgba(212, 175, 55, 0.2)",
-                            ],
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        ></motion.div>
-                        <span className="text-sm font-medium luxury-text">
-                          {item.name}
-                        </span>
-                        <motion.span
-                          className="text-xs text-white/90 font-bold"
-                          animate={{ opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                        >
+                        <div
+                          className={`w-4 h-4 rounded-full ${item.color} mb-1`}
+                        ></div>
+                        <span className="text-xs font-medium">{item.name}</span>
+                        <span className="text-xs text-gray-400">
                           {item.percentage}%
-                        </motion.span>
-                      </motion.div>
+                        </span>
+                      </div>
                     );
                   })}
                 </div>
-              </motion.div>
+              </div>
             </ScrollAnimationWrapper>
 
             <ScrollAnimationWrapper delay={300}>
-              <LuxuryCard
-                className="p-8 transform hover:scale-[1.02] transition-all duration-300"
-                icon="diamond"
-                iconPosition="tr"
-              >
+              <LuxuryCard className="p-8">
                 <div className="flex items-center mb-6">
                   <BarChart4 className="w-8 h-8 text-primary mr-4" />
-                  <h3 className="text-2xl font-bold">Token Allocation</h3>
+                  <h3 className="text-2xl font-bold">Allocation</h3>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {tokenomicsData.map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.1 * index }}
-                    >
-                      <div className="flex justify-between mb-2 items-center">
-                        <div className="flex items-center">
-                          <div
-                            className={`w-3 h-3 rounded-full ${item.color} mr-2 border border-white/10`}
-                          ></div>
-                          <span className="text-primary/90 font-medium">
-                            {item.name}
-                          </span>
-                        </div>
-                        <span className="font-bold text-white">
-                          {item.percentage}%
-                        </span>
+                    <div key={index}>
+                      <div className="flex justify-between mb-1">
+                        <span>{item.name}</span>
+                        <span>{item.percentage}%</span>
                       </div>
-                      <div className="w-full bg-black/50 h-3 rounded-full p-[1px]">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${item.percentage}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          className={`h-full rounded-full ${item.color} shadow-glow`}
-                        ></motion.div>
+                      <div className="w-full bg-gray-700/30 h-2 rounded-full">
+                        <div
+                          className={`h-full rounded-full ${item.color}`}
+                          style={{ width: `${item.percentage}%` }}
+                        ></div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </LuxuryCard>
@@ -770,26 +664,12 @@ const PresaleClientContent = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <ScrollAnimationWrapper delay={100}>
-              <LuxuryCard
-                className="p-8 h-full transform transition-all hover:scale-105 hover:-translate-y-1"
-                icon="diamond"
-                iconPosition="tr"
-                animate={true}
-              >
-                <div className="text-center mb-6">
-                  <motion.div
-                    whileHover={{ rotate: 10, scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-500/10 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(245,158,11,0.3)] border border-amber-400/30"
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Trophy className="w-8 h-8 text-amber-400" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold luxury-text">
-                    Premium Experiences
-                  </h3>
+              <LuxuryCard className="p-6 h-full">
+                <div className="flex items-center mb-4">
+                  <Trophy className="w-6 h-6 text-amber-500 mr-3" />
+                  <h3 className="text-xl font-bold">Premium Experiences</h3>
                 </div>
-                <p className="text-gray-300 text-center">
+                <p className="text-gray-300">
                   Access to exclusive games, luxury tournaments, and VIP
                   experiences available only to token holders.
                 </p>
@@ -797,26 +677,12 @@ const PresaleClientContent = () => {
             </ScrollAnimationWrapper>
 
             <ScrollAnimationWrapper delay={200}>
-              <LuxuryCard
-                className="p-8 h-full transform transition-all hover:scale-105 hover:-translate-y-1"
-                icon="crown"
-                iconPosition="tr"
-                animate={true}
-              >
-                <div className="text-center mb-6">
-                  <motion.div
-                    whileHover={{ rotate: -10, scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500/30 to-indigo-500/10 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(99,102,241,0.3)] border border-indigo-400/30"
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <LockIcon className="w-8 h-8 text-indigo-400" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold luxury-text">
-                    Revenue Sharing
-                  </h3>
+              <LuxuryCard className="p-6 h-full">
+                <div className="flex items-center mb-4">
+                  <LockIcon className="w-6 h-6 text-indigo-500 mr-3" />
+                  <h3 className="text-xl font-bold">Revenue Sharing</h3>
                 </div>
-                <p className="text-gray-300 text-center">
+                <p className="text-gray-300">
                   Token holders receive a portion of the platform's revenue
                   through staking rewards and exclusive bonuses.
                 </p>
@@ -824,26 +690,12 @@ const PresaleClientContent = () => {
             </ScrollAnimationWrapper>
 
             <ScrollAnimationWrapper delay={300}>
-              <LuxuryCard
-                className="p-8 h-full transform transition-all hover:scale-105 hover:-translate-y-1"
-                icon="spade"
-                iconPosition="tr"
-                animate={true}
-              >
-                <div className="text-center mb-6">
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(212,175,55,0.3)] border border-primary/30"
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Diamond className="w-8 h-8 text-primary" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold luxury-text">
-                    Limited Supply
-                  </h3>
+              <LuxuryCard className="p-6 h-full">
+                <div className="flex items-center mb-4">
+                  <Diamond className="w-6 h-6 text-primary mr-3" />
+                  <h3 className="text-xl font-bold">Limited Supply</h3>
                 </div>
-                <p className="text-gray-300 text-center">
+                <p className="text-gray-300">
                   With a fixed supply and deflationary mechanics, ANTX tokens
                   are designed to increase in value as the platform grows.
                 </p>
@@ -851,30 +703,11 @@ const PresaleClientContent = () => {
             </ScrollAnimationWrapper>
           </div>
 
-          <div className="mt-16 text-center">
+          <div className="mt-12 text-center">
             <ScrollAnimationWrapper delay={400}>
-              <motion.div
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-block"
-              >
-                <GlowButton className="px-14 py-5 text-xl font-bold flex items-center gap-3 shadow-[0_0_25px_rgba(212,175,55,0.3)] luxury-button-hover">
-                  <span>Join the Presale Now</span>
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </motion.div>
-                </GlowButton>
-              </motion.div>
-              <motion.p
-                className="text-primary/80 mt-5 text-sm font-medium"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ✨ Limited allocations available ✨
-              </motion.p>
+              <GlowButton className="px-8 py-4 text-lg">
+                Join the Presale Now
+              </GlowButton>
             </ScrollAnimationWrapper>
           </div>
         </div>

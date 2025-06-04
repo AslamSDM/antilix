@@ -33,9 +33,9 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 glassmorphic-navbar ${
+      className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 backdrop-blur-lg bg-black/30 border border-white/10 rounded-2xl ${
         scrolled
-          ? "py-3 w-[90%] md:w-[80%] lg:w-[70%] translate-y-0"
+          ? "py-3 w-[90%] md:w-[80%] lg:w-[70%] translate-y-0 shadow-lg"
           : "py-4 w-[95%] md:w-[85%] lg:w-[75%] translate-y-4"
       }`}
     >
@@ -53,29 +53,29 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {/* {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-primary relative group ${
-                pathname === link.href ? "text-primary" : "text-white/80"
-              }`}
-            >
-              {link.label}
-              {pathname === link.href && (
-                <motion.div
-                  layoutId="navbar-indicator"
-                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
-            </Link>
-          ))} */}
+        <Link
+          key={link.href}
+          href={link.href}
+          className={`text-sm font-medium transition-colors hover:text-primary relative group ${
+          pathname === link.href ? "text-primary" : "text-white/80"
+          }`}
+        >
+          {link.label}
+          {pathname === link.href && (
+          <motion.div
+            layoutId="navbar-indicator"
+            className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+          )}
+          <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
+        </Link>
+        ))} */}
           {/* <div className="h-5 w-px bg-white/20" /> */}
           <div className="flex items-center gap-4">
             <Link href="/presale">
               <motion.button
-                className="bg-gradient-to-r from-primary to-[#8a63d2] text-white font-display py-2 px-4 rounded-md shadow-lg flex items-center justify-center border border-transparent hover:border-white/20 relative overflow-hidden"
+                className="bg-gradient-to-r from-primary to-[#8a63d2] text-white font-display p-2 rounded-md shadow-lg flex items-center justify-center border border-white/20 backdrop-blur-sm relative overflow-hidden"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -85,29 +85,15 @@ export function Header() {
                   whileHover={{ opacity: 1 }}
                   transition={{ duration: 0.6 }}
                 />
-                {/* Ripple effect */}
-                <motion.span
-                  className="ripple absolute bg-white/30 rounded-full"
-                  initial={{
-                    width: 0,
-                    height: 0,
-                    opacity: 0.8,
-                    x: "-50%",
-                    y: "-50%",
+                <motion.div
+                  className="absolute -inset-10 bg-white/20 rounded-full z-0 scale-0 opacity-0 font-display"
+                  whileTap={{
+                    scale: 4,
+                    opacity: 0.3,
+                    transition: { duration: 0.5 },
                   }}
-                  animate={{ width: 200, height: 200, opacity: 0 }}
-                  transition={{ duration: 0.8 }}
-                  style={{
-                    originX: "center",
-                    originY: "center",
-                    position: "absolute",
-                    pointerEvents: "none",
-                  }}
-                  key={Math.random()} // Force re-render on each tap
                 />
-                <span className="mr-1 relative z-10 inline-flex items-center">
-                  Buy Now
-                </span>
+                <span className="mr-1 relative z-10">Buy Now</span>
                 <motion.span
                   className="relative z-10"
                   initial={{ x: 0 }}
@@ -160,13 +146,13 @@ export function Header() {
           },
         }}
       >
-        <div className="container mx-auto px-4 py-4 bg-black/90 backdrop-blur-lg border-t border-primary/20">
+        <div className="mx-4 my-2 px-4 py-4 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10">
           <div className="flex flex-col space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium px-4 py-2 transition-colors hover:bg-primary/10 rounded ${
+                className={`text-sm font-medium px-4 py-2 transition-colors hover:bg-white/10 rounded ${
                   pathname === link.href
                     ? "text-primary border-l-2 border-primary pl-3"
                     : "text-white/80"

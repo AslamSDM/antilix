@@ -53,12 +53,7 @@ export const metadata: Metadata = {
   ],
   // Icons will be automatically handled by icon.tsx and apple-icon.tsx
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
-      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
-    ],
-
-    other: [{ rel: "mask-icon", url: "/favicon.svg", color: "#D4AF37" }],
+    icon: [{ url: "/lit_logo.ico", sizes: "32x32" }],
   },
   manifest: "/site.webmanifest",
   appleWebApp: {

@@ -23,6 +23,7 @@ interface LuxuryCardProps {
   icon?: "diamond" | "crown" | "spade" | "club" | "heart";
   iconPosition?: "tl" | "tr" | "bl" | "br";
   decorativeText?: string;
+  animate?: boolean;
 }
 
 export default function LuxuryCard({
@@ -33,6 +34,7 @@ export default function LuxuryCard({
   icon = "diamond",
   iconPosition = "tr",
   decorativeText,
+  animate = false,
 }: LuxuryCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -56,14 +58,25 @@ export default function LuxuryCard({
     };
   }, []);
 
+  const animationClass = animate ? "animate-float" : "";
+
   return (
     <Card
       ref={cardRef}
-      className={cn("relative overflow-hidden luxury-card", className)}
+      className={cn(
+        "relative overflow-hidden luxury-card transition-all duration-500",
+        animationClass,
+        className
+      )}
     >
+      <div className="luxury-shimmer"></div>
       <div className="cut-corner-border"></div>
       <DecorativeCorner position="tl" />
       <DecorativeCorner position="br" />
+      <div className="luxury-corner luxury-corner-tl"></div>
+      <div className="luxury-corner luxury-corner-tr"></div>
+      <div className="luxury-corner luxury-corner-bl"></div>
+      <div className="luxury-corner luxury-corner-br"></div>
 
       {decorativeText && (
         <DecorativeText text={decorativeText} position="left" />
@@ -73,6 +86,7 @@ export default function LuxuryCard({
         icon={icon}
         size="md"
         className={cn(
+          "transition-all duration-300 animate-pulse-slow",
           iconPosition === "tl" && "top-4 left-4",
           iconPosition === "tr" && "top-4 right-4",
           iconPosition === "bl" && "bottom-4 left-4",
@@ -86,9 +100,9 @@ export default function LuxuryCard({
         </CardHeader>
       )}
 
-      <CardContent>{children}</CardContent>
+      <CardContent className="relative z-10">{children}</CardContent>
 
-      {footer && <CardFooter>{footer}</CardFooter>}
+      {footer && <CardFooter className="relative z-10">{footer}</CardFooter>}
     </Card>
   );
 }

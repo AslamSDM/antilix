@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { User, Wallet, Shield, Clock, Award, AlertCircle } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import dynamic from "next/dynamic";
 
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
@@ -46,17 +45,21 @@ const ProfileClientContent: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen">
+    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen relative">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl"></div>
+        <div className="absolute -bottom-20 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl"></div>
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-12"
       >
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Your <span className="text-primary">Profile</span>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
+          Your <span className="luxury-text">Profile</span>
         </h1>
-        <p className="text-lg max-w-2xl mx-auto text-muted-foreground">
+        <p className="text-lg max-w-2xl mx-auto text-white/80">
           Connect your wallet to access exclusive features and track your gaming
           history
         </p>
@@ -70,15 +73,24 @@ const ProfileClientContent: React.FC = () => {
           animate="visible"
           className="lg:col-span-1 space-y-8"
         >
-          <Card className="p-6 border border-border/50 bg-card/70 backdrop-blur-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary/60 to-secondary/40"></div>
+          <Card className="p-6 border border-primary/30 bg-black/60 backdrop-blur-sm relative overflow-hidden shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card">
+            <div className="luxury-shimmer"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
+            <div className="luxury-corner luxury-corner-tl"></div>
+            <div className="luxury-corner luxury-corner-br"></div>
 
             <div className="flex flex-col items-center space-y-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 flex items-center justify-center">
+              <motion.div
+                className="w-24 h-24 rounded-full bg-gradient-to-r from-primary/30 via-primary/20 to-primary/30 flex items-center justify-center border border-primary/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
                 <User size={40} className="text-primary" />
-              </div>
+              </motion.div>
 
-              <h2 className="text-xl font-bold mt-4">{userData.username}</h2>
+              <h2 className="text-xl font-bold mt-4 luxury-text">
+                {userData.username}
+              </h2>
 
               <div className="w-full">
                 {!solanaConnected && (
@@ -98,21 +110,45 @@ const ProfileClientContent: React.FC = () => {
 
                 {solanaConnected && (
                   <div className="space-y-4 w-full mt-4">
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-muted-foreground">
-                        Member since
-                      </span>
-                      <span>{userData.joinDate}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Member since</span>
+                      <span className="text-primary">{userData.joinDate}</span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-muted-foreground">
-                        Transactions
-                      </span>
-                      <span>{userData.transactions}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Transactions</span>
+                      <motion.span
+                        className="text-primary"
+                        animate={{
+                          textShadow: [
+                            "0 0 0px rgba(212,175,55,0)",
+                            "0 0 5px rgba(212,175,55,0.5)",
+                            "0 0 0px rgba(212,175,55,0)",
+                          ],
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {userData.transactions}
+                      </motion.span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-muted-foreground">Rewards</span>
-                      <span>{userData.rewards}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Rewards</span>
+                      <motion.span
+                        className="text-primary"
+                        animate={{
+                          textShadow: [
+                            "0 0 0px rgba(212,175,55,0)",
+                            "0 0 5px rgba(212,175,55,0.5)",
+                            "0 0 0px rgba(212,175,55,0)",
+                          ],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: 0.5,
+                        }}
+                      >
+                        {userData.rewards}
+                      </motion.span>
                     </div>
                   </div>
                 )}
@@ -121,20 +157,11 @@ const ProfileClientContent: React.FC = () => {
           </Card>
 
           {/* Spline Logo Card */}
-          <Card className="p-1 border border-border/50 bg-card/70 backdrop-blur-sm relative overflow-hidden aspect-square">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary/60 to-secondary/40"></div>
-            <Suspense
-              fallback={
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  Loading 3D Logo...
-                </div>
-              }
-            >
-              <Spline
-                scene="https://prod.spline.design/QvL9a4aYx9E9k9qW/scene.splinecode"
-                className="rounded-md !block"
-              />
-            </Suspense>
+          <Card className="p-1 border border-primary/30 bg-black/60 backdrop-blur-sm relative overflow-hidden aspect-square shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card animate-float">
+            <div className="luxury-shimmer"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
+            <div className="luxury-corner luxury-corner-tl"></div>
+            <div className="luxury-corner luxury-corner-br"></div>
           </Card>
         </motion.div>
 
@@ -145,39 +172,46 @@ const ProfileClientContent: React.FC = () => {
           animate="visible"
           className="lg:col-span-2"
         >
-          <Card className="border border-border/50 bg-card/70 backdrop-blur-sm overflow-hidden">
-            <div className="border-b border-border/50">
+          <Card className="border border-primary/30 bg-black/60 backdrop-blur-sm overflow-hidden shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card">
+            <div className="luxury-shimmer"></div>
+            <div className="border-b border-primary/20">
               <div className="flex overflow-x-auto">
-                <button
+                <motion.button
                   onClick={() => setActiveTab("overview")}
-                  className={`px-6 py-4 font-medium text-sm ${
+                  className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "overview"
                       ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-white/60 hover:text-white"
                   }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
                 >
                   Overview
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setActiveTab("wallets")}
-                  className={`px-6 py-4 font-medium text-sm ${
+                  className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "wallets"
                       ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-white/60 hover:text-white"
                   }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
                 >
                   Wallets
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setActiveTab("activity")}
-                  className={`px-6 py-4 font-medium text-sm ${
+                  className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "activity"
                       ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-white/60 hover:text-white"
                   }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
                 >
                   Activity
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -186,24 +220,43 @@ const ProfileClientContent: React.FC = () => {
                 <div className="space-y-8">
                   <motion.div
                     variants={itemVariants}
-                    className="bg-muted/40 backdrop-blur-sm p-6 rounded-lg border border-border/40"
+                    className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                   >
                     <div className="flex items-center mb-4">
                       <Shield className="h-6 w-6 text-primary mr-2" />
-                      <h3 className="text-lg font-medium">Profile Status</h3>
+                      <h3 className="text-lg font-medium luxury-text">
+                        Profile Status
+                      </h3>
                     </div>
 
                     {solanaConnected ? (
-                      <div className="flex items-center text-green-500">
-                        <Award className="mr-2 h-5 w-5" />
-                        <span>
+                      <div className="flex items-center text-primary">
+                        <motion.div
+                          animate={{
+                            rotate: [0, 10, 0],
+                            scale: [1, 1.1, 1],
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Award className="mr-2 h-5 w-5" />
+                        </motion.div>
+                        <span className="text-white/90">
                           Your profile is active with a connected wallet
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center text-yellow-500">
-                        <AlertCircle className="mr-2 h-5 w-5" />
-                        <span>Connect your wallet to unlock all features</span>
+                      <div className="flex items-center text-primary">
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.1, 1],
+                          }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          <AlertCircle className="mr-2 h-5 w-5" />
+                        </motion.div>
+                        <span className="text-white/90">
+                          Connect your wallet to unlock all features
+                        </span>
                       </div>
                     )}
                   </motion.div>
@@ -212,35 +265,37 @@ const ProfileClientContent: React.FC = () => {
                     variants={itemVariants}
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                   >
-                    <div className="bg-muted/40 backdrop-blur-sm p-6 rounded-lg border border-border/40">
+                    <div className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]">
                       <div className="flex items-center mb-4">
-                        <Clock className="h-6 w-6 text-primary mr-2" />
-                        <h3 className="text-lg font-medium">Recent Activity</h3>
+                        <Clock className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
+                        <h3 className="text-lg font-medium luxury-text">
+                          Recent Activity
+                        </h3>
                       </div>
 
                       {solanaConnected ? (
-                        <p className="text-muted-foreground">
+                        <p className="text-white/70">
                           No recent activity to display.
                         </p>
                       ) : (
-                        <p className="text-muted-foreground">
+                        <p className="text-white/70">
                           Connect wallet to view your activity.
                         </p>
                       )}
                     </div>
 
-                    <div className="bg-muted/40 backdrop-blur-sm p-6 rounded-lg border border-border/40">
+                    <div className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]">
                       <div className="flex items-center mb-4">
-                        <Award className="h-6 w-6 text-primary mr-2" />
-                        <h3 className="text-lg font-medium">Rewards</h3>
+                        <Award className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
+                        <h3 className="text-lg font-medium luxury-text">
+                          Rewards
+                        </h3>
                       </div>
 
                       {solanaConnected ? (
-                        <p className="text-muted-foreground">
-                          No rewards earned yet.
-                        </p>
+                        <p className="text-white/70">No rewards earned yet.</p>
                       ) : (
-                        <p className="text-muted-foreground">
+                        <p className="text-white/70">
                           Connect wallet to view your rewards.
                         </p>
                       )}
@@ -253,23 +308,37 @@ const ProfileClientContent: React.FC = () => {
                 <div className="space-y-6">
                   <motion.div
                     variants={itemVariants}
-                    className="bg-muted/40 backdrop-blur-sm p-6 rounded-lg border border-border/40"
+                    className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                   >
                     <div className="flex items-center mb-4">
-                      <Wallet className="h-6 w-6 text-primary mr-2" />
-                      <h3 className="text-lg font-medium">Connected Wallets</h3>
+                      <Wallet className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
+                      <h3 className="text-lg font-medium luxury-text">
+                        Connected Wallets
+                      </h3>
                     </div>
 
                     <div className="space-y-4">
                       {solanaConnected ? (
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
-                              <span className="text-xs">SOL</span>
-                            </div>
+                            <motion.div
+                              className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mr-3 border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.15)]"
+                              whileHover={{ rotate: 10, scale: 1.1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 10,
+                              }}
+                            >
+                              <span className="text-xs text-primary font-bold">
+                                SOL
+                              </span>
+                            </motion.div>
                             <div>
-                              <p className="font-medium">Solana Wallet</p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="font-medium text-white">
+                                Solana Wallet
+                              </p>
+                              <p className="text-sm text-primary/80">
                                 {publicKey?.toString().slice(0, 10)}...
                                 {publicKey?.toString().slice(-6)}
                               </p>
@@ -278,11 +347,20 @@ const ProfileClientContent: React.FC = () => {
                           <WalletConnectButton />
                         </div>
                       ) : (
-                        <div className="text-center py-6">
-                          <p className="text-muted-foreground mb-4">
+                        <div className="text-center py-8">
+                          <motion.p
+                            className="text-white/70 mb-5"
+                            animate={{ opacity: [0.7, 1, 0.7] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
                             No wallets connected
-                          </p>
-                          <WalletConnectButton className="mx-auto" />
+                          </motion.p>
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <WalletConnectButton className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]" />
+                          </motion.div>
                         </div>
                       )}
                     </div>
@@ -294,27 +372,40 @@ const ProfileClientContent: React.FC = () => {
                 <div className="space-y-6">
                   <motion.div
                     variants={itemVariants}
-                    className="bg-muted/40 backdrop-blur-sm p-6 rounded-lg border border-border/40"
+                    className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                   >
                     <div className="flex items-center mb-4">
-                      <Clock className="h-6 w-6 text-primary mr-2" />
-                      <h3 className="text-lg font-medium">
+                      <Clock className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
+                      <h3 className="text-lg font-medium luxury-text">
                         Transaction History
                       </h3>
                     </div>
 
                     {solanaConnected ? (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">
+                      <div className="text-center py-10">
+                        <motion.p
+                          className="text-white/70"
+                          animate={{ opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
                           No transactions found.
-                        </p>
+                        </motion.p>
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground mb-4">
+                      <div className="text-center py-10">
+                        <motion.p
+                          className="text-white/70 mb-6"
+                          animate={{ opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
                           Connect your wallet to view transaction history
-                        </p>
-                        <WalletConnectButton className="mx-auto" />
+                        </motion.p>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <WalletConnectButton className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]" />
+                        </motion.div>
                       </div>
                     )}
                   </motion.div>
