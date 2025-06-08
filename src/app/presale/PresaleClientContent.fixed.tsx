@@ -446,11 +446,11 @@ const PresaleClientContent = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Symbol</span>
-                    <span className="font-medium">ANTX</span>
+                    <span className="font-medium">LMX</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Total Supply</span>
-                    <span className="font-medium">100,000,000 ANTX</span>
+                    <span className="font-medium">100,000,000 LMX</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Network</span>
@@ -546,7 +546,7 @@ const PresaleClientContent = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm mb-2 text-gray-300">
-                    ANTX Tokens
+                    LMX Tokens
                   </label>
                   <div className="w-full bg-black/50 border border-primary/30 rounded-md p-3 text-white">
                     {tokensToReceive.toLocaleString(undefined, {
@@ -587,7 +587,7 @@ const PresaleClientContent = () => {
                     <div className="w-[80%] h-[80%] rounded-full border-4 border-primary/20 flex items-center justify-center">
                       <div className="w-[60%] h-[60%] rounded-full border-4 border-primary/30 flex items-center justify-center">
                         <div className="w-[40%] h-[40%] rounded-full bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-xl font-bold">
-                          ANTX
+                          LMX
                         </div>
                       </div>
                     </div>
@@ -696,8 +696,8 @@ const PresaleClientContent = () => {
                   <h3 className="text-xl font-bold">Limited Supply</h3>
                 </div>
                 <p className="text-gray-300">
-                  With a fixed supply and deflationary mechanics, ANTX tokens
-                  are designed to increase in value as the platform grows.
+                  With a fixed supply and deflationary mechanics, LMX tokens are
+                  designed to increase in value as the platform grows.
                 </p>
               </LuxuryCard>
             </ScrollAnimationWrapper>
@@ -756,7 +756,7 @@ const PresaleClientContent = () => {
             />
             <FaqItem
               question="How can I participate in the presale?"
-              answer="To participate in the presale, connect your Web3 wallet (MetaMask, Trust Wallet, etc.), enter the amount of ETH you wish to invest, and complete the transaction. The ANTX tokens will be distributed to your wallet once the presale concludes."
+              answer="To participate in the presale, connect your Web3 wallet (MetaMask, Trust Wallet, etc.), enter the amount of ETH you wish to invest, and complete the transaction. The LMX tokens will be distributed to your wallet once the presale concludes."
               delay={200}
             />
             <FaqItem
@@ -765,8 +765,8 @@ const PresaleClientContent = () => {
               delay={300}
             />
             <FaqItem
-              question="When will ANTX be listed on exchanges?"
-              answer="ANTX will be listed on decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows."
+              question="When will LMX be listed on exchanges?"
+              answer="LMX will be listed on decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows."
               delay={400}
             />
             <FaqItem

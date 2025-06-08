@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Optional: Direct URL for Prisma Migrate
+}
+
+// User model to store user information
+model User {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  email              String?             @unique
+  username           String?             @unique
+  walletAddress      String? // User's blockchain wallet address (may be Solana or Ethereum)
+  walletType         String? // Type of wallet (solana or ethereum)
+  walletVerified     Boolean             @default(false) // Whether the wallet has been verified
+  evmAddress         String?             @unique // User's EVM blockchain address
+  solanaAddress      String?             @unique // User's Solana blockchain address
+  referralCode       String              @unique // Unique referral code for this user
+  referrer           User?               @relation("UserReferrals", fields: [referrerId], references: [id])
+  referrerId         String?             @unique // Each user can have only one referrer
+  referrals          User[]              @relation("UserReferrals")
+  verified           Boolean             @default(false)
+  evmVerified        Boolean             @default(false) // Verification status of EVM address
+  solanaVerified     Boolean             @default(false) // Verification status of Solana address
+  verificationTokens VerificationToken[]
+}
+
+// Verification token model for email and wallet verification
+model VerificationToken {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  token     String    @unique
+  expires   DateTime
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      TokenType
+
+  @@index([userId])
+}
+
+// Enum for token types
+enum TokenType {
+  EMAIL_VERIFICATION
+  EVM_VERIFICATION
+  SOLANA_VERIFICATION
+  PASSWORD_RESET
+}

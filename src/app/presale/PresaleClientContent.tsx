@@ -23,16 +23,18 @@ import CountdownTimer from "@/components/CountdownTimer";
 import GlowButton from "@/components/GlowButton";
 import PresaleStats from "@/components/PresaleStats";
 import { ReferralCard } from "@/components/ReferralCard";
+import { WalletSelectorButton } from "@/components/WalletSelectorButton";
+import PresaleBuyForm from "@/components/PresaleBuyForm";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 import { HyperText } from "@/components/magicui/hyper-text";
 import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import SectionIndicator from "@/components/SectionIndicator";
-import "../../components/sections/animation-utils.css";
-
-// Use the /next import for Spline with React.lazy
+import "../../components/sections/animation-utils.css"; // Use the /next import for Spline with React.lazy
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
+
+import usePresale from "@/components/hooks/usePresale";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -115,11 +117,12 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, answer, delay = 0 }) => {
 
 const PresaleClientContent = () => {
   const searchParams = useSearchParams();
-  const [amountETH, setAmountETH] = useState("");
-  const [tokensToReceive, setTokensToReceive] = useState(0);
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Use the presale hook for wallet connection and presale data
+  const { hasConnectedWallet, switchNetwork, presaleNetwork } = usePresale();
 
   // Create refs for each section to track scroll position
   const statsSectionRef = useRef<HTMLElement>(null);
@@ -143,16 +146,14 @@ const PresaleClientContent = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleCalculate = () => {
-    if (!amountETH || isNaN(parseFloat(amountETH))) {
-      setTokensToReceive(0);
-      return;
+  // Handle wallet connection
+  const handleWalletConnect = (type: "ethereum" | "solana") => {
+    // When wallet is connected, switch to the appropriate network
+    if (type === "ethereum") {
+      switchNetwork("bsc");
+    } else if (type === "solana") {
+      switchNetwork("solana");
     }
-
-    const ethAmount = parseFloat(amountETH);
-    const baseTokens = ethAmount / 0.00075;
-    const bonusTokens = baseTokens * 0.15;
-    setTokensToReceive(baseTokens + bonusTokens);
   };
 
   // Track scroll position and update active section
@@ -295,6 +296,30 @@ const PresaleClientContent = () => {
             <TokenProgressBar raised={358} goal={500} />
           </div>
 
+          <div className="flex flex-col items-center justify-center gap-6 mb-12">
+            <WalletSelectorButton
+              variant="fancy"
+              className="w-full max-w-md"
+              onConnect={handleWalletConnect}
+            />
+            {hasConnectedWallet && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center"
+              >
+                <p className="text-lg font-semibold mb-2">
+                  {presaleNetwork === "solana" ? "Solana" : "BSC"} Wallet
+                  Connected
+                </p>
+                <p className="text-sm opacity-80">
+                  You can now participate in the presale
+                </p>
+              </motion.div>
+            )}
+          </div>
+
           <div className="mt-12">
             <PresaleStats
               contributors={1250}
@@ -314,85 +339,10 @@ const PresaleClientContent = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-16 max-w-2xl mx-auto"
             >
-              <LuxuryCard
-                className="p-10 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
-                icon="diamond"
-                iconPosition="tl"
-                decorativeText="LITMEX"
-              >
-                <h3 className="text-3xl font-bold text-center mb-8">
-                  <span className="luxury-text">
-                    Purchase LITMEX Tokens Now
-                  </span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm mb-2 text-primary/80 font-semibold">
-                      Enter Amount (ETH)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full bg-black/50 border-2 border-primary/40 rounded-lg p-5 text-white focus:border-primary focus:ring-primary/30 focus:ring-2 focus:outline-none transition-all shadow-[0_0_10px_rgba(212,175,55,0.1)_inset]"
-                      placeholder="0.0"
-                      value={amountETH}
-                      onChange={(e) => setAmountETH(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-2 text-primary/80 font-semibold">
-                      You Receive
-                    </label>
-                    <div className="w-full bg-black/50 border-2 border-primary/40 rounded-lg p-5 text-white shadow-[0_0_10px_rgba(212,175,55,0.1)_inset]">
-                      <motion.span
-                        animate={{
-                          color: [
-                            "rgba(255, 255, 255, 1)",
-                            "rgba(212, 175, 55, 0.9)",
-                            "rgba(255, 255, 255, 1)",
-                          ],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="font-bold"
-                      >
-                        {tokensToReceive.toLocaleString(undefined, {
-                          maximumFractionDigits: 0,
-                        })}
-                      </motion.span>{" "}
-                      ANTX
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-8">
-                  <div className="text-primary/90 text-sm">
-                    Price: <span className="font-bold">0.00075 ETH</span>{" "}
-                    &nbsp;|&nbsp; Bonus:{" "}
-                    <span className="font-bold text-primary">+15%</span>
-                  </div>
-                  <motion.button
-                    onClick={handleCalculate}
-                    className="text-sm text-primary/80 hover:text-primary flex items-center gap-1 bg-black/30 px-4 py-2 rounded-full hover:bg-black/50 transition-all"
-                    whileHover={{ scale: 1.05, x: 2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Calculate <ArrowRight size={14} />
-                  </motion.button>
-                </div>
-                <div className="mt-10 text-center">
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <GlowButton className="px-12 py-5 text-lg font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-                      <Wallet className="w-5 h-5 mr-2" /> Connect Wallet &amp;
-                      Buy Tokens
-                    </GlowButton>
-                  </motion.div>
-                </div>
-                <p className="text-sm text-center text-primary/70 mt-6">
-                  Minimum purchase: 0.05 ETH | Tokens will be distributed after
-                  presale
-                </p>
-              </LuxuryCard>
+              <PresaleBuyForm
+                referralCode={searchParams?.get("ref") || ""}
+                className="bg-black/20 backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+              />
             </motion.div>
 
             <motion.div
@@ -518,11 +468,11 @@ const PresaleClientContent = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Symbol</span>
-                    <span className="font-medium">ANTX</span>
+                    <span className="font-medium">LMX</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Total Supply</span>
-                    <span className="font-medium">100,000,000 ANTX</span>
+                    <span className="font-medium">100,000,000 LMX</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Network</span>
@@ -646,7 +596,7 @@ const PresaleClientContent = () => {
                             transition={{ duration: 2, repeat: Infinity }}
                             className="luxury-text font-display"
                           >
-                            ANTX
+                            LMX
                           </motion.div>
                         </div>
                       </div>
@@ -844,37 +794,28 @@ const PresaleClientContent = () => {
                   </h3>
                 </div>
                 <p className="text-gray-300 text-center">
-                  With a fixed supply and deflationary mechanics, ANTX tokens
-                  are designed to increase in value as the platform grows.
+                  With a fixed supply and deflationary mechanics, LMX tokens are
+                  designed to increase in value as the platform grows.
                 </p>
               </LuxuryCard>
             </ScrollAnimationWrapper>
           </div>
 
-          <div className="mt-16 text-center">
+          <div className="mt-16">
             <ScrollAnimationWrapper delay={400}>
-              <motion.div
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-block"
-              >
-                <GlowButton className="px-14 py-5 text-xl font-bold flex items-center gap-3 shadow-[0_0_25px_rgba(212,175,55,0.3)] luxury-button-hover">
-                  <span>Join the Presale Now</span>
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </motion.div>
-                </GlowButton>
-              </motion.div>
-              <motion.p
-                className="text-primary/80 mt-5 text-sm font-medium"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ✨ Limited allocations available ✨
-              </motion.p>
+              <div className="max-w-lg mx-auto">
+                <PresaleBuyForm
+                  referralCode={searchParams?.get("ref") || ""}
+                  className="bg-black/40 backdrop-blur-xl border-primary/20 shadow-xl shadow-primary/5"
+                />
+                <motion.p
+                  className="text-primary/80 mt-5 text-sm font-medium text-center"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  ✨ Limited allocations available ✨
+                </motion.p>
+              </div>
             </ScrollAnimationWrapper>
           </div>
         </div>
@@ -923,7 +864,7 @@ const PresaleClientContent = () => {
             />
             <FaqItem
               question="How can I participate in the presale?"
-              answer="To participate in the presale, connect your Web3 wallet (MetaMask, Trust Wallet, etc.), enter the amount of ETH you wish to invest, and complete the transaction. The ANTX tokens will be distributed to your wallet once the presale concludes."
+              answer="To participate in the presale, connect your Web3 wallet (MetaMask, Trust Wallet, etc.), enter the amount of ETH you wish to invest, and complete the transaction. The LMX tokens will be distributed to your wallet once the presale concludes."
               delay={200}
             />
             <FaqItem
@@ -932,8 +873,8 @@ const PresaleClientContent = () => {
               delay={300}
             />
             <FaqItem
-              question="When will ANTX be listed on exchanges?"
-              answer="ANTX will be listed on decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows."
+              question="When will LMX be listed on exchanges?"
+              answer="LMX will be listed on decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows."
               delay={400}
             />
             <FaqItem

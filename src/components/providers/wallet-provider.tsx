@@ -20,33 +20,38 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
+import { useConnect, WagmiProvider } from "wagmi";
+import { wagmiConfig } from "@/lib/wagmi-config";
+import { useAccount, useDisconnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 // Default styles that can be overridden
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 interface Props {
   children: ReactNode;
 }
 
-// Simple context for Ethereum wallet state
+// Ethereum wallet context with wagmi hooks
 interface EthereumWalletContextType {
   address: string | null;
   isConnected: boolean;
-  connect: () => void;
-  disconnect: () => void;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
 }
 
 const EthereumWalletContext = createContext<EthereumWalletContextType>({
   address: null,
   isConnected: false,
-  connect: () => {},
-  disconnect: () => {},
+  connect: async () => {},
+  disconnect: async () => {},
 });
 
 export const useEthereumWallet = () => useContext(EthereumWalletContext);
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
-  // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
+  // Use devnet for testing
   const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint
@@ -66,54 +71,79 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
   );
 };
 
-// Simplified Ethereum wallet provider
+// Ethereum wallet provider using wagmi
 export const EthereumWalletProvider: FC<Props> = ({ children }) => {
-  const [address, setAddress] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  // We'll use a client component wrapper to access wagmi hooks
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <EthereumWalletProviderInner>{children}</EthereumWalletProviderInner>
+    </WagmiProvider>
+  );
+};
 
-  // Mock connect/disconnect functions for demo purposes
-  // In a real app, these would use actual Ethereum wallet connection logic
-  const connect = () => {
-    const mockAddress = "0x" + Math.random().toString(16).slice(2, 12);
-    setAddress(mockAddress);
-    setIsConnected(true);
+// Inner component that uses wagmi hooks
+const EthereumWalletProviderInner: FC<Props> = ({ children }) => {
+  // Use wagmi hooks
+  const { address, isConnected } = useAccount();
+  const { connect: wagmiConnect } = useConnect();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
 
-    // Store connection in localStorage for persistence
-    if (typeof window !== "undefined") {
-      localStorage.setItem("ethWalletConnected", "true");
-      localStorage.setItem("ethWalletAddress", mockAddress);
-    }
-  };
+  // Connect function using wagmi
+  const connect = async () => {
+    try {
+      await wagmiConnect({ connector: injected() });
 
-  const disconnect = () => {
-    setAddress(null);
-    setIsConnected(false);
-
-    // Clear from localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("ethWalletConnected");
-      localStorage.removeItem("ethWalletAddress");
-    }
-  };
-
-  // Check for existing connection on mount
-  useMemo(() => {
-    if (typeof window !== "undefined") {
-      const connected = localStorage.getItem("ethWalletConnected") === "true";
-      const savedAddress = localStorage.getItem("ethWalletAddress");
-
-      if (connected && savedAddress) {
-        setAddress(savedAddress);
-        setIsConnected(true);
+      // Check if we're on the correct chain (BSC Testnet)
+      if (window.ethereum) {
+        // Switch to BSC Testnet
+        await window.ethereum
+          ?.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x61" }], // '0x61' is hex for 97
+          })
+          .catch(async (switchError: any) => {
+            // If chain is not added to MetaMask, add it
+            if (switchError.code === 4902 || switchError.code === -32603) {
+              await window.ethereum?.request({
+                method: "wallet_addEthereumChain",
+                params: [
+                  {
+                    chainId: "0x61",
+                    chainName: "BSC Testnet",
+                    nativeCurrency: {
+                      name: "BNB",
+                      symbol: "BNB",
+                      decimals: 18,
+                    },
+                    rpcUrls: [
+                      "https://data-seed-prebsc-1-s1.binance.org:8545/",
+                    ],
+                    blockExplorerUrls: ["https://testnet.bscscan.com/"],
+                  },
+                ],
+              });
+            }
+          });
       }
+    } catch (error) {
+      console.error("Error connecting wallet:", error);
     }
-  }, []);
+  };
+
+  // Disconnect function using wagmi
+  const disconnect = async () => {
+    try {
+      await wagmiDisconnect();
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+    }
+  };
 
   return (
     <EthereumWalletContext.Provider
       value={{
-        address,
-        isConnected,
+        address: address ?? null,
+        isConnected: !!isConnected,
         connect,
         disconnect,
       }}
@@ -124,9 +154,15 @@ export const EthereumWalletProvider: FC<Props> = ({ children }) => {
 };
 
 export const WalletProviders: FC<Props> = ({ children }) => {
+  const queryClient = useMemo(() => new QueryClient(), []);
+
   return (
-    <SolanaWalletProvider>
-      <EthereumWalletProvider>{children}</EthereumWalletProvider>
-    </SolanaWalletProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <SolanaWalletProvider>
+          <EthereumWalletProvider>{children}</EthereumWalletProvider>
+        </SolanaWalletProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };

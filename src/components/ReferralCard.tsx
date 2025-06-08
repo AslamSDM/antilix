@@ -1,24 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Share2, Copy, Check } from "lucide-react";
+import { Share2, Copy, Check, Users } from "lucide-react";
 import LuxuryCard from "./LuxuryCard";
+import { generateReferralUrl } from "@/lib/referral";
+import useReferralSystem from "./hooks/useReferralSystem";
 
 interface ReferralCardProps {
-  referralCode?: string;
   className?: string;
 }
 
 export const ReferralCard: React.FC<ReferralCardProps> = ({
-  referralCode = "ANTX" +
-    Math.random().toString(36).substring(2, 8).toUpperCase(),
   className = "",
 }) => {
+  const {
+    userReferralCode,
+    referralStats,
+    isLoading: referralLoading,
+    generateReferralCode,
+    fetchUserReferralInfo,
+  } = useReferralSystem();
+
   const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Ensure we have fresh data
+  useEffect(() => {
+    fetchUserReferralInfo();
+  }, [fetchUserReferralInfo]);
+
+  // If no referral code is provided or fetched, generate a placeholder
+  const displayReferralCode =
+    userReferralCode ||
+    "LMX" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const handleCopyReferralLink = () => {
-    const referralLink = `https://Litmex.io/presale?ref=${referralCode}`;
+    const referralLink = generateReferralUrl(displayReferralCode);
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
 
@@ -28,7 +46,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     }, 2000);
   };
 
-  const referralLink = `https://Litmex.io/presale?ref=${referralCode}`;
+  const referralLink = generateReferralUrl(displayReferralCode);
 
   return (
     <LuxuryCard className={`p-6 ${className}`}>
@@ -100,7 +118,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
         </div>
         <div className="flex justify-between items-center mt-2">
           <div className="text-sm text-gray-400">Bonus Earned</div>
-          <div className="font-medium text-primary">0 ANTX</div>
+          <div className="font-medium text-primary">0 LMX</div>
         </div>
       </div>
     </LuxuryCard>

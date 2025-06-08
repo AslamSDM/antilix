@@ -2,22 +2,58 @@
 import React, { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { User, Wallet, Shield, Clock, Award, AlertCircle } from "lucide-react";
-import { WalletConnectButton } from "@/components/WalletConnectButton";
+import {
+  User,
+  Wallet,
+  Shield,
+  Clock,
+  Award,
+  AlertCircle,
+  Share2,
+} from "lucide-react";
+import { WalletSelectorButton } from "@/components/WalletSelectorButton";
+import { WalletReferralButton } from "@/components/WalletReferralButton";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useEthereumWallet } from "@/components/providers/wallet-provider";
 
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const ProfileClientContent: React.FC = () => {
   const { connected: solanaConnected, publicKey } = useWallet();
+  const { address: ethAddress, isConnected: ethConnected } =
+    useEthereumWallet();
   const [activeTab, setActiveTab] = useState("overview");
+  const [walletType, setWalletType] = useState<"ethereum" | "solana" | null>(
+    null
+  );
+
+  const anyWalletConnected = solanaConnected || ethConnected;
+
+  // Handle wallet connection
+  const handleWalletConnect = (type: "ethereum" | "solana") => {
+    setWalletType(type);
+    console.log(`${type} wallet connected`);
+  };
+
+  // Get display username based on wallet
+  const getDisplayUsername = () => {
+    if (solanaConnected && publicKey) {
+      return (
+        publicKey.toString().slice(0, 6) +
+        "..." +
+        publicKey.toString().slice(-4)
+      );
+    }
+
+    if (ethConnected && ethAddress) {
+      return ethAddress.slice(0, 6) + "..." + ethAddress.slice(-4);
+    }
+
+    return "Guest User";
+  };
 
   const userData = {
-    username: solanaConnected
-      ? publicKey?.toString().slice(0, 6) +
-        "..." +
-        publicKey?.toString().slice(-4)
-      : "Guest User",
+    username: getDisplayUsername(),
     joinDate: "May 2025",
     transactions: 0,
     rewards: 0,
@@ -103,7 +139,7 @@ const ProfileClientContent: React.FC = () => {
                         <div className="w-full h-12 bg-gray-200 animate-pulse rounded-md" />
                       }
                     >
-                      <WalletConnectButton className="w-full" />
+                      <WalletSelectorButton className="w-full" />
                     </Suspense>
                   </div>
                 )}
@@ -211,6 +247,18 @@ const ProfileClientContent: React.FC = () => {
                   whileTap={{ y: 0 }}
                 >
                   Activity
+                </motion.button>
+                <motion.button
+                  onClick={() => setActiveTab("referrals")}
+                  className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
+                    activeTab === "referrals"
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
+                >
+                  Referrals
                 </motion.button>
               </div>
             </div>
@@ -344,7 +392,7 @@ const ProfileClientContent: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          <WalletConnectButton />
+                          <WalletSelectorButton />
                         </div>
                       ) : (
                         <div className="text-center py-8">
@@ -359,7 +407,10 @@ const ProfileClientContent: React.FC = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            <WalletConnectButton className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]" />
+                            <WalletSelectorButton
+                              className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                              onConnect={handleWalletConnect}
+                            />
                           </motion.div>
                         </div>
                       )}
@@ -404,7 +455,62 @@ const ProfileClientContent: React.FC = () => {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <WalletConnectButton className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]" />
+                          <WalletSelectorButton
+                            className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                            onConnect={handleWalletConnect}
+                          />
+                        </motion.div>
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
+              )}
+
+              {activeTab === "referrals" && (
+                <div className="space-y-6">
+                  <motion.div
+                    variants={itemVariants}
+                    className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
+                  >
+                    <div className="flex items-center mb-4">
+                      <Share2 className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
+                      <h3 className="text-lg font-medium luxury-text">
+                        Referral Program
+                      </h3>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="text-white/80">
+                        Sign with your wallet to verify ownership and generate a
+                        unique referral code that you can share with friends.
+                      </p>
+                    </div>
+
+                    {solanaConnected ? (
+                      <div className="bg-black/20 p-6 rounded-lg">
+                        <h4 className="text-primary mb-4 font-medium">
+                          Wallet Verified Referrals
+                        </h4>
+                        <WalletReferralButton />
+                      </div>
+                    ) : (
+                      <div className="text-center py-10">
+                        <motion.p
+                          className="text-white/70 mb-6"
+                          animate={{ opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          Connect your wallet to generate verified referral
+                          links
+                        </motion.p>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <WalletSelectorButton
+                            className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                            onConnect={handleWalletConnect}
+                          />
                         </motion.div>
                       </div>
                     )}

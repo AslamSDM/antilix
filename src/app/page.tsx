@@ -5,9 +5,12 @@ import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Application } from "@splinetool/runtime";
 import Spline, { SplineEvent } from "@splinetool/react-spline";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
+import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 // import useSectionCentering from "@/components/hooks/useSectionCentering"; // May not be needed if sections are fixed
 import MusicToggle from "@/components/MusicToggle";
 import LitmexLoader from "@/components/LitmexLoader";
+import NavigationHint from "@/components/NavigationHint";
+import ContinueButton from "@/components/ContinueButton";
 
 // Import section components
 import IntroSection from "@/components/sections/IntroSection";
@@ -33,11 +36,13 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [musicActive, setMusicActive] = useState<boolean>(false);
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
+  const [showContinueButton, setShowContinueButton] = useState<boolean>(false);
   // This will store our mapped progress (e.g., 0 to TOTAL_SCROLL_ANIMATION_UNITS)
   const [mappedScrollProgress, setMappedScrollProgress] = useState<number>(0);
 
   // Get scroll progress (0 to 1) for the containerRef
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress, scrollY } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"], // Scroll from the very start to the very end of containerRef
   });
@@ -53,12 +58,57 @@ export default function HomePage() {
     playOnMount: false,
   });
 
+  // Detect small screens on mount
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 768); // Consider tablets and phones as small screens
+    };
+
+    // Check on mount
+    checkScreenSize();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkScreenSize);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("resize", checkScreenSize);
+    };
+  }, []);
+
   // Update mappedScrollProgress and control Spline based on scrollYProgress
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (latest) => {
       // `latest` is a value from 0 to 1
       const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
       setMappedScrollProgress(currentMappedProgress);
+
+      // Update Spline animation if app is loaded
+      if (splineApp) {
+        // Map from 0-1 to 0-MAX_SPLINE_SCROLL_VALUE
+        const splineValue = latest * MAX_SPLINE_SCROLL_VALUE;
+
+        // Try common variable names that might control the animation
+        const variableNames = [
+          "scroll",
+          "scrollValue",
+          "animation",
+          "progress",
+          "value",
+          "time",
+          "position",
+        ];
+
+        // Try each variable name until one works
+        for (const varName of variableNames) {
+          try {
+            splineApp.setVariable(varName, splineValue);
+            break; // Exit the loop once we find a working variable
+          } catch (error) {
+            // Variable doesn't exist, continue to the next one
+          }
+        }
+      }
     });
     return () => unsubscribe();
   }, [scrollYProgress, splineApp]);
@@ -81,14 +131,209 @@ export default function HomePage() {
     setMusicActive(!musicActive);
   }, [musicActive, backgroundMusic]);
 
+  // Helper function to navigate to a specific section
+  const navigateToSection = useCallback(
+    (sectionIndex: number) => {
+      // Ensure section index is within bounds
+      const targetSection = Math.max(0, Math.min(sectionIndex, 5));
+
+      // Calculate target scroll percentage based on section
+      let targetScrollPercentage: number;
+
+      if (targetSection === 0) {
+        targetScrollPercentage = 0; // Start of the page
+      } else {
+        // Use the midpoint between section thresholds
+        const sectionThresholds = [
+          TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6),
+          TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6),
+          TOTAL_SCROLL_ANIMATION_UNITS * (3 / 6),
+          TOTAL_SCROLL_ANIMATION_UNITS * (4 / 6),
+          TOTAL_SCROLL_ANIMATION_UNITS * (5 / 6),
+        ];
+
+        // Get the target position (add a small offset to make sure we cross the threshold)
+        targetScrollPercentage =
+          (sectionThresholds[targetSection - 1] + 1) /
+          TOTAL_SCROLL_ANIMATION_UNITS;
+      }
+
+      // Calculate actual pixel position to scroll to
+      const scrollHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const targetScrollPosition = scrollHeight * targetScrollPercentage;
+
+      // Perform the scroll
+      window.scrollTo({
+        top: targetScrollPosition,
+        behavior: "smooth",
+      });
+
+      // If we have direct access to the Spline app, update its animation too
+      if (splineApp) {
+        // Calculate the Spline animation value
+        const splineScrollValue =
+          targetScrollPercentage * MAX_SPLINE_SCROLL_VALUE;
+
+        // Try common variable names that might control the animation
+        const variableNames = [
+          "scroll",
+          "scrollValue",
+          "animation",
+          "progress",
+          "value",
+          "time",
+          "position",
+        ];
+
+        // Try each variable name until one works
+        for (const varName of variableNames) {
+          try {
+            splineApp.setVariable(varName, splineScrollValue);
+            break; // Exit the loop once we find a working variable
+          } catch (error) {
+            // Variable doesn't exist, continue to the next one
+          }
+        }
+      }
+    },
+    [splineApp]
+  );
+
+  // Navigation functions for keyboard shortcuts and buttons
+  const goToNextSection = useCallback(() => {
+    const nextSection = activeSection >= 5 ? 5 : activeSection + 1;
+    if (nextSection !== activeSection) {
+      navigateToSection(nextSection);
+      sectionChangeSound.play();
+    }
+  }, [activeSection, navigateToSection, sectionChangeSound]);
+
+  const goToPreviousSection = useCallback(() => {
+    const prevSection = activeSection <= 0 ? 0 : activeSection - 1;
+    if (prevSection !== activeSection) {
+      navigateToSection(prevSection);
+      sectionChangeSound.play();
+    }
+  }, [activeSection, navigateToSection, sectionChangeSound]);
+
+  const goToFirstSection = useCallback(() => {
+    if (activeSection !== 0) {
+      navigateToSection(0);
+      sectionChangeSound.play();
+    }
+  }, [activeSection, navigateToSection, sectionChangeSound]);
+
+  const goToLastSection = useCallback(() => {
+    if (activeSection !== 5) {
+      navigateToSection(5);
+      sectionChangeSound.play();
+    }
+  }, [activeSection, navigateToSection, sectionChangeSound]);
+
+  // Use the keyboard navigation hook
+  useKeyboardNavigation({
+    onNext: goToNextSection,
+    onPrevious: goToPreviousSection,
+    onHome: goToFirstSection,
+    onEnd: goToLastSection,
+  });
+
+  // Add tap/touch support for small screens
+  useEffect(() => {
+    // Only enable for small screens
+    if (!isSmallScreen) return;
+
+    // Add a tap overlay that spans the screen
+    const tapOverlay = document.createElement("div");
+    tapOverlay.className =
+      "fixed inset-0 z-40 bg-transparent pointer-events-none";
+
+    // Create an interactive button that will handle double taps
+    const tapButton = document.createElement("div");
+    tapButton.className =
+      "fixed bottom-24 right-8 w-16 h-16 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-auto";
+    tapButton.innerHTML = `<div class="text-white/70 text-sm">2×</div>`;
+
+    // Add double tap detection
+    let lastTap = 0;
+    tapButton.addEventListener("touchend", (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+
+      // If double tap detected (within 300ms)
+      if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+        goToNextSection();
+
+        // Visual feedback
+        tapButton.classList.add("bg-white/30");
+        setTimeout(() => tapButton.classList.remove("bg-white/30"), 200);
+      }
+
+      lastTap = currentTime;
+    });
+
+    // Append to body
+    document.body.appendChild(tapOverlay);
+    document.body.appendChild(tapButton);
+
+    // Clean up
+    return () => {
+      document.body.removeChild(tapOverlay);
+      document.body.removeChild(tapButton);
+    };
+  }, [isSmallScreen, goToNextSection]);
+
+  // Show continue button after a period of inactivity
+  useEffect(() => {
+    // Initialize user activity detection
+    let inactivityTimer: NodeJS.Timeout | null = null;
+    const INACTIVITY_DELAY = 5000; // 5 seconds of inactivity
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+
+      setShowContinueButton(false);
+
+      // Set a new timer to show the continue button
+      inactivityTimer = setTimeout(() => {
+        setShowContinueButton(true);
+      }, INACTIVITY_DELAY);
+    };
+
+    // Detect user activity
+    const activityEvents = [
+      "scroll",
+      "touchmove",
+      "mousemove",
+      "keydown",
+      "click",
+    ];
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Set initial timer
+    resetInactivityTimer();
+
+    // Clean up
+    return () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetInactivityTimer);
+      });
+    };
+  }, []);
+
   // Watch for section changes based on mappedScrollProgress
   useEffect(() => {
     // Define thresholds based on TOTAL_SCROLL_ANIMATION_UNITS
-    // For example, if TOTAL_SCROLL_ANIMATION_UNITS is 100:
-    // Section 0: 0-19.99
-    // Section 1: 20-39.99
-    // ...
-    // Section 5: 100+ (or 80-100 if it's the last one before end)
     const sectionThresholds = [
       TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6), // approx 16.66 for 100 units
       TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6), // approx 33.33
@@ -132,8 +377,6 @@ export default function HomePage() {
     activeSection === 4,
     activeSection === 5,
   ];
-  console.log("Section visibility:", scrollYProgress);
-  // useSectionCentering(); // This might not be needed if sections are fixed centrally
 
   return (
     // This containerRef needs to have a defined height for scrollYProgress to work against.
@@ -161,6 +404,7 @@ export default function HomePage() {
         />
         <Spline
           scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
+          // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
           onLoad={handleSplineLoad}
           className="w-full h-full"
           // onSplineScroll is not needed if we drive it via setVariable
@@ -229,6 +473,18 @@ export default function HomePage() {
           {sectionVisibility[5] && <CtaSection isVisible={true} key="cta" />}
         </AnimatePresence>
       </div>
+
+      {/* Navigation hint for small screens */}
+      <AnimatePresence>
+        {isSmallScreen && <NavigationHint isSmallScreen={isSmallScreen} />}
+      </AnimatePresence>
+
+      {/* Continue button */}
+      <AnimatePresence>
+        {showContinueButton && (
+          <ContinueButton isVisible={true} onClick={goToNextSection} />
+        )}
+      </AnimatePresence>
 
       {/* ---- THE KEY TO INCREASE SCROLL ---- */}
       {/* This div creates the scrollable height. Adjust height as needed. */}
