@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import {
@@ -11,56 +11,46 @@ import {
   AlertCircle,
   Share2,
 } from "lucide-react";
-import { WalletSelectorButton } from "@/components/WalletSelectorButton";
 import { WalletReferralButton } from "@/components/WalletReferralButton";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useEthereumWallet } from "@/components/providers/wallet-provider";
+import { useAppKitState } from "@reown/appkit/react";
+import { modal } from "@/components/providers/wallet-provider";
+import {
+  AppKitStateShape,
+  getWalletTypeFromAppKitState,
+} from "@/components/hooks/usePresale";
+import { Button } from "@/components/ui/button";
 
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const ProfileClientContent: React.FC = () => {
-  const { connected: solanaConnected, publicKey } = useWallet();
-  const { address: ethAddress, isConnected: ethConnected } =
-    useEthereumWallet();
+  const appKitState = useAppKitState() as AppKitStateShape;
+  const { account, connected, connector, chainId, loading } = appKitState;
+
   const [activeTab, setActiveTab] = useState("overview");
-  const [walletType, setWalletType] = useState<"ethereum" | "solana" | null>(
-    null
-  );
 
-  const anyWalletConnected = solanaConnected || ethConnected;
+  const currentWalletType = getWalletTypeFromAppKitState(appKitState);
+  const walletAddress = account?.address;
 
-  // Handle wallet connection
-  const handleWalletConnect = (type: "ethereum" | "solana") => {
-    setWalletType(type);
-    console.log(`${type} wallet connected`);
-  };
-
-  // Get display username based on wallet
-  const getDisplayUsername = () => {
-    if (solanaConnected && publicKey) {
-      return (
-        publicKey.toString().slice(0, 6) +
-        "..." +
-        publicKey.toString().slice(-4)
-      );
-    }
-
-    if (ethConnected && ethAddress) {
-      return ethAddress.slice(0, 6) + "..." + ethAddress.slice(-4);
-    }
-
-    return "Guest User";
-  };
-
+  // Mocked data, replace with actual data fetching as needed
   const userData = {
-    username: getDisplayUsername(),
-    joinDate: "May 2025",
-    transactions: 0,
-    rewards: 0,
+    username: walletAddress
+      ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+      : "Guest User",
+    joinDate: "May 2025", // Placeholder
+    transactions: 0, // Placeholder
+    rewards: 0, // Placeholder
     preferences: {
       notifications: true,
       theme: "dark",
     },
+  };
+
+  const handleConnect = () => {
+    modal.open();
+  };
+
+  const handleDisconnect = () => {
+    modal.disconnect();
   };
 
   const containerVariants = {
@@ -96,8 +86,9 @@ const ProfileClientContent: React.FC = () => {
           Your <span className="luxury-text">Profile</span>
         </h1>
         <p className="text-lg max-w-2xl mx-auto text-white/80">
-          Connect your wallet to access exclusive features and track your gaming
-          history
+          {connected
+            ? "Manage your profile, view activity, and explore features."
+            : "Connect your wallet to access exclusive features and track your gaming history"}
         </p>
       </motion.div>
 
@@ -129,23 +120,31 @@ const ProfileClientContent: React.FC = () => {
               </h2>
 
               <div className="w-full">
-                {!solanaConnected && (
+                {!connected ? (
                   <div className="my-6">
                     <p className="text-muted-foreground text-sm mb-4 text-center">
                       Connect your wallet to view your full profile
                     </p>
-                    <Suspense
-                      fallback={
-                        <div className="w-full h-12 bg-gray-200 animate-pulse rounded-md" />
-                      }
+                    <Button
+                      onClick={handleConnect}
+                      className="w-full bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                      disabled={loading}
                     >
-                      <WalletSelectorButton className="w-full" />
-                    </Suspense>
+                      {loading ? "Connecting..." : "Connect Wallet"}
+                    </Button>
                   </div>
-                )}
-
-                {solanaConnected && (
+                ) : (
                   <div className="space-y-4 w-full mt-4">
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Wallet Type</span>
+                      <span className="text-primary capitalize">
+                        {currentWalletType || "Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Status</span>
+                      <span className="text-green-400">Connected</span>
+                    </div>
                     <div className="flex justify-between items-center py-2 border-b border-primary/20">
                       <span className="text-white/70">Member since</span>
                       <span className="text-primary">{userData.joinDate}</span>
@@ -186,6 +185,14 @@ const ProfileClientContent: React.FC = () => {
                         {userData.rewards}
                       </motion.span>
                     </div>
+                    <Button
+                      onClick={handleDisconnect}
+                      variant="outline"
+                      className="w-full mt-4 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                      disabled={loading}
+                    >
+                      {loading ? "Disconnecting..." : "Disconnect Wallet"}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -277,7 +284,7 @@ const ProfileClientContent: React.FC = () => {
                       </h3>
                     </div>
 
-                    {solanaConnected ? (
+                    {connected ? (
                       <div className="flex items-center text-primary">
                         <motion.div
                           animate={{
@@ -289,21 +296,20 @@ const ProfileClientContent: React.FC = () => {
                           <Award className="mr-2 h-5 w-5" />
                         </motion.div>
                         <span className="text-white/90">
-                          Your profile is active with a connected wallet
+                          Your profile is active with a connected{" "}
+                          {currentWalletType} wallet.
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center text-primary">
                         <motion.div
-                          animate={{
-                            scale: [1, 1.1, 1],
-                          }}
+                          animate={{ scale: [1, 1.1, 1] }}
                           transition={{ duration: 1.5, repeat: Infinity }}
                         >
                           <AlertCircle className="mr-2 h-5 w-5" />
                         </motion.div>
                         <span className="text-white/90">
-                          Connect your wallet to unlock all features
+                          Connect your wallet to unlock all features.
                         </span>
                       </div>
                     )}
@@ -321,7 +327,7 @@ const ProfileClientContent: React.FC = () => {
                         </h3>
                       </div>
 
-                      {solanaConnected ? (
+                      {connected ? (
                         <p className="text-white/70">
                           No recent activity to display.
                         </p>
@@ -340,7 +346,7 @@ const ProfileClientContent: React.FC = () => {
                         </h3>
                       </div>
 
-                      {solanaConnected ? (
+                      {connected ? (
                         <p className="text-white/70">No rewards earned yet.</p>
                       ) : (
                         <p className="text-white/70">
@@ -366,7 +372,7 @@ const ProfileClientContent: React.FC = () => {
                     </div>
 
                     <div className="space-y-4">
-                      {solanaConnected ? (
+                      {connected && walletAddress ? (
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <motion.div
@@ -378,21 +384,31 @@ const ProfileClientContent: React.FC = () => {
                                 damping: 10,
                               }}
                             >
-                              <span className="text-xs text-primary font-bold">
-                                SOL
+                              <span className="text-xs text-primary font-bold uppercase">
+                                {currentWalletType?.substring(0, 3) || "N/A"}
                               </span>
                             </motion.div>
                             <div>
-                              <p className="font-medium text-white">
-                                Solana Wallet
+                              <p className="font-medium text-white capitalize">
+                                {currentWalletType} Wallet
                               </p>
                               <p className="text-sm text-primary/80">
-                                {publicKey?.toString().slice(0, 10)}...
-                                {publicKey?.toString().slice(-6)}
+                                {`${walletAddress.slice(
+                                  0,
+                                  10
+                                )}...${walletAddress.slice(-6)}`}
                               </p>
                             </div>
                           </div>
-                          <WalletSelectorButton />
+                          <Button
+                            onClick={handleDisconnect}
+                            variant="outline"
+                            size="sm"
+                            className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                            disabled={loading}
+                          >
+                            {loading ? "..." : "Disconnect"}
+                          </Button>
                         </div>
                       ) : (
                         <div className="text-center py-8">
@@ -407,10 +423,13 @@ const ProfileClientContent: React.FC = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            <WalletSelectorButton
-                              className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                              onConnect={handleWalletConnect}
-                            />
+                            <Button
+                              onClick={handleConnect}
+                              className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                              disabled={loading}
+                            >
+                              {loading ? "Connecting..." : "Connect Wallet"}
+                            </Button>
                           </motion.div>
                         </div>
                       )}
@@ -432,7 +451,7 @@ const ProfileClientContent: React.FC = () => {
                       </h3>
                     </div>
 
-                    {solanaConnected ? (
+                    {connected ? (
                       <div className="text-center py-10">
                         <motion.p
                           className="text-white/70"
@@ -455,10 +474,13 @@ const ProfileClientContent: React.FC = () => {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <WalletSelectorButton
-                            className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                            onConnect={handleWalletConnect}
-                          />
+                          <Button
+                            onClick={handleConnect}
+                            className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                            disabled={loading}
+                          >
+                            {loading ? "Connecting..." : "Connect Wallet"}
+                          </Button>
                         </motion.div>
                       </div>
                     )}
@@ -486,10 +508,10 @@ const ProfileClientContent: React.FC = () => {
                       </p>
                     </div>
 
-                    {solanaConnected ? (
+                    {connected && currentWalletType === "solana" ? (
                       <div className="bg-black/20 p-6 rounded-lg">
                         <h4 className="text-primary mb-4 font-medium">
-                          Wallet Verified Referrals
+                          Wallet Verified Referrals (Solana)
                         </h4>
                         <WalletReferralButton />
                       </div>
@@ -500,17 +522,25 @@ const ProfileClientContent: React.FC = () => {
                           animate={{ opacity: [0.7, 1, 0.7] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
-                          Connect your wallet to generate verified referral
-                          links
+                          {connected && currentWalletType !== "solana"
+                            ? "Referral signing currently requires a Solana wallet. Please connect or switch to a Solana wallet."
+                            : "Connect your Solana wallet to generate verified referral links"}
                         </motion.p>
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <WalletSelectorButton
-                            className="mx-auto shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                            onConnect={handleWalletConnect}
-                          />
+                          <Button
+                            onClick={handleConnect} // This will open the modal for user to choose/switch
+                            className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                            disabled={loading}
+                          >
+                            {loading
+                              ? "Connecting..."
+                              : connected
+                              ? "Switch Wallet"
+                              : "Connect Wallet"}
+                          </Button>
                         </motion.div>
                       </div>
                     )}

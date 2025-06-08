@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { cn } from "@/lib/utils";
-import { useEthereumWallet } from "@/components/providers/wallet-provider";
 import useReferralSystem from "./hooks/useReferralSystem";
 import { createSignMessage } from "@/lib/wallet-auth";
 import { toast } from "sonner";
@@ -18,9 +15,17 @@ interface WalletReferralButtonProps {
 export const WalletReferralButton: React.FC<WalletReferralButtonProps> = ({
   className,
 }) => {
-  const { publicKey, signMessage } = useWallet();
-  const { address: ethAddress, isConnected: ethConnected } =
-    useEthereumWallet();
+  // const { publicKey, signMessage } = useWallet();
+  const { publicKey, signMessage } = {
+    publicKey: "",
+    signMessage: (msg: Uint8Array) => Promise.resolve(new Uint8Array()), // Mocked for example
+  };
+  // Mocked for example
+
+  const { ethAddress, ethConnected } = {
+    ethAddress: "",
+    ethConnected: false,
+  };
   const { userReferralCode, generateReferralWithWallet } = useReferralSystem();
 
   const [isVerifying, setIsVerifying] = useState(false);
@@ -217,7 +222,7 @@ export const WalletReferralButton: React.FC<WalletReferralButtonProps> = ({
       <p className="text-sm text-center">
         Connect your wallet to generate a referral code
       </p>
-      <WalletMultiButton className="w-full" />
+      {/* <WalletMultiButton className="w-full" /> */}
     </div>
   );
 };

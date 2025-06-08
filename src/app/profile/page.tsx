@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { User, Wallet, Shield, Clock, Award, AlertCircle } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
-import { useWallet } from "@solana/wallet-adapter-react";
 import ProfileClientContent from "./ProfileClientContent";
 
 export const dynamic = "force-dynamic";

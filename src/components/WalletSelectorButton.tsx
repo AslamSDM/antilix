@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { cn } from "@/lib/utils";
-import { useEthereumWallet } from "@/components/providers/wallet-provider";
 import { Button } from "./ui/button";
 import { Wallet, ChevronDown, X } from "lucide-react";
 import { WalletConnectModal } from "./WalletConnectModal";
@@ -19,52 +17,40 @@ export const WalletSelectorButton: React.FC<WalletSelectorButtonProps> = ({
   variant = "default",
   onConnect,
 }) => {
-  const {
-    connected: solanaConnected,
-    publicKey,
-    wallet,
-    disconnect: disconnectSolana,
-  } = useWallet();
-  const { 
-    address, 
-    isConnected, 
-    connect: connectEthereum, 
-    disconnect: disconnectEthereum 
-  } = useEthereumWallet();
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
-  const ethereumConnected = isConnected && !!address;
-  const anyWalletConnected = solanaConnected || ethereumConnected;
+  const ethereumConnected = false; // Replace with actual logic to check if Ethereum wallet is connected
+  const anyWalletConnected = false; // Replace with actual logic to check if any wallet is connected
+  const solanaConnected = false; // Replace with actual logic to check if Solana wallet is connected
 
   // Handle wallet disconnect
   const handleDisconnect = async () => {
-    if (solanaConnected) {
-      disconnectSolana();
-    }
+    // if (solanaConnected) {
+    //   disconnectSolana();
+    // }
 
-    if (ethereumConnected) {
-      await disconnectEthereum();
-    }
+    // if (ethereumConnected) {
+    //   await disconnectEthereum();
+    // }
 
     setShowOptions(false);
   };
 
   // Get wallet display info
   const getSolanaDisplayAddress = () => {
-    if (solanaConnected && publicKey) {
-      return `${publicKey.toString().slice(0, 6)}...${publicKey
-        .toString()
-        .slice(-4)}`;
-    }
+    // if (solanaConnected && publicKey) {
+    //   return `${publicKey.toString().slice(0, 6)}...${publicKey
+    //     .toString()
+    //     .slice(-4)}`;
+    // }
     return null;
   };
 
   const getEthereumDisplayAddress = () => {
-    if (ethereumConnected && address) {
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
+    // if (ethereumConnected && address) {
+    //   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    // }
     return null;
   };
 
@@ -110,14 +96,14 @@ export const WalletSelectorButton: React.FC<WalletSelectorButtonProps> = ({
                   <div className="font-mono">{getSolanaDisplayAddress()}</div>
                 </div>
               )}
-              
+
               {ethereumConnected && (
                 <div className="p-2 text-xs border-b border-border">
                   <div className="text-white/70">BSC:</div>
                   <div className="font-mono">{getEthereumDisplayAddress()}</div>
                 </div>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -132,9 +118,9 @@ export const WalletSelectorButton: React.FC<WalletSelectorButtonProps> = ({
         )}
       </div>
 
-      <WalletConnectModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <WalletConnectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </>
   );

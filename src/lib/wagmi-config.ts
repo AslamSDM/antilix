@@ -1,11 +1,29 @@
-import { http, createConfig } from "wagmi";
-import { bscTestnet } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
+import { cookieStorage, createStorage } from "wagmi";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { SolanaAdapter } from "@reown/appkit-adapter-solana/react";
+import { solana, base, bscTestnet } from "@reown/appkit/networks";
+import type { AppKitNetwork } from "@reown/appkit/networks";
 
-export const wagmiConfig = createConfig({
-  chains: [bscTestnet],
-  connectors: [injected()],
-  transports: {
-    [bscTestnet.id]: http("https://data-seed-prebsc-1-s1.binance.org:8545/"),
-  },
+// Get projectId from https://cloud.reown.com
+export const projectId =
+  process.env.NEXT_PUBLIC_PROJECT_ID || "b56e18d47c72ab683b10814fe9495694"; // this is a public projectId only to use on localhost
+
+if (!projectId) {
+  throw new Error("Project ID is not defined");
+}
+
+export const networks = [solana, base, bscTestnet] as [
+  AppKitNetwork,
+  ...AppKitNetwork[]
+];
+
+//Set up the Wagmi Adapter (Config)
+export const wagmiAdapter = new WagmiAdapter({
+  ssr: true,
+  projectId,
+  networks,
 });
+
+export const solanaWeb3JsAdapter = new SolanaAdapter();
+
+export const config = wagmiAdapter.wagmiConfig;

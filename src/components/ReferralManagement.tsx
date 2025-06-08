@@ -7,7 +7,6 @@ import useReferralSystemAlternative from "./hooks/useReferralSystemAlternative";
 import { generateReferralUrl } from "@/lib/referral";
 import { WalletReferralButton } from "./WalletReferralButton";
 import { WalletSelectorButton } from "./WalletSelectorButton";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useEthereumWallet } from "./providers/wallet-provider";
 
 interface ReferralManagementProps {
@@ -21,7 +20,11 @@ const ReferralManagement: React.FC<ReferralManagementProps> = ({
   const [usingAlternative, setUsingAlternative] = useState(false);
   const nextAuthReferral = useReferralSystem();
   const alternativeReferral = useReferralSystemAlternative();
-  const { connected: solanaConnected } = useWallet();
+  // const { connected: solanaConnected, publicKey } = useWallet();
+  const { solanaConnected, publicKey } = {
+    solanaConnected: false,
+    publicKey: "null",
+  }; // Mocked for example
   const { isConnected: ethereumConnected } = useEthereumWallet();
 
   const walletConnected = solanaConnected || ethereumConnected;

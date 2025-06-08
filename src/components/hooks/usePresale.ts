@@ -1,9 +1,47 @@
 import { useState, useEffect, useCallback } from "react";
-import { Connection } from "@solana/web3.js";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useEthereumWallet } from "@/components/providers/wallet-provider";
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  type SendOptions,
+} from "@solana/web3.js";
+import { useAppKitState } from "@reown/appkit/react";
+import { modal } from "@/components/providers/wallet-provider";
 import { bscPresale, solanaPresale } from "@/lib/presale-contract";
 import { toast } from "sonner";
+import {
+  fetchCryptoPrices,
+  calculateCryptoCost,
+  calculateTokenAmount,
+  LMX_PRICE_USD,
+} from "@/lib/price-utils";
+
+// Define an explicit shape for appKitState to resolve type discrepancies
+export interface AppKitStateShape {
+  // Fields TS currently infers for appKitState in usePresale.ts
+  initialized: boolean;
+  loading: boolean;
+  open: boolean;
+  selectedNetworkId?:
+    | `solana:${string}`
+    | `solana:${number}`
+    | `eip155:${string}`
+    | `eip155:${number}`
+    | `polkadot:${string}`
+    | `polkadot:${number}`
+    | `bip122:${string}`
+    | `bip122:${number}`
+    | `cosmos:${string}`
+    | `cosmos:${number}`
+    | undefined;
+  activeChain?: any; // Keep 'any' for now if its internal structure isn't the primary issue
+
+  // Fields successfully used in WalletConnectButton.tsx and needed here
+  account?: { address?: string };
+  connected?: boolean;
+  connector?: { id: string; name?: string; provider?: any };
+  chainId?: string | number;
+}
 
 interface PresaleStatus {
   isActive: boolean;
@@ -16,17 +54,58 @@ interface PresaleStatus {
   percentageSold: number;
 }
 
-export default function usePresale() {
-  // Wallet states
-  const {
-    publicKey,
-    connected: solanaConnected,
-    sendTransaction,
-  } = useWallet();
-  const { address: ethAddress, isConnected: ethConnected } =
-    useEthereumWallet();
+type WalletType = "bsc" | "solana" | null;
 
-  // Presale states
+// Updated to use the explicit AppKitStateShape
+export function getWalletTypeFromAppKitState(
+  appKitState: AppKitStateShape
+): WalletType {
+  const { connected, chainId, connector } = appKitState;
+
+  if (!connected || !connector || typeof connector.id !== "string") {
+    // Guard for connector.id being a string
+    return null;
+  }
+
+  // Check connector ID for Solana
+  if (connector.id.includes("solana")) {
+    return "solana";
+  }
+
+  // Check chainId for EVM/BSC networks
+  if (typeof chainId === "number" && (chainId === 56 || chainId === 97)) {
+    return "bsc";
+  }
+
+  // Fallback to connector ID or name for EVM/BSC
+  if (
+    connector.id.includes("metaMask") ||
+    connector.id.includes("walletConnect") || // connector.id is now guaranteed to be a string here
+    (connector.name &&
+      typeof connector.name === "string" &&
+      connector.name.toLowerCase().includes("metamask")) ||
+    (connector.name &&
+      typeof connector.name === "string" &&
+      connector.name.toLowerCase().includes("walletconnect"))
+  ) {
+    return "bsc";
+  }
+
+  return null;
+}
+
+export default function usePresale() {
+  // Cast to the explicit shape
+  const appKitState = useAppKitState() as AppKitStateShape;
+
+  // Access properties directly, now guided by AppKitStateShape
+  const walletAddress = appKitState.account?.address;
+  const isConnected = appKitState.connected;
+  const currentConnector = appKitState.connector;
+  const currentChainId = appKitState.chainId;
+
+  const currentWalletType = getWalletTypeFromAppKitState(appKitState);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isBuying, setIsBuying] = useState(false);
   const [presaleNetwork, setPresaleNetwork] = useState<"bsc" | "solana" | null>(
@@ -37,27 +116,86 @@ export default function usePresale() {
   const [solanaStatus, setSolanaStatus] = useState<PresaleStatus | null>(null);
   const [userPurchasedTokens, setUserPurchasedTokens] = useState("0");
 
-  // Current active status based on selected network
+  const [cryptoPrices, setCryptoPrices] = useState<{
+    bnb: number;
+    sol: number;
+  } | null>(null);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  const [estimatedCost, setEstimatedCost] = useState<{
+    bnb: number;
+    sol: number;
+  }>({ bnb: 0, sol: 0 });
+
   const presaleStatus = presaleNetwork === "bsc" ? bscStatus : solanaStatus;
 
-  // Check if user has a connected wallet for the selected network
   const hasConnectedWallet =
-    (presaleNetwork === "bsc" && ethConnected) ||
-    (presaleNetwork === "solana" && solanaConnected);
+    (presaleNetwork === "bsc" && isConnected && currentWalletType === "bsc") ||
+    (presaleNetwork === "solana" &&
+      isConnected &&
+      currentWalletType === "solana");
 
-  // Additional connection status tracking for each network individually
-  const hasBscWalletConnected = ethConnected;
-  const hasSolanaWalletConnected = solanaConnected;
+  const hasBscWalletConnected = isConnected && currentWalletType === "bsc";
+  const hasSolanaWalletConnected =
+    isConnected && currentWalletType === "solana";
 
-  // Set a default network if none is selected yet
   useEffect(() => {
-    // If no network is selected, default to BSC so users can at least see the form
-    if (!presaleNetwork) {
+    if (presaleNetwork !== "bsc") {
       setPresaleNetwork("bsc");
     }
   }, [presaleNetwork]);
 
-  // Load BSC presale status
+  const loadCryptoPrices = useCallback(
+    async (forceRefresh: boolean = false) => {
+      setIsLoadingPrices(true);
+      try {
+        const prices = await fetchCryptoPrices(forceRefresh);
+        setCryptoPrices(prices);
+        if (tokenAmount > 0) {
+          const bnbCost = calculateCryptoCost(tokenAmount, "bnb", prices);
+          const solCost = calculateCryptoCost(tokenAmount, "sol", prices);
+          setEstimatedCost({ bnb: bnbCost, sol: solCost });
+        }
+        if (forceRefresh) {
+          toast.success("Cryptocurrency prices updated successfully");
+        }
+      } catch (error) {
+        console.error("Error fetching crypto prices:", error);
+        if (forceRefresh) {
+          toast.error("Failed to fetch new cryptocurrency prices");
+        } else {
+          toast.error("Failed to fetch cryptocurrency prices");
+        }
+      } finally {
+        setIsLoadingPrices(false);
+      }
+    },
+    [tokenAmount]
+  );
+
+  useEffect(() => {
+    loadCryptoPrices(false);
+    const intervalId = setInterval(() => {
+      loadCryptoPrices(true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, [loadCryptoPrices]);
+
+  useEffect(() => {
+    if (cryptoPrices && tokenAmount > 0) {
+      const bnbCost = calculateCryptoCost(tokenAmount, "bnb", cryptoPrices);
+      const solCost = calculateCryptoCost(tokenAmount, "sol", cryptoPrices);
+      setEstimatedCost({ bnb: bnbCost, sol: solCost });
+    }
+  }, [tokenAmount, cryptoPrices]);
+
+  const calculateTokensFromCrypto = useCallback(
+    (cryptoAmount: number, cryptoType: "bnb" | "sol") => {
+      if (!cryptoPrices || cryptoAmount <= 0) return 0;
+      return calculateTokenAmount(cryptoAmount, cryptoType, cryptoPrices);
+    },
+    [cryptoPrices]
+  );
+
   const loadBscPresaleStatus = useCallback(async () => {
     const status = await bscPresale.getPresaleStatus();
     if (status) {
@@ -65,12 +203,12 @@ export default function usePresale() {
     }
   }, []);
 
-  // Load Solana presale status
   const loadSolanaPresaleStatus = useCallback(async () => {
-    // Allow loading Solana presale data even without a connected wallet
     try {
-      // Create a Solana connection (using devnet for testing)
-      const connection = new Connection("https://api.devnet.solana.com");
+      const connection = new Connection(
+        process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+          "https://api.devnet.solana.com"
+      );
       const status = await solanaPresale.getPresaleStatus(connection);
       if (status) {
         setSolanaStatus(status);
@@ -81,30 +219,20 @@ export default function usePresale() {
     }
   }, []);
 
-  // Load user's purchased tokens
   const loadUserPurchasedTokens = useCallback(async () => {
-    if (ethConnected && ethAddress) {
-      const tokens = await bscPresale.getUserPurchasedTokens(ethAddress);
+    if (isConnected && currentWalletType === "bsc" && walletAddress) {
+      const tokens = await bscPresale.getUserPurchasedTokens(walletAddress);
       setUserPurchasedTokens(tokens);
     }
-  }, [ethConnected, ethAddress]);
+  }, [isConnected, currentWalletType, walletAddress]);
 
-  // Load presale data when component mounts or wallet connection changes
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-
       try {
-        // Always load BSC data regardless of wallet connection
         console.log("Loading BSC presale status...");
         await loadBscPresaleStatus();
-
-        // Always attempt to load Solana data as well
-        console.log("Loading Solana presale status...");
-        await loadSolanaPresaleStatus();
-
-        // Load user data if applicable wallets are connected
-        if (ethConnected) {
+        if (isConnected && currentWalletType === "bsc") {
           await loadUserPurchasedTokens();
         }
       } catch (error) {
@@ -113,60 +241,36 @@ export default function usePresale() {
         setIsLoading(false);
       }
     };
-
     loadData();
   }, [
-    solanaConnected,
-    ethConnected,
+    isConnected,
+    currentWalletType,
     loadBscPresaleStatus,
-    loadSolanaPresaleStatus,
     loadUserPurchasedTokens,
   ]);
 
-  // Buy tokens based on selected network
   const buyTokens = async (amount: number, referrer?: string) => {
     if (isBuying) return;
-    if (!presaleNetwork) {
-      toast.error("Please select a network first");
-      return;
+    if (presaleNetwork !== "bsc") {
+      toast.info("Only BSC purchases are currently supported");
+      setPresaleNetwork("bsc");
     }
 
     setIsBuying(true);
-
     try {
       let success = false;
-
-      if (presaleNetwork === "bsc") {
-        if (!ethConnected) {
-          toast.error("Ethereum wallet not connected");
-          return;
-        }
-        success = await bscPresale.buyTokens(amount, referrer);
-      } else if (presaleNetwork === "solana") {
-        if (!solanaConnected || !publicKey) {
-          toast.error("Solana wallet not connected");
-          return;
-        }
-
-        const connection = new Connection("https://api.devnet.solana.com");
-        const amountInSol =
-          amount * parseFloat(solanaStatus?.tokenPrice || "0.001");
-        success = await solanaPresale.buyTokens(
-          connection,
-          { publicKey, sendTransaction },
-          amountInSol,
-          referrer
+      if (!(isConnected && currentWalletType === "bsc")) {
+        toast.error(
+          "BSC wallet not connected. Please connect your BSC wallet."
         );
+        modal.open(); // Open default modal view
+        setIsBuying(false);
+        return;
       }
-
+      success = await bscPresale.buyTokens(amount, referrer);
       if (success) {
-        // Reload data after successful purchase
-        if (presaleNetwork === "bsc") {
-          await loadBscPresaleStatus();
-          await loadUserPurchasedTokens();
-        } else if (presaleNetwork === "solana") {
-          await loadSolanaPresaleStatus();
-        }
+        await loadBscPresaleStatus();
+        await loadUserPurchasedTokens();
       }
     } catch (error: any) {
       console.error("Error buying tokens:", error);
@@ -176,22 +280,87 @@ export default function usePresale() {
     }
   };
 
-  // Switch presale network
   const switchNetwork = (network: "bsc" | "solana") => {
-    // Allow switching between networks even if the wallet is not connected
-    // Just show a toast suggesting wallet connection if not already connected
+    if (network === "solana") {
+      toast.info("Solana presale is currently disabled. Using BSC instead.");
+      network = "bsc";
+    }
+    if (network === "bsc" && !(isConnected && currentWalletType === "bsc")) {
+      toast.info("Consider connecting your BSC wallet to enable buying tokens");
+      modal.open(); // Open default modal view
+    }
+    setPresaleNetwork(network);
+  };
+
+  const signReferralCode = async (referralCode: string) => {
     if (
-      (network === "bsc" && !ethConnected) ||
-      (network === "solana" && !solanaConnected)
+      !(
+        isConnected &&
+        currentWalletType === "solana" &&
+        walletAddress &&
+        currentConnector?.provider
+      )
     ) {
-      toast.info(
-        `Consider connecting your ${
-          network === "bsc" ? "Ethereum" : "Solana"
-        } wallet to enable buying tokens`
-      );
+      toast.error("Solana wallet not connected or provider not available.");
+      modal.open();
+      return null;
     }
 
-    setPresaleNetwork(network);
+    try {
+      const { signReferralWithSolana } = await import("@/lib/referral-signer");
+      // currentConnector is now from appKitState and typed by AppKitStateShape
+      const solanaProvider = currentConnector.provider as any;
+
+      if (
+        !solanaProvider ||
+        typeof solanaProvider.sendTransaction !== "function"
+      ) {
+        toast.error(
+          "Solana wallet provider does not support sendTransaction or is not available."
+        );
+        return null;
+      }
+
+      // walletAddress is now from appKitState and typed by AppKitStateShape
+      if (!walletAddress) {
+        toast.error("Solana wallet address not available.");
+        return null;
+      }
+      const solanaPublicKey = new PublicKey(walletAddress);
+
+      const walletApiForSigning = {
+        publicKey: solanaPublicKey,
+        sendTransaction: async (
+          transaction: Transaction,
+          connection: Connection,
+          options?: SendOptions
+        ) => {
+          const signature = await solanaProvider.sendTransaction(
+            transaction,
+            connection,
+            options
+          );
+          return typeof signature === "string"
+            ? signature
+            : signature.signature;
+        },
+      };
+
+      // Corrected to 2 arguments for signReferralWithSolana
+      const signedReferral = await signReferralWithSolana(
+        referralCode,
+        walletApiForSigning
+      );
+
+      if (signedReferral) {
+        toast.success("Referral code signed successfully");
+        return signedReferral;
+      }
+    } catch (error) {
+      console.error("Error signing referral code:", error);
+      toast.error("Failed to sign referral code");
+    }
+    return null;
   };
 
   return {
@@ -206,15 +375,31 @@ export default function usePresale() {
     hasConnectedWallet,
     hasBscWalletConnected,
     hasSolanaWalletConnected,
+    walletAddress,
+    currentWalletType,
+    connected: isConnected,
+    connectWallet: () => modal.open(), // Open default modal view
     setTokenAmount,
     buyTokens,
     switchNetwork,
+    signReferralCode,
+    cryptoPrices,
+    estimatedCost,
+    isLoadingPrices,
+    loadCryptoPrices,
+    calculateTokensFromCrypto,
+    lmxPriceUsd: LMX_PRICE_USD,
     refreshData: async () => {
+      setIsLoading(true);
       await Promise.all([
         loadBscPresaleStatus(),
-        loadSolanaPresaleStatus(),
-        loadUserPurchasedTokens(),
+        loadCryptoPrices(true),
+        isConnected && currentWalletType === "bsc"
+          ? loadUserPurchasedTokens()
+          : Promise.resolve(),
       ]);
+      toast.success("Presale data refreshed");
+      setIsLoading(false);
     },
   };
 }

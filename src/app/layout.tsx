@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LoadingProvider } from "@/components/providers/loading-provider";
-import { WalletProviders } from "@/components/providers/wallet-provider";
+import ContextProviderAsWalletProviders from "@/components/providers/wallet-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import LoadingScreen from "@/components/LoadingScreen";
 import NavigationLoadingHandler from "@/components/NavigationLoadingHandler";
@@ -17,6 +17,8 @@ import { Header } from "@/components/Header";
 import { Suspense } from "react";
 import localFont from "next/font/local";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
+import { cookies } from "next/headers"; // Import cookies
+
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
   variable: "--font-display",
@@ -90,7 +92,7 @@ export default function RootLayout({
         <LoadingProvider>
           <Suspense fallback={<LoadingScreen />}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              <WalletProviders>
+              <ContextProviderAsWalletProviders cookies={cookies().toString()}>
                 <AuthProvider>
                   {/* Global loading screen */}
                   <LoadingScreen />
@@ -110,44 +112,9 @@ export default function RootLayout({
                       <PageTransition>{children}</PageTransition>
                       <FluxDock />
                     </main>
-                    {/* Footer is currently commented out */}
-                    {/* <footer className="py-8 md:py-12 border-t border-border/40 bg-muted/30">
-                      <div className="container flex flex-col items-center justify-center gap-4 text-center">
-                        <div className="flex items-center justify-center space-x-4 mb-2">
-                          <Link
-                            href="/"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            Home
-                          </Link>
-                          <span className="text-muted-foreground/30">•</span>
-                          <Link
-                            href="/presale"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            Presale
-                          </Link>
-                          <span className="text-muted-foreground/30">•</span>
-                          <Link
-                            href="/profile"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            Profile
-                          </Link>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          &copy; {new Date().getFullYear()} Litmex. All rights
-                          reserved.
-                          <br />
-                          <span className="text-xs">
-                            Premium Web3 Gaming Platform
-                          </span>
-                        </p>
-                      </div>
-                    </footer> */}
                   </div>
                 </AuthProvider>
-              </WalletProviders>
+              </ContextProviderAsWalletProviders>
             </ThemeProvider>
           </Suspense>
         </LoadingProvider>

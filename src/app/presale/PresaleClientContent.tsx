@@ -27,7 +27,6 @@ import { WalletSelectorButton } from "@/components/WalletSelectorButton";
 import PresaleBuyForm from "@/components/PresaleBuyForm";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 import { HyperText } from "@/components/magicui/hyper-text";
-import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import SectionIndicator from "@/components/SectionIndicator";
@@ -35,6 +34,7 @@ import "../../components/sections/animation-utils.css"; // Use the /next import 
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 
 import usePresale from "@/components/hooks/usePresale";
+import { useWalletClient } from "wagmi";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -339,10 +339,14 @@ const PresaleClientContent = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-16 max-w-2xl mx-auto"
             >
-              <PresaleBuyForm
-                referralCode={searchParams?.get("ref") || ""}
-                className="bg-black/20 backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
-              />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <PresaleBuyForm
+                    referralCode={searchParams?.get("ref") || ""}
+                    className="bg-black/20 backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                  />
+                </div>
+              </div>
             </motion.div>
 
             <motion.div
@@ -803,11 +807,13 @@ const PresaleClientContent = () => {
 
           <div className="mt-16">
             <ScrollAnimationWrapper delay={400}>
-              <div className="max-w-lg mx-auto">
-                <PresaleBuyForm
-                  referralCode={searchParams?.get("ref") || ""}
-                  className="bg-black/40 backdrop-blur-xl border-primary/20 shadow-xl shadow-primary/5"
-                />
+              <div className="max-w-3xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <PresaleBuyForm
+                    referralCode={searchParams?.get("ref") || ""}
+                    className="bg-black/40 backdrop-blur-xl border-primary/20 shadow-xl shadow-primary/5"
+                  />
+                </div>
                 <motion.p
                   className="text-primary/80 mt-5 text-sm font-medium text-center"
                   animate={{ opacity: [0.7, 1, 0.7] }}
