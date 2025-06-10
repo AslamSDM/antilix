@@ -12,24 +12,27 @@ import {
   Share2,
 } from "lucide-react";
 import { WalletReferralButton } from "@/components/WalletReferralButton";
-import { useAppKitState } from "@reown/appkit/react";
+import { useAppKitState, useAppKitAccount } from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
-import {
-  AppKitStateShape,
-  getWalletTypeFromAppKitState,
-} from "@/components/hooks/usePresale";
+import { AppKitStateShape, getWalletType } from "@/components/hooks/usePresale";
 import { Button } from "@/components/ui/button";
 
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const ProfileClientContent: React.FC = () => {
   const appKitState = useAppKitState() as AppKitStateShape;
-  const { account, connected, connector, chainId, loading } = appKitState;
+  const appkitAccountData = useAppKitAccount();
+  const { loading } = appKitState;
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  const currentWalletType = getWalletTypeFromAppKitState(appKitState);
-  const walletAddress = account?.address;
+  const connected = appkitAccountData?.isConnected ?? false;
+  const walletAddress = appkitAccountData?.address;
+
+  const currentWalletType = getWalletType(appKitState, {
+    isConnected: connected,
+    caipAddress: appkitAccountData?.caipAddress,
+  });
 
   // Mocked data, replace with actual data fetching as needed
   const userData = {

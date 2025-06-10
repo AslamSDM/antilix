@@ -72,7 +72,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   };
 
   // Function to buy tokens
-  const buyTokens = async () => {
+  const buyTokens = async (retryWithExplicitGas = false) => {
     try {
       // Set referrer if provided
       if (referrer) {
@@ -81,18 +81,59 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
 
       // Only proceed if we have a valid cost
       if (dynamicCost > 0) {
-        await writeContract({
+        console.log(
+          `Buying ${tokenAmount} tokens for cost: ${dynamicCost} wei`
+        );
+        // Prepare transaction parameters
+        const txParams: any = {
           address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
           abi: presaleAbi,
           functionName: "buyTokens",
           args: [tokenAmount],
           value: dynamicCost,
-        });
+          gas: BigInt(100000000),
+        };
+
+        await writeContract(txParams);
       } else {
         toast.error("Could not calculate token cost, please try again");
       }
     } catch (error) {
       console.error("Error buying tokens:", error);
+
+      // Check for intrinsic gas related errors
+      const errorMessage =
+        typeof error === "object" && error !== null && "message" in error
+          ? (error as { message: string }).message
+          : String(error);
+
+      if (
+        errorMessage.toLowerCase().includes("intrinsic gas") ||
+        errorMessage.toLowerCase().includes("gas limit") ||
+        errorMessage.toLowerCase().includes("gas required exceeds")
+      ) {
+        // If this is the first attempt and it's a gas error, try once more with explicit gas values
+        if (!retryWithExplicitGas) {
+          toast.info("Adjusting gas parameters and retrying transaction...");
+          try {
+            return await buyTokens(true); // Retry with explicit gas
+          } catch (retryError) {
+            console.error("Retry failed:", retryError);
+            toast.error(
+              "Transaction would fail: The network couldn't process this transaction. Try a smaller token amount or try again later when network congestion decreases."
+            );
+          }
+        } else {
+          // We already retried, still failing
+          toast.error(
+            "Transaction would fail: The network couldn't process this transaction. Try a smaller token amount or try again later."
+          );
+        }
+      } else {
+        // Handle other errors
+        toast.error("Failed to complete transaction. Please try again later.");
+      }
+
       throw error;
     }
   };

@@ -11,8 +11,6 @@ import {
   ChevronRight,
   Lock as LockIcon,
   BarChart4,
-  Wallet,
-  ArrowRight,
 } from "lucide-react";
 import LuxuryCard from "@/components/LuxuryCard";
 import { DecorativeIcon } from "@/components/DecorativeElements";
@@ -20,7 +18,6 @@ import ScrollAnimationWrapper from "@/components/ScrollAnimationWrapper";
 import BackgroundDecorations from "@/components/BackgroundDecorations";
 import TokenProgressBar from "@/components/TokenProgressBar";
 import CountdownTimer from "@/components/CountdownTimer";
-import GlowButton from "@/components/GlowButton";
 import PresaleStats from "@/components/PresaleStats";
 import { ReferralCard } from "@/components/ReferralCard";
 import { WalletSelectorButton } from "@/components/WalletSelectorButton";
@@ -29,12 +26,10 @@ import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pa
 import { HyperText } from "@/components/magicui/hyper-text";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
-import SectionIndicator from "@/components/SectionIndicator";
 import "../../components/sections/animation-utils.css"; // Use the /next import for Spline with React.lazy
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 
 import usePresale from "@/components/hooks/usePresale";
-import { useWalletClient } from "wagmi";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -122,8 +117,8 @@ const PresaleClientContent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Use the presale hook for wallet connection and presale data
-  const { hasConnectedWallet, switchNetwork, presaleNetwork } = usePresale();
-
+  const { connected, switchNetwork, presaleNetwork } = usePresale(); // Changed hasConnectedWallet to connected
+  console.log(connected, switchNetwork, presaleNetwork); // Changed hasConnectedWallet to connected
   // Create refs for each section to track scroll position
   const statsSectionRef = useRef<HTMLElement>(null);
   const detailsSectionRef = useRef<HTMLElement>(null);
@@ -196,7 +191,7 @@ const PresaleClientContent = () => {
   }, [activeSection, transitionSound]);
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full mt-24">
       {/* Loading overlay - similar to homepage */}
       <AnimatePresence>
         {isLoading && (
@@ -243,15 +238,6 @@ const PresaleClientContent = () => {
             className="w-full h-full absolute inset-0"
           />
         </Suspense>
-      </div>
-
-      {/* Section indicator */}
-      <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50 hidden md:block">
-        <SectionIndicator
-          sections={6}
-          activeSection={activeSection}
-          orientation="vertical"
-        />
       </div>
 
       {/* Scroll indicator at bottom */}
@@ -302,7 +288,7 @@ const PresaleClientContent = () => {
               className="w-full max-w-md"
               onConnect={handleWalletConnect}
             />
-            {hasConnectedWallet && (
+            {connected && ( // Changed hasConnectedWallet to connected
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -802,26 +788,6 @@ const PresaleClientContent = () => {
                   designed to increase in value as the platform grows.
                 </p>
               </LuxuryCard>
-            </ScrollAnimationWrapper>
-          </div>
-
-          <div className="mt-16">
-            <ScrollAnimationWrapper delay={400}>
-              <div className="max-w-3xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <PresaleBuyForm
-                    referralCode={searchParams?.get("ref") || ""}
-                    className="bg-black/40 backdrop-blur-xl border-primary/20 shadow-xl shadow-primary/5"
-                  />
-                </div>
-                <motion.p
-                  className="text-primary/80 mt-5 text-sm font-medium text-center"
-                  animate={{ opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  ✨ Limited allocations available ✨
-                </motion.p>
-              </div>
             </ScrollAnimationWrapper>
           </div>
         </div>

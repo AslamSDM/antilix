@@ -32,7 +32,7 @@ export const networks = {
 
 // Helper for BSC token conversion
 const formatBscValue = (value: number): string => {
-  return ethers.utils.parseEther(value.toString()).toString();
+  return ethers.parseEther(value.toString()).toString();
 };
 
 // BSC Presale Functions
@@ -144,15 +144,15 @@ export const bscPresale = {
 
         return {
           isActive,
-          hardCap: ethers.utils.formatEther(hardCap),
-          minPurchase: ethers.utils.formatEther(minPurchase),
-          maxPurchase: ethers.utils.formatEther(maxPurchase),
-          tokenPrice: ethers.utils.formatEther(tokenPrice),
-          soldTokens: ethers.utils.formatEther(soldTokens),
-          totalRaised: ethers.utils.formatEther(totalRaised),
+          hardCap: ethers.formatEther(hardCap),
+          minPurchase: ethers.formatEther(minPurchase),
+          maxPurchase: ethers.formatEther(maxPurchase),
+          tokenPrice: ethers.formatEther(tokenPrice),
+          soldTokens: ethers.formatEther(soldTokens),
+          totalRaised: ethers.formatEther(totalRaised),
           percentageSold:
-            (parseFloat(ethers.utils.formatEther(soldTokens)) /
-              parseFloat(ethers.utils.formatEther(hardCap))) *
+            (parseFloat(ethers.formatEther(soldTokens)) /
+              parseFloat(ethers.formatEther(hardCap))) *
             100,
         };
       } catch (contractError) {
@@ -262,7 +262,7 @@ export const bscPresale = {
       );
 
       const tokensPurchased = await contract.tokensPurchased(address);
-      return ethers.utils.formatEther(tokensPurchased);
+      return ethers.formatEther(tokensPurchased);
     } catch (error) {
       console.error("Error getting user purchased tokens:", error);
       return "0";

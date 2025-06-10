@@ -34,6 +34,7 @@ model User {
   evmVerified        Boolean             @default(false) // Verification status of EVM address
   solanaVerified     Boolean             @default(false) // Verification status of Solana address
   verificationTokens VerificationToken[]
+  purchases          Purchase[] // Renamed from solanaPurchases and relation updated
 }
 
 // Verification token model for email and wallet verification
@@ -56,4 +57,38 @@ enum TokenType {
   EVM_VERIFICATION
   SOLANA_VERIFICATION
   PASSWORD_RESET
+}
+
+// Enum for Network Types
+enum NetworkType {
+  SOLANA
+  BSC
+  // Potentially others like ETHEREUM, POLYGON etc.
+}
+
+// Renamed from SolanaPurchase to Purchase and made more generic
+model Purchase {
+  id                   String         @id @default(cuid())
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  userId               String
+  user                 User           @relation(fields: [userId], references: [id])
+  network              NetworkType // Network used for the purchase
+  paymentAmount        Decimal // Amount of currency paid (e.g., 100 USDT or 0.5 BNB)
+  paymentCurrency      String // Currency used for payment (e.g., "USDT", "BNB")
+  lmxTokensAllocated   Decimal // Amount of LMX tokens allocated
+  pricePerLmxInUsdt    Decimal // Price of 1 LMX in USDT at the time of purchase
+  transactionSignature String         @unique // Blockchain transaction signature
+  status               PurchaseStatus @default(PENDING)
+
+  @@index([userId])
+  @@index([transactionSignature])
+}
+
+// New enum for purchase status
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
