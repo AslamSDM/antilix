@@ -26,15 +26,39 @@ export async function autoRegisterUser(
     const walletField = type === "solana" ? "solanaAddress" : "evmAddress";
 
     // More thorough check for any existing user with this wallet address
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { solanaAddress: address },
-          { evmAddress: address },
-          { walletAddress: address },
-        ],
-      },
-    });
+    let existingUser;
+    try {
+      existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { solanaAddress: address },
+            { evmAddress: address },
+            { walletAddress: address },
+          ],
+        },
+      });
+    } catch (error: any) {
+      // Handle prepared statement errors by reconnecting and retrying
+      if (
+        error.message?.includes("prepared statement") ||
+        error.message?.includes("ConnectorError")
+      ) {
+        console.log("Database connection issue detected, retrying...");
+        await prisma.$disconnect();
+        await prisma.$connect();
+        existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { solanaAddress: address },
+              { evmAddress: address },
+              { walletAddress: address },
+            ],
+          },
+        });
+      } else {
+        throw error;
+      }
+    }
 
     // If user exists, just return their ID
     if (existingUser) {
