@@ -8,7 +8,7 @@ import bs58 from "bs58";
  * @returns A message string to be signed
  */
 export function createSignMessage(walletAddress: string): string {
-  return `Sign this message to verify your wallet ownership and generate your Antilix referral code.\n\nWallet: ${walletAddress}\nTimestamp: ${Date.now()}`;
+  return `Sign this message to verify your wallet ownership and generate your ltmex referral code.\n\nWallet: ${walletAddress}\nTimestamp: ${Date.now()}`;
 }
 
 /**

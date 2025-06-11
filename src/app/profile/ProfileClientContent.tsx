@@ -16,7 +16,6 @@ import { useAppKitState, useAppKitAccount } from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
 import { AppKitStateShape, getWalletType } from "@/components/hooks/usePresale";
 import { Button } from "@/components/ui/button";
-
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const ProfileClientContent: React.FC = () => {
@@ -74,7 +73,7 @@ const ProfileClientContent: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen relative">
+    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen relative mt-24">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl"></div>
         <div className="absolute -bottom-20 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl"></div>

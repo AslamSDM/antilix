@@ -63,7 +63,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({
       <DialogContent className="sm:max-w-md bg-black/90 backdrop-blur-md border border-primary/20">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center text-primary">
-            Connect Your Wallets
+            Connect Your ltmex Wallet
           </DialogTitle>
         </DialogHeader>
 

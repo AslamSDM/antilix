@@ -24,11 +24,39 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
 
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [bonusStats, setBonusStats] = useState({
+    totalBonus: "0",
+    count: 0,
+    referralCount: 0,
+  });
 
   // Ensure we have fresh data
   useEffect(() => {
     fetchUserReferralInfo();
-  }, [fetchUserReferralInfo]);
+
+    // Fetch referral bonus data if we have a wallet connected
+    const fetchBonusData = async () => {
+      if (!userReferralCode) return;
+
+      try {
+        const response = await fetch(
+          `/api/referral/bonuses?referralCode=${userReferralCode}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setBonusStats({
+            totalBonus: data.totalBonus || "0",
+            count: data.count || 0,
+            referralCount: data.referralCount || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching referral bonus data:", error);
+      }
+    };
+
+    fetchBonusData();
+  }, [fetchUserReferralInfo, userReferralCode]);
 
   // If no referral code is provided or fetched, generate a placeholder
   const displayReferralCode =
@@ -90,6 +118,39 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer-fast"></div>
         </div>
+      </div>
+
+      {/* Referral Stats */}
+      <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="bg-black/40 rounded-lg p-3 text-center">
+          <div className="text-xs text-gray-400 mb-1">Total Bonus</div>
+          <div className="text-lg font-bold">
+            {parseFloat(bonusStats.totalBonus).toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            })}{" "}
+            LMX
+          </div>
+        </div>
+
+        <div className="bg-black/40 rounded-lg p-3 text-center">
+          <div className="text-xs text-gray-400 mb-1">Referrals</div>
+          <div className="text-lg font-bold">{bonusStats.referralCount}</div>
+        </div>
+
+        <div className="bg-black/40 rounded-lg p-3 text-center">
+          <div className="text-xs text-gray-400 mb-1">Purchases</div>
+          <div className="text-lg font-bold">{bonusStats.count}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <a
+          href="/referral"
+          className="text-primary hover:text-primary/80 text-sm flex items-center"
+        >
+          <Users className="w-4 h-4 mr-1" />
+          View Detailed Referral Analytics
+        </a>
       </div>
 
       {/* Social sharing options */}

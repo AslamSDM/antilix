@@ -118,7 +118,6 @@ const PresaleClientContent = () => {
 
   // Use the presale hook for wallet connection and presale data
   const { connected, switchNetwork, presaleNetwork } = usePresale(); // Changed hasConnectedWallet to connected
-  console.log(connected, switchNetwork, presaleNetwork); // Changed hasConnectedWallet to connected
   // Create refs for each section to track scroll position
   const statsSectionRef = useRef<HTMLElement>(null);
   const detailsSectionRef = useRef<HTMLElement>(null);

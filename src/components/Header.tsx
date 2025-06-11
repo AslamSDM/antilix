@@ -9,12 +9,57 @@ import { Menu, X } from "lucide-react";
 import { DecorativeIcon } from "./DecorativeElements";
 import { WalletConnectButton } from "./WalletConnectButton";
 import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { useAppKitNetwork } from "@reown/appkit/react";
+import { solana, bscTestnet, base } from "@reown/appkit/networks";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/presale", label: "Presale" },
   { href: "/profile", label: "Profile" },
+  { href: "/referral", label: "Referrals" },
 ];
+
+// Network Selector Component
+const NetworkSelector = () => {
+  const { caipNetwork, chainId, switchNetwork } = useAppKitNetwork();
+  const [currentNetwork, setCurrentNetwork] = useState<"bsc" | "solana">("bsc");
+
+  // Update local network state based on chainId
+  useEffect(() => {
+    if (chainId === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") {
+      setCurrentNetwork("solana");
+    } else {
+      setCurrentNetwork("bsc");
+    }
+  }, [chainId]);
+
+  const handleNetworkChange = (value: string) => {
+    if (value === "bsc" || value === "solana") {
+      switchNetwork(value === "bsc" ? bscTestnet : solana);
+      setCurrentNetwork(value as "bsc" | "solana");
+    }
+  };
+
+  return (
+    <Select value={currentNetwork} onValueChange={handleNetworkChange}>
+      <SelectTrigger className="w-24 h-8 text-xs bg-black/30 border-white/10">
+        <SelectValue placeholder="Network" />
+      </SelectTrigger>
+      <SelectContent className="bg-black/90 border-primary/20">
+        <SelectItem value="bsc">BSC</SelectItem>
+        <SelectItem value="solana">Solana</SelectItem>
+        <SelectItem value="base">Base</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+};
 
 export function Header() {
   const pathname = usePathname();
@@ -71,8 +116,10 @@ export function Header() {
           <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
         </Link>
         ))} */}
-          {/* <div className="h-5 w-px bg-white/20" /> */}
+          <div className="h-5 w-px bg-white/20" />
           <div className="flex items-center gap-4">
+            <NetworkSelector />
+
             <Link href="/presale">
               <motion.button
                 className="bg-gradient-to-r from-primary to-[#8a63d2] text-white font-display p-2 rounded-md shadow-lg flex items-center justify-center border border-white/20 backdrop-blur-sm relative overflow-hidden"
@@ -111,7 +158,7 @@ export function Header() {
                 </motion.span>
               </motion.button>
             </Link>
-            {/* <WalletConnectButton /> */}
+            <WalletConnectButton />
             {/* <ThemeToggle /> */}
           </div>
         </nav>
@@ -164,7 +211,11 @@ export function Header() {
             ))}
 
             <div className="pt-2 border-t border-primary/10">
-              <WalletConnectButton className="w-full mt-2" />
+              <div className="flex items-center justify-between mb-3 mt-2">
+                <span className="text-xs text-white/70">Select Network:</span>
+                <NetworkSelector />
+              </div>
+              <WalletConnectButton className="w-full" />
             </div>
           </div>
         </div>

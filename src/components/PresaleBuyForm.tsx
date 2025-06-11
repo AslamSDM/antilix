@@ -5,22 +5,23 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import {
   ArrowRight,
   Wallet,
   RefreshCcw,
   Loader2,
-  RotateCcw,
   DollarSign,
 } from "lucide-react";
-
 import usePresale from "@/components/hooks/usePresale";
-import { useBscPresale } from "@/components/hooks/useBscPresale";
 import GlowButton from "@/components/GlowButton";
 import { toast } from "sonner";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
-import { LMX_PRICE_USD } from "@/lib/price-utils";
-import { useAccount, useWalletClient } from "wagmi";
+import { useBscPresale } from "./hooks/useBscPresale";
+import { useSolanaPresale } from "./hooks/useSolanaPresale";
+import TransactionStatusModal from "./TransactionStatusModal";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { solana, base, bscTestnet, polygonAmoy } from "@reown/appkit/networks";
 
 interface PresaleBuyFormProps {
   referralCode?: string;
@@ -31,142 +32,164 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   referralCode,
   className = "",
 }) => {
+  // State
   const [customReferralCode, setCustomReferralCode] = useState<string>(
     referralCode || ""
   );
   const [tokenAmount, setTokenAmount] = useState<number>(100);
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
-  const [inputMode, setInputMode] = useState<"token" | "crypto">("token");
-  const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
-  const [isLoading, setIsLoading] = useState(false);
+  const { caipNetwork, caipNetworkId, chainId, switchNetwork } =
+    useAppKitNetwork();
+  const { isConnected, address } = useAppKitAccount();
 
-  // Use presale hook for functions and price data
+  const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
+
+  useEffect(() => {
+    // Switch network based on CAIP network
+    if (chainId === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp") {
+      setNetwork("solana");
+    } else {
+      setNetwork("bsc");
+    }
+  }, [chainId]);
+
+  // Get all presale functionality from the usePresale hook
   const {
     signReferralCode,
     cryptoPrices,
-    estimatedCost,
     isLoadingPrices,
     loadCryptoPrices,
     calculateTokensFromCrypto,
     lmxPriceUsd,
+    presaleStatus,
+    max,
+    min,
+    totalRaised,
+    percentageSold,
+    hardcap,
+    soldTokens,
   } = usePresale();
-
-  // Use presale hook for status data
-  const { presaleStatus } = usePresale();
-  const [hasBscWalletConnected, setHasBscWalletConnected] = useState(false);
-  const [hasSolanaWalletConnected, setHasSolanaWalletConnected] =
-    useState(false);
-
-  // Use wagmi hook for BSC purchases
+  // Use the appropriate hook based on selected network
   const {
-    buyTokens: buyOnBsc,
-    isLoading: isBscTxLoading,
-    bnbPrice,
+    buyTokens: buyBscTokens,
+    isLoading: isBscBuying,
+    // Add these properties if they exist in the BSC hook, otherwise will be undefined
+    isModalOpen: isBscModalOpen = false,
+    closeModal: closeBscModal = () => {},
+    transactionStatus: bscTransactionStatus = {
+      steps: [],
+      currentStepId: null,
+      isComplete: false,
+      isError: false,
+    },
+    transactionSignature: bscTransactionSignature = null,
   } = useBscPresale(tokenAmount, customReferralCode);
 
-  // Only using BSC
-  const currencySymbol = "BNB";
+  const {
+    buyTokens: buySolTokens,
+    isLoading: isSolBuying,
+    isModalOpen: isSolModalOpen = false,
+    closeModal: closeSolModal = () => {},
+    transactionStatus: solTransactionStatus = {
+      steps: [],
+      currentStepId: null,
+      isComplete: false,
+      isError: false,
+    },
+    transactionSignature: solTransactionSignature = null,
+  } = useSolanaPresale(tokenAmount, customReferralCode);
 
-  // Check wallet connection status
-  const { isConnected, chain } = useAccount();
+  // Use the appropriate values based on selected network
+  const isLoading = network === "bsc" ? isBscBuying : isSolBuying;
+  const isModalOpen = network === "bsc" ? isBscModalOpen : isSolModalOpen;
+  const closeModal = network === "bsc" ? closeBscModal : closeSolModal;
+  const transactionStatus =
+    network === "bsc" ? bscTransactionStatus : solTransactionStatus;
+  const transactionSignature =
+    network === "bsc" ? bscTransactionSignature : solTransactionSignature;
 
-  useEffect(() => {
-    if (isConnected) {
-      // Check if connected to BSC
-      if (chain?.id === 56 || chain?.id === 97) {
-        setHasBscWalletConnected(true);
-      } else {
-        setHasBscWalletConnected(false);
-      }
+  // Wallet connection status
+  const hasWalletConnected = isConnected && address;
 
-      // Check if connected to Solana
-      // This is a placeholder, actual Solana connection check would depend on your wallet setup
-      setHasSolanaWalletConnected(false); // Assume not connected for now
+  // Set currency symbol based on selected network
+  const currencySymbol = network === "bsc" ? "BNB" : "SOL";
+
+  // Handle network switch
+  const handleNetworkChange = (newNetwork: "bsc" | "solana") => {
+    switchNetwork(newNetwork === "bsc" ? bscTestnet : solana);
+    setNetwork(newNetwork);
+  };
+
+  // Update crypto amount when token amount changes or network changes
+  const updateCryptoAmount = (amount: number) => {
+    if (!cryptoPrices) return;
+
+    if (network === "bsc") {
+      const bnbCost = (amount * lmxPriceUsd) / cryptoPrices.bnb;
+      setCryptoAmount(parseFloat(bnbCost.toFixed(8))); // BNB precision
+    } else {
+      const solCost = (amount * lmxPriceUsd) / cryptoPrices.sol;
+      setCryptoAmount(parseFloat(solCost.toFixed(9))); // SOL has 9 decimals
     }
-  }, [isConnected, chain]);
+  };
 
-  // Use actual Solana connection but only for referral signing
+  // Run calculation when network changes or when prices update
+  useEffect(() => {
+    if (tokenAmount > 0 && cryptoPrices) {
+      updateCryptoAmount(tokenAmount);
+    }
+  }, [network, cryptoPrices, tokenAmount, lmxPriceUsd]);
 
   // Handle token amount change with validation
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
 
     if (isNaN(value) || value < 0) {
-      if (inputMode === "token") {
-        setTokenAmount(0);
-        setCryptoAmount(0);
-      } else {
-        setCryptoAmount(0);
-        setTokenAmount(0);
-      }
+      setTokenAmount(0);
+      setCryptoAmount(0);
       return;
     }
 
-    if (inputMode === "token") {
-      setTokenAmount(value);
-
-      // Calculate crypto amount based on token amount
-      if (cryptoPrices) {
-        const bnbCost = (value * lmxPriceUsd) / cryptoPrices.bnb;
-        setCryptoAmount(parseFloat(bnbCost.toFixed(8))); // BNB precision
-      }
-    } else {
-      setCryptoAmount(value);
-
-      // Calculate token amount based on crypto amount
-      if (cryptoPrices) {
-        const tokens = calculateTokensFromCrypto(value, "bnb");
-        setTokenAmount(Math.floor(tokens)); // Round down to nearest whole token
-      }
-    }
+    setTokenAmount(value);
+    updateCryptoAmount(value);
   };
 
-  // Toggle between input modes (token amount vs crypto amount)
-  const toggleInputMode = () => {
-    setInputMode(inputMode === "token" ? "crypto" : "token");
-  };
-
-  // Handle network switching
-  const switchNetwork = (newNetwork: "bsc" | "solana") => {
-    // Only allow BSC network for now
-    if (newNetwork === "solana") {
-      toast.info("Solana presale is currently disabled. Using BSC instead.");
-      setNetwork("bsc");
-      return;
-    }
-    setNetwork(newNetwork);
-  };
-
-  // Handle buy button click
+  // Handle purchase
   const handleBuy = async () => {
-    if (!presaleStatus?.isActive) {
+    // Validate presale status
+    if (!presaleStatus) {
       toast.error("Presale is not active");
       return;
     }
 
-    const minPurchase = parseFloat(presaleStatus.minPurchase);
-    const maxPurchase = parseFloat(presaleStatus.maxPurchase);
+    // Validate wallet connection based on selected network
+    if (!hasWalletConnected) {
+      toast.error(`Please connect your ${network.toUpperCase()} wallet first`);
+      return;
+    }
 
+    // Convert min/max to appropriate units
+    const minPurchase = parseFloat(String(min) ?? "0") / 1000000000000000000;
+    const maxPurchase = parseFloat(String(max) ?? "0") / 1000000000000000000;
+
+    // Validate purchase amount
     if (tokenAmount < minPurchase) {
-      toast.error(`Minimum purchase amount is ${minPurchase} tokens`);
+      toast.error(`Minimum purchase amount is ${minPurchase} LMX tokens`);
       return;
     }
 
     if (tokenAmount > maxPurchase) {
-      toast.error(`Maximum purchase amount is ${maxPurchase} tokens`);
+      toast.error(`Maximum purchase amount is ${maxPurchase} LMX tokens`);
       return;
     }
 
     try {
-      // Force BSC for all purchases
-      if (network !== "bsc") {
-        toast.info("Only BSC purchases are currently supported");
-        setNetwork("bsc");
-        return;
+      // Execute purchase based on selected network
+      if (network === "bsc") {
+        await buyBscTokens();
+      } else {
+        await buySolTokens();
       }
-
-      // Buy on BSC using wagmi hooks
-      buyOnBsc?.();
     } catch (error) {
       console.error("Error buying tokens:", error);
       toast.error("Failed to purchase tokens");
@@ -184,23 +207,49 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     <div
       className={`bg-black/30 backdrop-blur-md rounded-xl p-6 border border-primary/10 ${className}`}
     >
+      {/* Header */}{" "}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-white">Buy Tokens</h2>
+        <h2 className="text-2xl font-semibold text-white">Buy LMX Tokens</h2>
+        <div className="flex items-center gap-3">
+          {/* Network selector */}
+          <div className="flex bg-black/30 rounded-md p-1 border border-primary/20">
+            <button
+              onClick={() => handleNetworkChange("bsc")}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                network === "bsc"
+                  ? "bg-primary/30 text-white"
+                  : "text-white/70 hover:text-white"
+              }`}
+            >
+              BSC
+            </button>
+            <button
+              onClick={() => handleNetworkChange("solana")}
+              className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                network === "solana"
+                  ? "bg-primary/30 text-white"
+                  : "text-white/70 hover:text-white"
+              }`}
+            >
+              Solana
+            </button>
+          </div>
 
-        <button
-          onClick={refreshPrices}
-          className="text-primary hover:text-primary/80 transition-colors"
-          title="Refresh cryptocurrency prices"
-          disabled={isLoadingPrices}
-        >
-          {isLoadingPrices ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <RefreshCcw className="h-5 w-5" />
-          )}
-        </button>
+          <button
+            onClick={refreshPrices}
+            className="text-primary hover:text-primary/80 transition-colors"
+            title="Refresh cryptocurrency prices"
+            disabled={isLoadingPrices}
+          >
+            {isLoadingPrices ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </div>
-
+      {/* Loading state */}
       {isLoadingPrices && !cryptoPrices ? (
         <div className="py-8 flex flex-col items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
@@ -208,39 +257,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
         </div>
       ) : (
         <>
-          {/* Network Selection */}
-          <div className="mb-6">
-            <Label
-              htmlFor="network"
-              className="text-sm text-white/70 block mb-2"
-            >
-              Select Network
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => switchNetwork("bsc")}
-                className={`p-3 rounded-md flex items-center justify-center gap-2 transition-all ${
-                  network === "bsc"
-                    ? "bg-gradient-to-r from-amber-600/30 to-amber-500/30 border border-amber-500/50 text-amber-200"
-                    : "bg-black/20 border border-white/5 text-white/70 hover:bg-black/30"
-                }`}
-              >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500" />
-                <span>BSC {hasBscWalletConnected ? "✓" : ""}</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={true}
-                className={`p-3 rounded-md flex items-center justify-center gap-2 transition-all opacity-50 cursor-not-allowed bg-black/20 border border-white/5 text-white/50`}
-              >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 opacity-50" />
-                <span>Solana (Disabled)</span>
-              </button>
-            </div>
-          </div>
-
           {/* Current Price Information */}
           <div className="mb-6 p-3 bg-black/40 rounded-lg border border-primary/10">
             <div className="text-sm font-medium text-white/80 mb-2">
@@ -281,106 +297,41 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
             </div>
           </div>
 
-          {/* Wallet Connection Status */}
-          <div className="mb-6 p-4 bg-black/40 rounded-lg border border-primary/10">
-            <div className="flex justify-between items-center mb-3">
-              <div className="text-left">
-                <p className="text-white/70 text-sm mb-1">BSC Wallet:</p>
-                <p
-                  className={`text-sm ${
-                    hasBscWalletConnected ? "text-green-400" : "text-red-400"
-                  }`}
-                >
-                  {hasBscWalletConnected ? "Connected" : "Not Connected"}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-white/70 text-sm mb-1">Solana Wallet:</p>
-                <p
-                  className={`text-sm ${
-                    hasSolanaWalletConnected
-                      ? "text-green-400"
-                      : "text-gray-400"
-                  }`}
-                >
-                  {hasSolanaWalletConnected
-                    ? "Connected (for referrals)"
-                    : "Optional for referrals"}
-                </p>
-              </div>
-            </div>
-            <WalletConnectButton variant="fancy" className="mx-auto" />
-          </div>
-
-          {/* Token Purchase Form - Always show form info even when wallet is not connected */}
+          {/* Purchase Form */}
           {presaleStatus && (
             <>
-              {/* Input with toggle between token and crypto amount */}
+              {/* Token Amount Input */}
               <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <Label htmlFor="amount" className="text-sm text-white/70">
-                    {inputMode === "token"
-                      ? "Token Amount"
-                      : `${currencySymbol} Amount`}
-                  </Label>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleInputMode}
-                    className="h-7 text-xs px-2 text-primary/80 hover:text-primary hover:bg-primary/10"
-                  >
-                    <RotateCcw className="h-3 w-3 mr-1" />
-                    Switch to {inputMode === "token" ? currencySymbol : "LMX"}
-                  </Button>
-                </div>
-
+                <Label
+                  htmlFor="amount"
+                  className="text-sm text-white/70 block mb-2"
+                >
+                  Number of LMX Tokens
+                </Label>
                 <div className="flex gap-2 items-center">
                   <Input
                     id="amount"
                     type="number"
-                    value={inputMode === "token" ? tokenAmount : cryptoAmount}
+                    value={tokenAmount}
                     onChange={handleAmountChange}
                     className="bg-black/30 border border-primary/20 text-white"
-                    min={inputMode === "token" ? presaleStatus.minPurchase : 0}
-                    max={
-                      inputMode === "token"
-                        ? presaleStatus.maxPurchase
-                        : undefined
-                    }
-                    step={inputMode === "token" ? "1" : "0.000001"}
-                    placeholder={inputMode === "token" ? "100" : "0.01"}
+                    step="1"
+                    placeholder="100"
                   />
                   <div className="bg-black/40 px-3 py-2 rounded-md text-white/80">
-                    {inputMode === "token" ? "LMX" : currencySymbol}
+                    LMX
                   </div>
                 </div>
 
-                {inputMode === "token" && (
-                  <div className="flex justify-between text-xs text-white/60 mt-1 px-1">
-                    <span>Min: {presaleStatus.minPurchase}</span>
-                    <span>Max: {presaleStatus.maxPurchase}</span>
-                  </div>
-                )}
-
-                {/* Show the conversion value */}
+                {/* Cost Breakdown */}
                 <div className="mt-2 text-sm text-center text-white/70">
-                  {inputMode === "token" ? (
-                    <>
-                      ≈ {cryptoAmount.toFixed(8)} {currencySymbol}
-                      <span className="mx-2 text-white/40">|</span>$
-                      {(tokenAmount * lmxPriceUsd).toFixed(2)} USD
-                    </>
-                  ) : (
-                    <>
-                      ≈ {tokenAmount.toFixed(0)} LMX
-                      <span className="mx-2 text-white/40">|</span>$
-                      {(cryptoAmount * (cryptoPrices?.bnb || 0)).toFixed(2)} USD
-                    </>
-                  )}
+                  ≈ {cryptoAmount.toFixed(8)} {currencySymbol}
+                  <span className="mx-2 text-white/40">|</span>$
+                  {(tokenAmount * lmxPriceUsd).toFixed(2)} USD
                 </div>
               </div>
 
+              {/* Referral Code Input */}
               <div className="mb-6">
                 <Label
                   htmlFor="referral"
@@ -388,74 +339,64 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 >
                   Referral Code (Optional)
                 </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="referral"
-                    type="text"
-                    value={customReferralCode}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setCustomReferralCode(e.target.value)
-                    }
-                    className="bg-black/30 border border-primary/20 text-white"
-                    placeholder="Enter referral code"
-                  />
-                  {hasSolanaWalletConnected && (
-                    <Button
-                      variant="outline"
-                      className="min-w-[120px] bg-purple-800/50 border-purple-500/30 hover:bg-purple-700/60"
-                      onClick={async () => {
-                        if (!customReferralCode) {
-                          toast.error("Please enter a referral code to sign");
-                          return;
-                        }
-                        const signed = await signReferralCode(
-                          customReferralCode
-                        );
-                        if (signed) {
-                          toast.success(
-                            "Referral code signed with Solana wallet"
-                          );
-                        }
-                      }}
-                    >
-                      Sign w/ Solana
-                    </Button>
+                <Input
+                  id="referral"
+                  type="text"
+                  value={customReferralCode}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCustomReferralCode(e.target.value)
+                  }
+                  className="bg-black/30 border border-primary/20 text-white"
+                  placeholder="Enter referral code"
+                />
+              </div>
+
+              {/* Buy Button */}
+              <div className="mb-4">
+                {!hasWalletConnected ? (
+                  <WalletConnectButton className="w-full py-3" />
+                ) : (
+                  <GlowButton
+                    onClick={handleBuy}
+                    disabled={isLoading || !presaleStatus || tokenAmount <= 0}
+                    className="w-full py-3"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing Transaction...
+                      </>
+                    ) : (
+                      <>
+                        Buy {tokenAmount} LMX for {cryptoAmount.toFixed(6)}{" "}
+                        {currencySymbol}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </GlowButton>
+                )}
+
+                {/* Simplified wallet connection status */}
+                <div
+                  className={`mt-2 text-sm text-center ${
+                    hasWalletConnected ? "text-green-400" : "text-amber-400"
+                  }`}
+                >
+                  {hasWalletConnected ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
+                      {network.toUpperCase()} Wallet Connected
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-amber-400 mr-2"></div>
+                      {network.toUpperCase()} Wallet Not Connected
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div className="mb-4">
-                <GlowButton
-                  onClick={handleBuy}
-                  disabled={
-                    isBscTxLoading ||
-                    !presaleStatus.isActive ||
-                    !hasBscWalletConnected ||
-                    tokenAmount <= 0
-                  }
-                  className="w-full py-3"
-                >
-                  {isBscTxLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : !hasBscWalletConnected ? (
-                    <>
-                      Connect BSC Wallet
-                      <Wallet className="ml-2 h-4 w-4" />
-                    </>
-                  ) : (
-                    <>
-                      Buy {tokenAmount} LMX for {cryptoAmount.toFixed(6)}{" "}
-                      {currencySymbol}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </GlowButton>
-              </div>
-
-              {/* Presale Progress and Info */}
+              {/* Presale Progress */}
               <div className="mt-6">
                 <div className="bg-black/20 p-3 rounded-md mb-3">
                   <div className="flex justify-between text-sm mb-1">
@@ -465,13 +406,13 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Tokens Sold:</span>
                     <span className="text-white">
-                      {presaleStatus.soldTokens} / {presaleStatus.hardCap} LMX
+                      {String(soldTokens)} / {String(hardcap)} LMX
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-white/70">Total Raised:</span>
                     <span className="text-white">
-                      {presaleStatus.totalRaised} {currencySymbol}
+                      {String(totalRaised)} {currencySymbol}
                     </span>
                   </div>
                 </div>
@@ -481,18 +422,37 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   <motion.div
                     className="h-full bg-gradient-to-r from-primary/60 to-primary"
                     initial={{ width: "0%" }}
-                    animate={{ width: `${presaleStatus.percentageSold}%` }}
+                    animate={{ width: `${percentageSold}%` }}
                     transition={{ duration: 1 }}
                   />
                 </div>
                 <div className="text-right text-xs text-primary">
-                  {presaleStatus.percentageSold.toFixed(2)}% sold
+                  {percentageSold.toFixed(2)}% sold
                 </div>
+              </div>
+
+              {/* Link to purchase history */}
+              <div className="mt-4 text-center">
+                <Link
+                  href="/presale/purchases"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors underline underline-offset-2"
+                >
+                  View your purchase history
+                </Link>
               </div>
             </>
           )}
         </>
       )}
+      {/* Transaction Status Modal for both BSC and Solana transactions */}
+      <TransactionStatusModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        status={transactionStatus}
+        title={`${network.toUpperCase()} Transaction Status`}
+        transactionSignature={transactionSignature || undefined}
+        network={network}
+      />
     </div>
   );
 };

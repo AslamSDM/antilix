@@ -35,6 +35,7 @@ model User {
   solanaVerified     Boolean             @default(false) // Verification status of Solana address
   verificationTokens VerificationToken[]
   purchases          Purchase[] // Renamed from solanaPurchases and relation updated
+  receivedBonuses    ReferralBonus[] // Bonuses received for referring users
 }
 
 // Verification token model for email and wallet verification
@@ -80,6 +81,8 @@ model Purchase {
   pricePerLmxInUsdt    Decimal // Price of 1 LMX in USDT at the time of purchase
   transactionSignature String         @unique // Blockchain transaction signature
   status               PurchaseStatus @default(PENDING)
+  hasReferralBonus     Boolean        @default(false) // Whether a referral bonus has been processed for this purchase
+  referralBonus        ReferralBonus?
 
   @@index([userId])
   @@index([transactionSignature])
@@ -91,4 +94,28 @@ enum PurchaseStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+// Referral bonus model to track referral rewards
+model ReferralBonus {
+  id              String              @id @default(cuid())
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  referrerId      String // ID of the user who referred someone
+  purchaseId      String              @unique // ID of the purchase that triggered this bonus (one-to-one with Purchase)
+  purchaseAmount  Decimal // Original purchase amount
+  bonusPercentage Float // Percentage of the purchase that was given as bonus
+  bonusAmount     Decimal // Amount of bonus tokens awarded  
+  bonusStatus     ReferralBonusStatus @default(PENDING)
+  purchase        Purchase            @relation(fields: [purchaseId], references: [id])
+  referrer        User                @relation(fields: [referrerId], references: [id])
+
+  @@index([referrerId])
+}
+
+// Status of the referral bonus
+enum ReferralBonusStatus {
+  PENDING
+  PROCESSED
+  FAILED
 }

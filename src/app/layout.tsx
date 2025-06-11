@@ -18,6 +18,7 @@ import { Suspense } from "react";
 import localFont from "next/font/local";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
 import { cookies } from "next/headers"; // Import cookies
+import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
 
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
@@ -99,6 +100,9 @@ export default function RootLayout({
 
                   {/* Handle loading on navigation */}
                   <NavigationLoadingHandler />
+
+                  {/* Automatic referral application when user is authenticated */}
+                  <AutomaticReferralHandler />
 
                   <div className="min-h-screen flex flex-col bg-background text-foreground">
                     {/* Navigation Header */}

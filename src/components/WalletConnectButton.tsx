@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { useAppKitState } from "@reown/appkit/react";
+import {
+  useAppKitState,
+  useAppKitNetwork,
+  useAppKitAccount,
+} from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
 
 import { Button } from "./ui/button";
@@ -21,39 +25,87 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
   onConnect,
 }) => {
   const appKitState = useAppKitState();
-  // Access properties directly from appKitState, providing fallbacks for initial render or if state is not fully populated yet.
-  const address = appKitState.account?.address;
-  const isConnected = appKitState.connected;
-  const connector = appKitState.connector;
-  const chainId = appKitState.chainId;
+  const { caipNetwork, chainId: networkChainId } = useAppKitNetwork();
+  const { isConnected, address, connector } = useAppKitAccount();
 
+  // Use chainId from either network or state for backward compatibility
+  const chainId = networkChainId || appKitState.chainId;
+
+  const [userId, setUserId] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle automatic user registration when wallet connects
+  useEffect(() => {
+    const registerUserWithWallet = async () => {
+      if (isConnected && address) {
+        try {
+          const walletType = getWalletType();
+          if (walletType === "solana" || walletType === "ethereum") {
+            // Call API to register the user
+            const response = await fetch("/api/user/auto-register", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                address,
+                walletType,
+              }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              setUserId(data.userId);
+              console.log(`User registered/retrieved: ${data.userId}`);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to auto-register user:", error);
+        }
+      }
+    };
+
+    if (isClient && isConnected && address) {
+      registerUserWithWallet();
+    }
+  }, [isConnected, address, isClient]);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Determine wallet type (simplified)
-  // This is a basic check; more robust logic might be needed based on AppKit's connector/chainId details
+  // Determine wallet type using the improved logic
   const getWalletType = (): "ethereum" | "solana" | "unknown" => {
-    // Ensure connector and its properties are checked safely
-    if (!connector || !connector.id) return "unknown";
+    // Check if we're connected first
+    if (!isConnected || !connector) return "unknown";
 
-    if (connector.id.includes("solana")) return "solana";
-
-    // Check chainId for EVM/BSC networks or connector properties for EVM wallets
+    // Check for Solana wallet
     if (
-      chainId === 56 ||
-      chainId === 97 ||
+      chainId === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" ||
+      connector.id.includes("solana") ||
+      appKitState.selectedNetworkId?.toString().startsWith("solana:")
+    ) {
+      return "solana";
+    }
+
+    // Check chainId for EVM/BSC networks
+    if (typeof chainId === "number" && (chainId === 56 || chainId === 97)) {
+      return "ethereum";
+    }
+
+    // Check for EVM connector indicators
+    if (
       connector.id.includes("metaMask") ||
       connector.id.includes("walletConnect") ||
       connector.name?.toLowerCase().includes("metamask") ||
-      connector.name?.toLowerCase().includes("walletconnect")
+      connector.name?.toLowerCase().includes("walletconnect") ||
+      appKitState.selectedNetworkId?.toString().startsWith("eip155:")
     ) {
       return "ethereum";
     }
+
     return "unknown"; // Default or if specific checks fail
   };
 
@@ -154,12 +206,25 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
   };
 
   const displayAddress = getDisplayAddress();
-  const walletTypeDisplay =
-    currentWalletType === "solana"
-      ? "SOL"
-      : currentWalletType === "ethereum"
-      ? "BSC/EVM"
-      : "";
+
+  // Get specific network name based on chainId
+  const getNetworkName = () => {
+    if (currentWalletType === "solana") {
+      return "SOL";
+    } else if (currentWalletType === "ethereum") {
+      // Determine specific EVM network
+      if (typeof chainId === "number") {
+        if (chainId === 56) return "BSC";
+        if (chainId === 97) return "BSC Testnet";
+        if (chainId === 8453) return "Base";
+        if (chainId === 1) return "ETH";
+      }
+      return "BSC";
+    }
+    return "";
+  };
+
+  const walletTypeDisplay = getNetworkName();
 
   return (
     <>

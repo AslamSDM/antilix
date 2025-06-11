@@ -120,6 +120,49 @@ const ReferralManagement: React.FC<ReferralManagementProps> = ({
     }
   };
 
+  // Add state for referral bonuses
+  const [bonusData, setBonusData] = useState({
+    totalBonus: "0",
+    bonuses: [],
+    count: 0,
+    referralCount: 0,
+  });
+
+  const [loadingBonusData, setLoadingBonusData] = useState(false);
+
+  // Fetch referral bonus data when wallet is connected
+  useEffect(() => {
+    const fetchBonusData = async () => {
+      // Need wallet to be connected and referral code to exist
+      if (!walletConnected || !userReferralCode) return;
+
+      setLoadingBonusData(true);
+
+      try {
+        const walletAddress = publicKey?.toString() || ""; // Use your actual wallet address getter
+
+        const response = await fetch(
+          `/api/referral/bonuses?walletAddress=${walletAddress}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setBonusData({
+            totalBonus: data.totalBonus || "0",
+            bonuses: data.bonuses || [],
+            count: data.count || 0,
+            referralCount: data.referralCount || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching referral bonus data:", error);
+      } finally {
+        setLoadingBonusData(false);
+      }
+    };
+
+    fetchBonusData();
+  }, [walletConnected, userReferralCode, publicKey]);
+
   return (
     <div className={`bg-black/30 backdrop-blur-md rounded-xl p-6 ${className}`}>
       <h2 className="text-2xl font-semibold text-white mb-4">
@@ -205,19 +248,27 @@ const ReferralManagement: React.FC<ReferralManagementProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div className="bg-black/20 p-4 rounded-md">
               <p className="text-sm text-gray-400">Total Referrals</p>
               <p className="text-2xl font-semibold text-white">
-                {referralStats?.referralCount || 0}
+                {bonusData.referralCount || referralStats?.referralCount || 0}
               </p>
             </div>
 
             <div className="bg-black/20 p-4 rounded-md">
-              <p className="text-sm text-gray-400">Rewards Earned</p>
+              <p className="text-sm text-gray-400">Purchases</p>
               <p className="text-2xl font-semibold text-white">
-                {/* You can implement a rewards calculation based on referralStats */}
-                {(referralStats?.referralCount || 0) * 50} XP
+                {bonusData.count || 0}
+              </p>
+            </div>
+
+            <div className="bg-black/20 p-4 rounded-md">
+              <p className="text-sm text-gray-400">Bonus LMX Earned</p>
+              <p className="text-2xl font-semibold text-white">
+                {parseFloat(bonusData.totalBonus).toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </div>
           </div>
@@ -260,6 +311,47 @@ const ReferralManagement: React.FC<ReferralManagementProps> = ({
               <li>They sign up using your referral link</li>
               <li>Earn rewards when they join Antilix</li>
             </ol>
+          </div>
+
+          {/* Bonus Data Section */}
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-white mb-3">
+              Your Referral Bonuses
+            </h3>
+            {loadingBonusData ? (
+              <p className="text-gray-400">Loading bonus data...</p>
+            ) : (
+              <>
+                <div className="bg-black/20 p-4 rounded-md mb-4">
+                  <p className="text-sm text-gray-400">Total Bonus</p>
+                  <p className="text-2xl font-semibold text-white">
+                    {bonusData.totalBonus} XP
+                  </p>
+                </div>
+
+                {bonusData.bonuses.length > 0 ? (
+                  <ul className="space-y-2 max-h-40 overflow-y-auto">
+                    {bonusData.bonuses.map((bonus: any) => (
+                      <li
+                        key={bonus.id}
+                        className="bg-black/20 p-2 rounded flex justify-between"
+                      >
+                        <span className="text-white truncate">
+                          {bonus.description}
+                        </span>
+                        <span className="text-gray-400 text-sm">
+                          {bonus.amount} XP
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-400">
+                    No bonus data available. Refer more friends to earn bonuses!
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </>
       )}

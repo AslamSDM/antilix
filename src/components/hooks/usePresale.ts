@@ -14,6 +14,10 @@ import {
   calculateTokenAmount,
   LMX_PRICE_USD,
 } from "@/lib/price-utils";
+import { solanaPresale } from "@/lib/presale-contract";
+import { BSC_PRESALE_CONTRACT_ADDRESS, useBscPresale } from "./useBscPresale";
+import { useReadContract } from "wagmi";
+import { presaleAbi } from "@/lib/abi";
 
 // Define an explicit shape for appKitState to resolve type discrepancies
 export interface AppKitStateShape {
@@ -88,6 +92,7 @@ export function getWalletType(
   }
 
   // Check for Solana
+  console.log("CAIP Namespace:", caipNamespace);
   if (caipNamespace === "solana") {
     return "solana";
   }
@@ -171,6 +176,50 @@ export default function usePresale() {
     isConnected: appkitAccounts?.isConnected,
     caipAddress: appkitAccounts?.caipAddress,
   });
+  const { data: userBalance, error } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "balanceOf",
+    args: [walletAddress],
+  });
+  //   const { data: presaleStatus } = useReadContract({
+  //     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+  //     abi: presaleAbi,
+  //     functionName: "presaleActive",
+  //     args: [],
+  //   });
+  const { data: min } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "minPurchase",
+    args: [],
+  });
+  const { data: max } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "maxPurchase",
+    args: [],
+  });
+  const { data: soldTokens } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "soldTokens",
+    args: [],
+  });
+  const { data: totalRaised } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "totalRaised",
+    args: [],
+  });
+  const { data: hardcap } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "hardCap",
+    args: [],
+  });
+  const percentageSold =
+    totalRaised && hardcap ? (Number(totalRaised) / Number(hardcap)) * 100 : 0;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isBuying, setIsBuying] = useState(false);
@@ -180,7 +229,7 @@ export default function usePresale() {
   const [bscStatus, setBscStatus] = useState<PresaleStatus | null>(null);
   const [solanaStatus, setSolanaStatus] = useState<PresaleStatus | null>(null);
   const [userPurchasedTokens, setUserPurchasedTokens] = useState("0");
-
+  const { presaleStatus } = useBscPresale(tokenAmount);
   const [cryptoPrices, setCryptoPrices] = useState<{
     bnb: number;
     sol: number;
@@ -191,15 +240,7 @@ export default function usePresale() {
     sol: number;
   }>({ bnb: 0, sol: 0 });
 
-  const presaleStatus = presaleNetwork === "bsc" ? bscStatus : solanaStatus;
-
-  //   const hasConnectedWallet =
-  //     (presaleNetwork === "bsc" && isConnected && currentWalletType === "bsc") ||
-  //     (presaleNetwork === "solana" &&
-  //       isConnected &&
-  //       currentWalletType === "solana");
   const hasConnectedWallet = isConnected;
-
   const hasBscWalletConnected = isConnected && currentWalletType === "bsc";
   const hasSolanaWalletConnected =
     isConnected && currentWalletType === "solana";
@@ -258,13 +299,6 @@ export default function usePresale() {
     [cryptoPrices]
   );
 
-  const loadBscPresaleStatus = useCallback(async () => {
-    const status = await bscPresale.getPresaleStatus();
-    if (status) {
-      setBscStatus(status);
-    }
-  }, []);
-
   const loadSolanaPresaleStatus = useCallback(async () => {
     try {
       const connection = new Connection(
@@ -281,69 +315,24 @@ export default function usePresale() {
     }
   }, []);
 
-  const loadUserPurchasedTokens = useCallback(async () => {
-    if (isConnected && currentWalletType === "bsc" && walletAddress) {
-      const tokens = await bscPresale.getUserPurchasedTokens(walletAddress);
-      setUserPurchasedTokens(tokens);
-    }
-    // TODO: Add logic for Solana user purchased tokens when available
-  }, [isConnected, currentWalletType, walletAddress]);
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      setIsLoading(true);
-      try {
-        console.log("Loading initial presale statuses (BSC & Solana)...");
-        await Promise.all([
-          loadBscPresaleStatus(),
-          loadSolanaPresaleStatus(), // Load Solana status as well
-          loadCryptoPrices(false), // Load initial crypto prices
-        ]);
-
-        // Load user purchased tokens based on connected wallet
-        if (isConnected && walletAddress) {
-          if (currentWalletType === "bsc") {
-            await loadUserPurchasedTokens();
-          } else if (currentWalletType === "solana") {
-            // Placeholder for Solana purchased tokens
-            // await loadUserSolanaPurchasedTokens();
-          }
-        }
-      } catch (error) {
-        console.error("Error loading initial presale data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadInitialData();
-  }, [
-    isConnected,
-    currentWalletType,
-    walletAddress,
-    loadBscPresaleStatus,
-    loadSolanaPresaleStatus,
-    loadUserPurchasedTokens,
-    loadCryptoPrices, // Added loadCryptoPrices
-  ]);
-
   const buyTokens = async (amount: number, referrer?: string) => {
     if (isBuying) return;
     setIsBuying(true);
     try {
       if (presaleNetwork === "bsc") {
-        if (!hasBscWalletConnected) {
-          toast.error(
-            "BSC wallet not connected. Please connect your BSC wallet to buy."
-          );
-          modal.open();
-          setIsBuying(false);
-          return;
-        }
-        const success = await bscPresale.buyTokens(amount, referrer);
-        if (success) {
-          await loadBscPresaleStatus();
-          await loadUserPurchasedTokens(); // This is BSC specific
-        }
+        // if (!hasBscWalletConnected) {
+        //   toast.error(
+        //     "BSC wallet not connected. Please connect your BSC wallet to buy."
+        //   );
+        //   modal.open();
+        //   setIsBuying(false);
+        //   return;
+        // }
+        // const success = await bscPresale.buyTokens(amount, referrer);
+        // if (success) {
+        //   await loadBscPresaleStatus();
+        //   await loadUserPurchasedTokens(); // This is BSC specific
+        // }
       } else if (presaleNetwork === "solana") {
         if (!hasSolanaWalletConnected) {
           toast.error(
@@ -491,21 +480,22 @@ export default function usePresale() {
     cryptoPrices,
     estimatedCost,
     isLoadingPrices,
+    hardcap,
     loadCryptoPrices,
+    max,
+
+    min,
+    soldTokens,
+    totalRaised,
+    percentageSold,
     calculateTokensFromCrypto,
     lmxPriceUsd: LMX_PRICE_USD,
     refreshData: async () => {
       setIsLoading(true);
       toast.info("Refreshing presale data...");
       await Promise.all([
-        loadBscPresaleStatus(),
         loadSolanaPresaleStatus(), // Add Solana status refresh
         loadCryptoPrices(true),
-        // Conditional loading of user purchased tokens
-        isConnected && walletAddress && currentWalletType === "bsc"
-          ? loadUserPurchasedTokens()
-          : Promise.resolve(),
-        // Add Solana user purchased tokens refresh here when implemented
       ]);
       toast.success("Presale data refreshed");
       setIsLoading(false);
