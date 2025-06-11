@@ -74,11 +74,13 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const cookieStore = await cookies().toString();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -93,7 +95,7 @@ export default function RootLayout({
         <LoadingProvider>
           <Suspense fallback={<LoadingScreen />}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              <ContextProviderAsWalletProviders cookies={cookies().toString()}>
+              <ContextProviderAsWalletProviders cookies={null}>
                 <AuthProvider>
                   {/* Global loading screen */}
                   <LoadingScreen />

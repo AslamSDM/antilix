@@ -37,22 +37,24 @@ export const modal = createAppKit({
   },
 });
 
-function ContextProvider({
+function ContextProviderAsWalletProviders({
   children,
-}: {
+}: // cookies,
+{
   children: ReactNode;
   cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config);
+  // Use the cookies to derive the initial state if provided
+  const initialState = "";
 
   return (
     <WagmiProvider
       config={wagmiAdapter.wagmiConfig as Config}
-      initialState={initialState}
+      // initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
 }
 
-export default ContextProvider;
+export default ContextProviderAsWalletProviders;

@@ -27,7 +27,17 @@ export default function AutomaticReferralHandler() {
   const { isConnected: evmConnected, address: evmAddress } = useAccount();
 
   // Create a PublicKey object from the Solana address if available
-  const solanaPublicKey = solanaAddress ? new PublicKey(solanaAddress) : null;
+  // Check if the address is in valid base58 format before creating PublicKey
+  const solanaPublicKey = (() => {
+    try {
+      return solanaAddress && typeof solanaAddress === 'string' && solanaAddress.length > 30 
+        ? new PublicKey(solanaAddress) 
+        : null;
+    } catch (error) {
+      console.warn("Invalid Solana address format:", error);
+      return null;
+    }
+  })();
 
   const isWalletConnected = solanaConnected || evmConnected;
   const walletAddress = solanaAddress || evmAddress || "";
