@@ -39,7 +39,7 @@ export function verifyToken(token: string): JwtPayload | null {
  */
 export async function getCurrentUser(req: NextRequest) {
   // Get the token from the cookie
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
@@ -56,7 +56,6 @@ export async function getCurrentUser(req: NextRequest) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      include: { wallets: true },
     });
     return user;
   } catch (error) {

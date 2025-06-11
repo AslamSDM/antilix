@@ -10,7 +10,6 @@ import {
 import { useAccount } from "wagmi";
 import { useTransactionStatus, TransactionStep } from "./useTransactionStatus";
 import { useAppKitProvider } from "@reown/appkit/react";
-import { Provider } from "@reown/appkit-adapter-solana/react";
 // API endpoint for recording purchases in the database
 const API_ENDPOINT = "/api/presale/purchase";
 
@@ -69,7 +68,7 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
     setError,
     resetStatus,
   } = useTransactionStatus(initialTransactionSteps);
-  const { walletProvider } = useAppKitProvider<Provider>("solana");
+  const { walletProvider } = useAppKitProvider<any>("solana");
 
   // Buy tokens with Solana
   const buyTokens = async () => {
@@ -156,7 +155,7 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       // Step 4: Verify the transaction
       setCurrentStep("verify-transaction");
 
-      const verificationResponse = await fetch("/api/presale/verify-solana", {
+      const verificationResponse = await fetch("/api/presale/verify-solana2", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

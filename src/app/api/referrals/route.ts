@@ -7,7 +7,7 @@ import {
 } from "@/lib/referral-utils";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/next-auth";
 
 export async function GET(req: NextRequest) {
   try {

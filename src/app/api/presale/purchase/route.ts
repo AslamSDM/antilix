@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     } = purchaseSchema.parse(body);
 
     // Check if this transaction has already been recorded
-    const existingTransaction = await prisma.purchase.findUnique({
+    const existingTransaction = await (prisma as any).purchase.findUnique({
       where: { transactionSignature },
     });
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       // Call the appropriate verification endpoint based on network
       const verificationEndpoint =
         network === "SOLANA"
-          ? "/api/presale/verify-solana"
+          ? "/api/presale/verify-solana2"
           : "/api/presale/verify-bsc";
 
       const verificationBody =
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
           : { hash: transactionSignature };
 
       // Use the internal fetch to call our own API endpoints
+
       const verificationRes = await fetch(
         `${
           process.env.NEXTAUTH_URL || "http://localhost:3000"
@@ -170,7 +171,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Save the purchase
-    const purchase = await prisma.purchase.create({
+    const purchase = await (prisma as any).purchase.create({
       data: {
         userId: user.id,
         network,

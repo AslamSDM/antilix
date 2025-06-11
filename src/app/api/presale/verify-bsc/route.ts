@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if this is a buyTokens function call
-    if (decodedData.name !== "buyTokens") {
+    if (decodedData?.name !== "buyTokens") {
       return NextResponse.json(
         { error: "Transaction is not a token purchase" },
         { status: 400 }
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
         amount: valueInBnb, // BNB amount
         tokenAmount: tokenAmount, // LMX token amount
         blockNumber: receipt.blockNumber,
-        gasFee: ethers.formatEther(transaction.gasPrice.mul(receipt.gasUsed)),
+        gasFee: ethers.formatEther(transaction.gasPrice * receipt.gasUsed),
       },
       // Include purchase data if we found it earlier
       purchase: existingTransaction,

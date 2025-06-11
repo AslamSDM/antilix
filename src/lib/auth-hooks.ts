@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useReferralHandling } from "@/components/hooks/useReferralHandling";
+import useReferralHandling from "@/components/hooks/useReferralHandling";
 import { useSession } from "next-auth/react";
 
 /**

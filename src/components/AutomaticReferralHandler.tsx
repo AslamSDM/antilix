@@ -18,15 +18,19 @@ export default function AutomaticReferralHandler() {
   const [savedReferralCode, setSavedReferralCode] = useState<string | null>(
     null
   );
-  const { connection, solanaPublicKey } = useAppKitConnection();
-  const { isConnected: solanaConnected, address } = useAppKitAccount();
+
+  const { connection } = useAppKitConnection();
+  const { isConnected: solanaConnected, address: solanaAddress } =
+    useAppKitAccount();
 
   // Get wallet connections
-
   const { isConnected: evmConnected, address: evmAddress } = useAccount();
 
+  // Create a PublicKey object from the Solana address if available
+  const solanaPublicKey = solanaAddress ? new PublicKey(solanaAddress) : null;
+
   const isWalletConnected = solanaConnected || evmConnected;
-  const walletAddress = solanaPublicKey?.toBase58() || evmAddress || "";
+  const walletAddress = solanaAddress || evmAddress || "";
 
   // Handle referral codes from URL parameters
   useEffect(() => {

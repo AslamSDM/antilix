@@ -26,10 +26,10 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
 }) => {
   const appKitState = useAppKitState();
   const { caipNetwork, chainId: networkChainId } = useAppKitNetwork();
-  const { isConnected, address, connector } = useAppKitAccount();
+  const { isConnected, address } = useAppKitAccount();
 
   // Use chainId from either network or state for backward compatibility
-  const chainId = networkChainId || appKitState.chainId;
+  const chainId = networkChainId;
 
   const [userId, setUserId] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -79,12 +79,11 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
   // Determine wallet type using the improved logic
   const getWalletType = (): "ethereum" | "solana" | "unknown" => {
     // Check if we're connected first
-    if (!isConnected || !connector) return "unknown";
+    if (!isConnected) return "unknown";
 
     // Check for Solana wallet
     if (
       chainId === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" ||
-      connector.id.includes("solana") ||
       appKitState.selectedNetworkId?.toString().startsWith("solana:")
     ) {
       return "solana";
@@ -96,13 +95,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
     }
 
     // Check for EVM connector indicators
-    if (
-      connector.id.includes("metaMask") ||
-      connector.id.includes("walletConnect") ||
-      connector.name?.toLowerCase().includes("metamask") ||
-      connector.name?.toLowerCase().includes("walletconnect") ||
-      appKitState.selectedNetworkId?.toString().startsWith("eip155:")
-    ) {
+    if (appKitState.selectedNetworkId?.toString().startsWith("eip155:")) {
       return "ethereum";
     }
 
@@ -154,7 +147,6 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
     prevConnected,
     prevAddress,
     chainId,
-    connector,
   ]);
 
   useEffect(() => {

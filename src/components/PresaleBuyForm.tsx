@@ -38,8 +38,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   );
   const [tokenAmount, setTokenAmount] = useState<number>(100);
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
-  const { caipNetwork, caipNetworkId, chainId, switchNetwork } =
-    useAppKitNetwork();
+  const { chainId, switchNetwork } = useAppKitNetwork();
   const { isConnected, address } = useAppKitAccount();
 
   const [network, setNetwork] = useState<"bsc" | "solana">("bsc");

@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  VersionedTransactionResponse,
+  ParsedTransactionWithMeta,
+  TransactionResponse,
+} from "@solana/web3.js";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -34,25 +40,65 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if the transaction is a transfer to our master wallet
-    const isTransferToMasterWallet =
-      transaction.transaction.message.instructions.some((instruction) => {
-        // Check if it's a system program transfer
-        const programId =
-          transaction.transaction.message.accountKeys[
-            instruction.programIndex
-          ].toBase58();
-        const isSystemProgram =
-          programId === "11111111111111111111111111111111";
+    let isTransferToMasterWallet = false;
 
-        if (!isSystemProgram) return false;
+    // Handle versioned transactions (newer format)
+    if ("version" in transaction && transaction.version !== "legacy") {
+      const versionedTx = transaction as VersionedTransactionResponse;
 
-        // Get destination account
-        const accounts = instruction.accounts.map((index) =>
-          transaction.transaction.message.accountKeys[index].toBase58()
-        );
+      if (versionedTx.transaction.message.compiledInstructions) {
+        isTransferToMasterWallet =
+          versionedTx.transaction.message.compiledInstructions.some(
+            (instruction) => {
+              // Check if it's a system program transfer
+              const programId =
+                versionedTx.transaction.message.staticAccountKeys[
+                  instruction.programIdIndex
+                ].toBase58();
 
-        return accounts.includes(MASTER_WALLET_ADDRESS);
-      });
+              const isSystemProgram =
+                programId === "11111111111111111111111111111111";
+
+              if (!isSystemProgram) return false;
+
+              // Get destination account
+              const accounts = instruction.accountKeyIndexes.map((index) =>
+                versionedTx.transaction.message.staticAccountKeys[
+                  index
+                ].toBase58()
+              );
+
+              return accounts.includes(MASTER_WALLET_ADDRESS);
+            }
+          );
+      }
+    } else {
+      // Handle legacy transactions (older format)
+      const legacyTx = transaction as TransactionResponse;
+
+      if (legacyTx.transaction.message.instructions) {
+        isTransferToMasterWallet =
+          legacyTx.transaction.message.instructions.some((instruction) => {
+            // Check if it's a system program transfer
+            const programId =
+              legacyTx.transaction.message.accountKeys[
+                instruction.programIdIndex
+              ].toBase58();
+
+            const isSystemProgram =
+              programId === "11111111111111111111111111111111";
+
+            if (!isSystemProgram) return false;
+
+            // Get destination account
+            const accounts = instruction.accounts.map((index) =>
+              legacyTx.transaction.message.accountKeys[index].toBase58()
+            );
+
+            return accounts.includes(MASTER_WALLET_ADDRESS);
+          });
+      }
+    }
 
     if (!isTransferToMasterWallet) {
       return NextResponse.json(
@@ -66,14 +112,43 @@ export async function POST(req: NextRequest) {
 
     // Extract transaction amount
     let transferAmount = 0;
+
     // Find the transfer instruction and get the amount
-    transaction.meta?.innerInstructions?.forEach((inner) => {
-      inner.instructions.forEach((instruction) => {
-        if (instruction.parsed?.type === "transfer") {
-          transferAmount += instruction.parsed.info.lamports;
-        }
+    if (transaction.meta?.innerInstructions) {
+      transaction.meta.innerInstructions.forEach((inner) => {
+        inner.instructions.forEach((instruction) => {
+          // Type guard for parsed instruction
+          if (
+            "parsed" in instruction &&
+            instruction.parsed &&
+            typeof instruction.parsed === "object" &&
+            "type" in instruction.parsed &&
+            instruction.parsed.type === "transfer" &&
+            "info" in instruction.parsed &&
+            typeof instruction.parsed.info === "object" &&
+            instruction.parsed.info &&
+            "lamports" in instruction.parsed.info &&
+            typeof instruction.parsed.info.lamports === "number"
+          ) {
+            transferAmount += instruction.parsed.info.lamports;
+          }
+        });
       });
-    });
+    }
+
+    // Also check pre and post balances for amount calculation if inner instructions don't have it
+    if (
+      transferAmount === 0 &&
+      transaction.meta?.preBalances &&
+      transaction.meta?.postBalances
+    ) {
+      // Find the sender's balance change (typically index 0)
+      const balanceChange =
+        transaction.meta.preBalances[0] - transaction.meta.postBalances[0];
+      if (balanceChange > 0) {
+        transferAmount = balanceChange;
+      }
+    }
 
     // Check if we already have this transaction recorded
     const existingTransaction = await prisma.purchase.findUnique({
@@ -92,26 +167,83 @@ export async function POST(req: NextRequest) {
 
     // Extract referral code if present (from memo instruction)
     let referralCode = "";
-    transaction.transaction.message.instructions.forEach((instruction) => {
-      const programId =
-        transaction.transaction.message.accountKeys[
-          instruction.programIndex
-        ].toBase58();
-      if (programId === "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo") {
-        // This is a memo instruction, extract the data
-        const data = Buffer.from(instruction.data, "base64").toString("utf8");
-        if (data.startsWith("ref:")) {
-          referralCode = data.substring(4);
-        }
+
+    try {
+      // Handle versioned transactions
+      if ("version" in transaction && transaction.version !== "legacy") {
+        const versionedTx = transaction as VersionedTransactionResponse;
+
+        versionedTx.transaction.message.compiledInstructions?.forEach(
+          (instruction) => {
+            try {
+              const programId =
+                versionedTx.transaction.message.staticAccountKeys[
+                  instruction.programIdIndex
+                ].toBase58();
+
+              if (programId === "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo") {
+                // This is a memo instruction, extract the data
+                const data = Buffer.from(instruction.data).toString("utf8");
+                if (data.startsWith("ref:")) {
+                  referralCode = data.substring(4);
+                }
+              }
+            } catch (e) {
+              console.error("Error processing versioned instruction:", e);
+            }
+          }
+        );
+      } else {
+        // Handle legacy transactions
+        const legacyTx = transaction as TransactionResponse;
+
+        legacyTx.transaction.message.instructions?.forEach((instruction) => {
+          try {
+            const programId =
+              legacyTx.transaction.message.accountKeys[
+                instruction.programIdIndex
+              ].toBase58();
+
+            if (programId === "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo") {
+              // This is a memo instruction, extract the data
+              const data = Buffer.from(instruction.data, "base64").toString(
+                "utf8"
+              );
+              if (data.startsWith("ref:")) {
+                referralCode = data.substring(4);
+              }
+            }
+          } catch (e) {
+            console.error("Error processing legacy instruction:", e);
+          }
+        });
       }
-    });
+    } catch (e) {
+      console.error("Error extracting referral code:", e);
+    }
+
+    // Get sender address safely based on transaction version
+    let senderAddress = "";
+    try {
+      if ("version" in transaction && transaction.version !== "legacy") {
+        const versionedTx = transaction as VersionedTransactionResponse;
+        senderAddress =
+          versionedTx.transaction.message.staticAccountKeys[0].toBase58();
+      } else {
+        const legacyTx = transaction as TransactionResponse;
+        senderAddress = legacyTx.transaction.message.accountKeys[0].toBase58();
+      }
+    } catch (e) {
+      console.error("Error getting sender address:", e);
+      senderAddress = "unknown";
+    }
 
     return NextResponse.json({
       verified: true,
       transaction: {
         signature,
-        sender: transaction.transaction.message.accountKeys[0].toBase58(),
-        amount: transferAmount / 1000000000, // Convert from lamports to SOL
+        sender: senderAddress,
+        amount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
         referralCode,
       },
       // Include purchase data if we found it earlier

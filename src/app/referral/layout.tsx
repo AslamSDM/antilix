@@ -1,6 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
-import Header from "@/components/Header";
+import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Referral Program | Antilix",

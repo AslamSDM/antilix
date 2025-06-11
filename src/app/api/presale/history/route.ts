@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth-options";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Get wallet address from session or query param
-    const walletAddress =
-      session?.user?.walletAddress ||
-      req.nextUrl.searchParams.get("walletAddress");
+    // Get wallet address from query param only
+    const walletAddress = req.nextUrl.searchParams.get("walletAddress");
 
     if (!walletAddress) {
       return NextResponse.json(
-        { error: "No wallet address provided" },
+        { error: "No wallet address provided in query parameters" },
         { status: 400 }
       );
     }
@@ -34,18 +28,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ purchases: [] }, { status: 200 });
     }
 
-    // Get purchases for this user
-    const purchases = await prisma.purchase.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    // Get purchases directly rather than through relation
+    const purchases = await prisma.$queryRaw`
+      SELECT * FROM "Purchase"
+      WHERE "userId" = ${user.id}
+      ORDER BY "createdAt" DESC
+    `;
 
     return NextResponse.json({
-      purchases,
+      purchases: purchases || [],
     });
   } catch (error) {
     console.error("Error fetching purchase history:", error);

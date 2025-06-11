@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
         username: true,
         createdAt: true,
         verified: true,
-        wallets: {
-          select: {
-            type: true,
-            verified: true,
-          },
-        },
+        walletType: true,
+        walletVerified: true,
+        evmAddress: true,
+        evmVerified: true,
+        solanaAddress: true,
+        solanaVerified: true,
       },
     });
 
@@ -42,9 +42,17 @@ export async function GET(req: NextRequest) {
     const totalReferrals = referrals.length;
     const verifiedReferrals = referrals.filter((r) => r.verified).length;
     const referralsByWalletType = referrals.reduce((acc, referral) => {
-      referral.wallets.forEach((wallet) => {
-        acc[wallet.type] = (acc[wallet.type] || 0) + 1;
-      });
+      // If the user has a wallet type, count it
+      if (referral.walletType) {
+        acc[referral.walletType] = (acc[referral.walletType] || 0) + 1;
+      }
+      // Also count by specific chain addresses if they exist
+      if (referral.solanaAddress) {
+        acc["solana"] = (acc["solana"] || 0) + 1;
+      }
+      if (referral.evmAddress) {
+        acc["evm"] = (acc["evm"] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
