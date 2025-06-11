@@ -139,6 +139,112 @@ export async function POST(req: NextRequest) {
       console.error("Error extracting referral code:", e);
     }
 
+    // If we have a referral code, and this is a new transaction (not existing),
+    // save the purchase so we can process referral bonus
+    let newPurchase = null;
+
+    if (referralCode && !existingTransaction) {
+      try {
+        // Find the referrer by their referral code
+        const referrer = await prisma.user.findUnique({
+          where: { referralCode },
+          select: { id: true },
+        });
+
+        // Find or create the sender user
+        let sender = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { walletAddress: senderAddress },
+              { solanaAddress: senderAddress },
+            ],
+          },
+        });
+
+        if (!sender) {
+          // Create new user for this sender
+          const newReferralCode = `LMX${Math.random()
+            .toString(36)
+            .substring(2, 10)
+            .toUpperCase()}`;
+          sender = await prisma.user.create({
+            data: {
+              walletAddress: senderAddress,
+              solanaAddress: senderAddress,
+              walletType: "solana",
+              referralCode: newReferralCode,
+              // If referrer found, link it to the new user
+              ...(referrer ? { referrerId: referrer.id } : {}),
+            },
+          });
+        } else if (referrer && !sender.referrerId) {
+          // If sender exists but doesn't have a referrer, update it
+          await prisma.user.update({
+            where: { id: sender.id },
+            data: { referrerId: referrer.id },
+          });
+        }
+
+        // Save the purchase
+        if (sender) {
+          const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
+
+          newPurchase = await prisma.purchase.create({
+            data: {
+              userId: sender.id,
+              network: "SOLANA",
+              paymentAmount: solAmount.toString(),
+              paymentCurrency: "SOL",
+              lmxTokensAllocated: (solAmount * 100).toString(), // Example: 1 SOL = 100 LMX tokens
+              pricePerLmxInUsdt: "0.10", // Example: $0.10 per LMX token
+              transactionSignature: signature,
+              status: "COMPLETED",
+              hasReferralBonus: false,
+            },
+          });
+
+          // If we have a referrer, process the bonus distribution
+          if (referrer && newPurchase) {
+            try {
+              // Call the distribute-bonus endpoint
+              const bonusResponse = await fetch(
+                `${
+                  process.env.NEXTAUTH_URL || "http://localhost:3000"
+                }/api/presale/distribute-bonus`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    purchaseId: newPurchase.id,
+                  }),
+                }
+              );
+
+              if (bonusResponse.ok) {
+                console.log(
+                  "Referral bonus distribution triggered successfully"
+                );
+              } else {
+                console.error("Failed to trigger referral bonus distribution");
+              }
+            } catch (bonusError) {
+              console.error(
+                "Error triggering referral bonus distribution:",
+                bonusError
+              );
+              // Don't block the verification response if bonus distribution fails
+            }
+          }
+        }
+      } catch (purchaseError) {
+        console.error(
+          "Error recording purchase or processing referral:",
+          purchaseError
+        );
+        // Don't block the verification response if saving the purchase fails
+      }
+    }
+
     return NextResponse.json({
       verified: true,
       transaction: {
@@ -147,8 +253,8 @@ export async function POST(req: NextRequest) {
         amount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
         referralCode,
       },
-      // Include purchase data if we found it earlier
-      purchase: existingTransaction,
+      // Include purchase data if we found it earlier or just created it
+      purchase: existingTransaction || newPurchase,
     });
   } catch (error) {
     console.error("Error verifying Solana transaction:", error);

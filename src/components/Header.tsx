@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useAppKitNetwork } from "@reown/appkit/react";
-import { solana, bscTestnet, base } from "@reown/appkit/networks";
+import { solana, bsc } from "@reown/appkit/networks";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -42,7 +42,7 @@ const NetworkSelector = () => {
 
   const handleNetworkChange = (value: string) => {
     if (value === "bsc" || value === "solana") {
-      switchNetwork(value === "bsc" ? bscTestnet : solana);
+      switchNetwork(value === "bsc" ? bsc : solana);
       setCurrentNetwork(value as "bsc" | "solana");
     }
   };
@@ -55,7 +55,6 @@ const NetworkSelector = () => {
       <SelectContent className="bg-black/90 border-primary/20">
         <SelectItem value="bsc">BSC</SelectItem>
         <SelectItem value="solana">Solana</SelectItem>
-        <SelectItem value="base">Base</SelectItem>
       </SelectContent>
     </Select>
   );

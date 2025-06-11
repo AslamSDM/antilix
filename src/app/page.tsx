@@ -46,7 +46,8 @@ export default function HomePage() {
 
   // Handle referral code from URL
   const referralInfo = useReferralHandling();
-  const { data: session } = useSession(); // Apply referral code if user is authenticated
+  const { data: session, status } = useSession(); // Apply referral code if user is authenticated
+  console.log("Referral Info:", session, status, referralInfo);
   useEffect(() => {
     const applyReferralIfAuthenticated = async () => {
       // Check if user is logged in and we have a valid referral code

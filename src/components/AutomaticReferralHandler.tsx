@@ -30,8 +30,10 @@ export default function AutomaticReferralHandler() {
   // Check if the address is in valid base58 format before creating PublicKey
   const solanaPublicKey = (() => {
     try {
-      return solanaAddress && typeof solanaAddress === 'string' && solanaAddress.length > 30 
-        ? new PublicKey(solanaAddress) 
+      return solanaAddress &&
+        typeof solanaAddress === "string" &&
+        solanaAddress.length > 30
+        ? new PublicKey(solanaAddress)
         : null;
     } catch (error) {
       console.warn("Invalid Solana address format:", error);

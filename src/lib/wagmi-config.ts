@@ -1,7 +1,7 @@
 import { cookieStorage, createStorage } from "wagmi";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { SolanaAdapter } from "@reown/appkit-adapter-solana/react";
-import { solana, base, bscTestnet, polygonAmoy } from "@reown/appkit/networks";
+import { solana, bsc } from "@reown/appkit/networks";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 
 // Get projectId from https://cloud.reown.com
@@ -12,10 +12,7 @@ if (!projectId) {
   throw new Error("Project ID is not defined");
 }
 
-export const networks = [solana, base, bscTestnet] as [
-  AppKitNetwork,
-  ...AppKitNetwork[]
-];
+export const networks = [solana, bsc] as [AppKitNetwork, ...AppKitNetwork[]];
 
 //Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({

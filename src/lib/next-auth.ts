@@ -36,7 +36,48 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   providers: [
-    // Configure providers as needed
+    // Credentials provider for wallet authentication
+    {
+      id: "credentials",
+      name: "Wallet",
+      type: "credentials",
+      credentials: {
+        userId: { label: "User ID", type: "text" },
+        email: { label: "Email", type: "email" },
+        wallet: { label: "Wallet Address", type: "text" },
+        walletType: { label: "Wallet Type", type: "text" },
+      },
+      authorize: async (credentials) => {
+        if (!credentials?.userId) {
+          return null;
+        }
+
+        try {
+          // Find the user based on userId from credentials
+          const user = await prisma.user.findUnique({
+            where: { id: credentials.userId },
+          });
+
+          if (!user) {
+            return null;
+          }
+
+          // Return the user object which will be added to the token and session
+          return {
+            id: user.id,
+            email: credentials.email || user.email,
+            walletAddress: credentials.wallet || user.walletAddress,
+            walletType: credentials.walletType || user.walletType,
+            solanaAddress: user.solanaAddress,
+            evmAddress: user.evmAddress,
+            referralCode: user.referralCode,
+          };
+        } catch (error) {
+          console.error("Error in authorize callback:", error);
+          return null;
+        }
+      },
+    },
   ],
   callbacks: {
     async session({ session, token }) {

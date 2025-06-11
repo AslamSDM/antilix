@@ -95,6 +95,7 @@ export default async function RootLayout({
         <LoadingProvider>
           <Suspense fallback={<LoadingScreen />}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+              {/* New order: First AuthProvider (NextAuth), then WalletProvider */}
               <AuthProvider>
                 <ContextProviderAsWalletProviders cookies={null}>
                   {/* Global loading screen */}

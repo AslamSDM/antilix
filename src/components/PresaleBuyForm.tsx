@@ -21,7 +21,7 @@ import { useBscPresale } from "./hooks/useBscPresale";
 import { useSolanaPresale } from "./hooks/useSolanaPresale";
 import TransactionStatusModal from "./TransactionStatusModal";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { solana, base, bscTestnet, polygonAmoy } from "@reown/appkit/networks";
+import { solana, base, bsc } from "@reown/appkit/networks";
 
 interface PresaleBuyFormProps {
   referralCode?: string;
@@ -115,7 +115,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
   // Handle network switch
   const handleNetworkChange = (newNetwork: "bsc" | "solana") => {
-    switchNetwork(newNetwork === "bsc" ? bscTestnet : solana);
+    switchNetwork(newNetwork === "bsc" ? bsc : solana);
     setNetwork(newNetwork);
   };
 

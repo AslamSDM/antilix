@@ -8,6 +8,8 @@ import {
   useAppKitAccount,
 } from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
+import { useSession, signOut } from "next-auth/react";
+import { createWalletSession } from "@/lib/wallet-session";
 
 import { Button } from "./ui/button";
 import { Wallet, ChevronDown, X, CheckCircle } from "lucide-react";
@@ -26,7 +28,19 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
 }) => {
   const appKitState = useAppKitState();
   const { caipNetwork, chainId: networkChainId } = useAppKitNetwork();
-  const { isConnected, address } = useAppKitAccount();
+  const { isConnected, address, allAccounts } = useAppKitAccount();
+  const { data: session, status } = useSession();
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+  }, [session, status]);
+
+  console.log(allAccounts, "allAccounts");
+  // Check if there are connected accounts
+  const hasConnectedAccounts = allAccounts && allAccounts.length > 0;
+  const isWalletConnected = isConnected && hasConnectedAccounts;
 
   // Use chainId from either network or state for backward compatibility
   const chainId = networkChainId;
@@ -43,7 +57,10 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
         try {
           const walletType = getWalletType();
           if (walletType === "solana" || walletType === "ethereum") {
-            // Call API to register the user
+            // Track previous userId to detect if accounts were merged
+            const prevUserId = userId;
+
+            // Call API to register the user - this now handles account merging
             const response = await fetch("/api/user/auto-register", {
               method: "POST",
               headers: {
@@ -59,10 +76,70 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
               const data = await response.json();
               setUserId(data.userId);
               console.log(`User registered/retrieved: ${data.userId}`);
+
+              // Create a NextAuth session for this user
+              if (data.userId && status !== "authenticated") {
+                console.log("Creating NextAuth session for wallet user");
+                const sessionCreated = await createWalletSession(
+                  data.userId,
+                  address as string,
+                  walletType
+                );
+
+                if (sessionCreated) {
+                  console.log("NextAuth session created successfully");
+                } else {
+                  console.error("Failed to create NextAuth session");
+                }
+              }
+
+              // Check if accounts were merged based on response data
+              if (data.accountsMerged && data.mergeInfo?.wasMerged) {
+                // Display a more detailed notification about the merge
+                const purchasesText =
+                  data.mergeInfo.purchases > 0
+                    ? `${data.mergeInfo.purchases} purchase${
+                        data.mergeInfo.purchases !== 1 ? "s" : ""
+                      }, `
+                    : "";
+                const bonusesText =
+                  data.mergeInfo.bonuses > 0
+                    ? `${data.mergeInfo.bonuses} bonus${
+                        data.mergeInfo.bonuses !== 1 ? "es" : ""
+                      }, `
+                    : "";
+                const referralsText =
+                  data.mergeInfo.referrals > 0
+                    ? `${data.mergeInfo.referrals} referral${
+                        data.mergeInfo.referrals !== 1 ? "s" : ""
+                      }`
+                    : "";
+
+                // Construct description with available data
+                const activityText = [purchasesText, bonusesText, referralsText]
+                  .filter((text) => text.length > 0)
+                  .join("");
+
+                const description =
+                  activityText.length > 0
+                    ? `Your wallet addresses have been linked to a single account with ${activityText.replace(
+                        /, $/,
+                        ""
+                      )}`
+                    : `Your wallet addresses have been linked to a single account`;
+
+                toast.success("Accounts merged successfully!", {
+                  description,
+                  duration: 7000,
+                });
+              }
             }
           }
         } catch (error) {
           console.error("Failed to auto-register user:", error);
+          toast.error("Failed to register wallet", {
+            description: "Please try reconnecting your wallet",
+          });
         }
       }
     };
@@ -70,7 +147,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
     if (isClient && isConnected && address) {
       registerUserWithWallet();
     }
-  }, [isConnected, address, isClient]);
+  }, [isConnected, address, isClient, status]);
 
   useEffect(() => {
     setIsClient(true);
@@ -131,6 +208,18 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
       );
     } else if (!isConnected && prevConnected) {
       const walletType = getWalletType(); // Get type even on disconnect if possible
+
+      // Sign out from NextAuth when wallet is disconnected
+      if (status === "authenticated") {
+        signOut({ redirect: false })
+          .then(() => {
+            console.log("Signed out from NextAuth after wallet disconnect");
+          })
+          .catch((error) => {
+            console.error("Failed to sign out after wallet disconnect:", error);
+          });
+      }
+
       toast.info(
         `${walletType === "solana" ? "Solana" : "BSC/EVM"} wallet disconnected`
       );
@@ -147,6 +236,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
     prevConnected,
     prevAddress,
     chainId,
+    status,
   ]);
 
   useEffect(() => {
@@ -174,6 +264,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
 
   const handleDisconnect = async () => {
     try {
+      // First disconnect the wallet
       if (modal.disconnect) {
         await modal.disconnect();
       } else {
@@ -181,6 +272,13 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
         toast.error("Disconnect functionality not available.");
         return;
       }
+
+      // Then sign out from NextAuth
+      if (status === "authenticated") {
+        await signOut({ redirect: false });
+        console.log("Signed out from NextAuth");
+      }
+
       setShowOptions(false);
     } catch (error) {
       console.error("Error disconnecting wallet:", error);
@@ -280,6 +378,14 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
             <div className="flex flex-col gap-1">
               <div className="p-2 mb-1 text-sm font-medium text-primary border-b border-border/50">
                 Connected Wallet ({walletTypeDisplay})
+              </div>
+              <div className="px-2 py-1 text-xs text-muted-foreground">
+                NextAuth:{" "}
+                {status === "authenticated" ? (
+                  <span className="text-green-500">Authenticated</span>
+                ) : (
+                  <span className="text-amber-500">{status}</span>
+                )}
               </div>
 
               {displayAddress && (

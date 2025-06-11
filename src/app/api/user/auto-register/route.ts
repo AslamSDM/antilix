@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { autoRegisterUser } from "@/lib/auto-register";
+import { MergedUserResult } from "@/lib/merge-accounts";
 import { getCookie } from "@/lib/cookies";
 import { z } from "zod";
 
@@ -14,14 +15,31 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { address, walletType } = autoRegisterSchema.parse(body);
 
-    // Auto-register the user
-    const userId = await autoRegisterUser(address, walletType);
+    // Auto-register the user - this now includes account merging functionality
+    const result = await autoRegisterUser(address, walletType);
 
-    // Set cookie with user ID
-    const response = NextResponse.json({
+    // If result is a string, it's just a userId (no merge happened)
+    // If result is an object with an id property, accounts were merged
+    const userId = typeof result === "string" ? result : result.id;
+
+    if (!userId) {
+      throw new Error("Failed to get valid user ID from registration process");
+    }
+
+    // Prepare response data
+    const responseData: any = {
       success: true,
       userId,
-    });
+    };
+
+    // If we received an object with merge info, include it in the response
+    if (typeof result === "object" && result.mergeInfo?.wasMerged) {
+      responseData.accountsMerged = true;
+      responseData.mergeInfo = result.mergeInfo;
+    }
+
+    // Set cookie with user ID
+    const response = NextResponse.json(responseData);
 
     // Set cookie to expire in 30 days
     response.cookies.set({
@@ -35,7 +53,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Auto-registration error:", error);
     return NextResponse.json(
-      { error: "Failed to register user" },
+      { error: "Failed to register user", message: (error as Error).message },
       { status: 500 }
     );
   }
