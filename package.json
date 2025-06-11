@@ -30,6 +30,7 @@
     "ethers": "^6.14.3",
     "jsonwebtoken": "^9.0.2",
     "motion": "^12.10.1",
+    "nanoid": "^5.1.5",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
     "react": "19.0.0",
