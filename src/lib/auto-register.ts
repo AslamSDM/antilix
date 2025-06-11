@@ -22,18 +22,36 @@ export async function autoRegisterUser(
   type: "ethereum" | "solana"
 ): Promise<string | MergedUserResult> {
   try {
-    // Check if a user with this wallet already exists
+    // Check if a user with this wallet already exists in either wallet field
     const walletField = type === "solana" ? "solanaAddress" : "evmAddress";
 
+    // More thorough check for any existing user with this wallet address
     const existingUser = await prisma.user.findFirst({
       where: {
-        [walletField]: address,
+        OR: [
+          { solanaAddress: address },
+          { evmAddress: address },
+          { walletAddress: address },
+        ],
       },
     });
 
     // If user exists, just return their ID
     if (existingUser) {
-      console.log(`User already exists for ${type} wallet ${address}`);
+      console.log(`User already exists for wallet ${address}, type: ${type}`);
+
+      // Update the wallet-specific field if it's not set
+      if (!existingUser[walletField]) {
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            [walletField]: address,
+            [type === "solana" ? "solanaVerified" : "evmVerified"]: true,
+          },
+        });
+        console.log(`Updated existing user with ${type} wallet: ${address}`);
+      }
+
       return existingUser.id;
     }
 
@@ -64,20 +82,72 @@ export async function autoRegisterUser(
       referrerId = await validateReferralCode(storedReferralCode);
     }
 
-    // Create the new user
-    const user = await prisma.user.create({
-      data: {
-        id: uuidv4(),
-        username,
-        walletAddress: address, // Set the primary wallet address
-        [walletField]: address, // Set the type-specific wallet address field
-        referralCode,
-        referrerId,
-        walletType: type, // Set the wallet type
-        verified: true, // Automatically verify since they've connected a wallet
-        [type === "solana" ? "solanaVerified" : "evmVerified"]: true,
-      },
-    });
+    // Try-catch approach to handle potential unique constraint errors
+    const newUserId = uuidv4();
+    console.log(`Attempting to create user with ${type} wallet: ${address}`);
+
+    let user;
+    try {
+      // Attempt to create a new user
+      user = await prisma.user.create({
+        data: {
+          id: newUserId,
+          username,
+          walletAddress: address, // Set the primary wallet address
+          [walletField]: address, // Set the type-specific wallet address field
+          referralCode,
+          referrerId,
+          walletType: type, // Set the wallet type
+          verified: true, // Automatically verify since they've connected a wallet
+          [type === "solana" ? "solanaVerified" : "evmVerified"]: true,
+        },
+      });
+
+      console.log(`Successfully created new user with ID: ${user.id}`);
+    } catch (error: any) {
+      // If we hit a unique constraint error, find and update the existing user
+      if (error?.code === "P2002") {
+        console.log(
+          `Unique constraint violated, finding existing user for ${address}`
+        );
+
+        // Find the existing user again (in case they were just created in a race condition)
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { solanaAddress: address },
+              { evmAddress: address },
+              { walletAddress: address },
+            ],
+          },
+        });
+
+        if (existingUser) {
+          console.log(`Found existing user with ID: ${existingUser.id}`);
+
+          // Update the user with any new information
+          user = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              walletAddress: address,
+              [walletField]: address,
+              walletType: type,
+              [type === "solana" ? "solanaVerified" : "evmVerified"]: true,
+              verified: true,
+            },
+          });
+
+          console.log(`Updated existing user with ${type} wallet: ${address}`);
+        } else {
+          throw new Error(
+            `Failed to find or create user for wallet ${address}`
+          );
+        }
+      } else {
+        // If it's not a unique constraint error, rethrow it
+        throw error;
+      }
+    }
 
     console.log(
       `Automatically registered new user with ${type} wallet: ${address}`
@@ -90,7 +160,7 @@ export async function autoRegisterUser(
     }
 
     return user.id;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error auto-registering user:", error);
     throw error;
   }

@@ -50,10 +50,26 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Auto-registration error:", error);
+
+    // Detect Prisma unique constraint errors
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        {
+          error: "Wallet already registered",
+          message: "This wallet address is already associated with an account",
+          fields: error?.meta?.target,
+        },
+        { status: 409 } // 409 Conflict is appropriate for duplicate resources
+      );
+    }
+
     return NextResponse.json(
-      { error: "Failed to register user", message: (error as Error).message },
+      {
+        error: "Failed to register user",
+        message: error?.message || "Unknown error",
+      },
       { status: 500 }
     );
   }

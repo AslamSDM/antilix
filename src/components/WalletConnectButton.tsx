@@ -72,8 +72,9 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
               }),
             });
 
+            const data = await response.json();
+
             if (response.ok) {
-              const data = await response.json();
               setUserId(data.userId);
               console.log(`User registered/retrieved: ${data.userId}`);
 
