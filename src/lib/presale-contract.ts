@@ -10,9 +10,7 @@ import {
 } from "@solana/web3.js";
 import { toast } from "sonner";
 
-// Contract addresses
-const BSC_PRESALE_CONTRACT_ADDRESS =
-  "0xFE41c2f0F235B0f2350E77f6990Cf5035a569fAe"; // BSC contract address (testnet)
+// Contract addresse
 const SOLANA_PRESALE_ADDRESS = "8FNBidGYxNaPVMDr7BFgbAK7qdYfBxcBvNz1uTosT3cX"; // Solana program address
 
 // Network configurations

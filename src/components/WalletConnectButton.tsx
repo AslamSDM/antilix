@@ -78,18 +78,31 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
               console.log(`User registered/retrieved: ${data.userId}`);
 
               // Create a NextAuth session for this user
-              if (data.userId && status !== "authenticated") {
+              if (data.userId) {
                 console.log("Creating NextAuth session for wallet user");
-                const sessionCreated = await createWalletSession(
-                  data.userId,
-                  address as string,
-                  walletType
-                );
+                // Force session creation even if status shows "authenticated" but session data is missing
+                const needsSession =
+                  status !== "authenticated" || !session?.user?.id;
 
-                if (sessionCreated) {
-                  console.log("NextAuth session created successfully");
-                } else {
-                  console.error("Failed to create NextAuth session");
+                if (needsSession) {
+                  const sessionCreated = await createWalletSession(
+                    data.userId,
+                    address as string,
+                    walletType
+                  );
+
+                  if (sessionCreated) {
+                    console.log("NextAuth session created successfully");
+
+                    // Refresh the session data to get the updated user data
+                    window.location.reload();
+                  } else {
+                    console.error("Failed to create NextAuth session");
+                    toast.error("Failed to authenticate wallet", {
+                      description:
+                        "Please try disconnecting and reconnecting your wallet",
+                    });
+                  }
                 }
               }
 
@@ -264,26 +277,40 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
 
   const handleDisconnect = async () => {
     try {
-      // First disconnect the wallet
+      console.log("Disconnecting wallet and signing out of NextAuth...");
+      setShowOptions(false);
+
+      // First sign out from NextAuth to clear the session
+      if (status === "authenticated") {
+        console.log("Signing out from NextAuth");
+        await signOut({ redirect: false });
+        console.log("Successfully signed out from NextAuth");
+      } else {
+        console.log("No active NextAuth session to sign out from");
+      }
+
+      // Then disconnect the wallet
       if (modal.disconnect) {
+        console.log("Disconnecting wallet via AppKit");
         await modal.disconnect();
+        console.log("Wallet successfully disconnected");
+
+        // Clear local user state
+        setUserId(null);
+
+        // Show success message
+        toast.success("Wallet disconnected", {
+          description: "You have been signed out successfully",
+        });
       } else {
         console.warn("Disconnect function not available on modal instance.");
         toast.error("Disconnect functionality not available.");
         return;
       }
-
-      // Then sign out from NextAuth
-      if (status === "authenticated") {
-        await signOut({ redirect: false });
-        console.log("Signed out from NextAuth");
-      }
-
-      setShowOptions(false);
     } catch (error) {
-      console.error("Error disconnecting wallet:", error);
+      console.error("Error during disconnect process:", error);
       toast.error("Failed to disconnect wallet", {
-        description: "Please try again.",
+        description: "Please try again or refresh the page.",
       });
     }
   };

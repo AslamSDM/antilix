@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
  * Creates a NextAuth session for a user with wallet authentication
  * This function should be called client-side after wallet connection
  * and user auto-registration
- * 
+ *
  * @param userId The ID of the user to sign in
  * @param address The wallet address (optional)
  * @param walletType The type of wallet (solana or ethereum)
@@ -16,6 +16,10 @@ export async function createWalletSession(
   walletType?: string
 ): Promise<boolean> {
   try {
+    console.log(
+      `Creating wallet session for userId: ${userId}, address: ${address}, type: ${walletType}`
+    );
+
     // Sign in the user with the credentials provider
     // We pass just the userId and let the server handle looking up any additional user data
     const result = await signIn("credentials", {
@@ -25,8 +29,13 @@ export async function createWalletSession(
       walletType,
       callbackUrl: "/profile",
     });
-    
-    return result?.ok || false;
+
+    if (!result?.ok) {
+      console.error("NextAuth signIn failed with result:", result);
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error("Failed to create wallet session:", error);
     return false;
@@ -57,12 +66,17 @@ export async function getUserByWallet(
         walletType: type,
       }),
     });
-    
+
     if (!response.ok) {
+      // Add detailed error logging for troubleshooting
+      const errorText = await response.text();
+      console.error(`API error (${response.status}): ${errorText}`);
       return null;
     }
-    
-    return await response.json();
+
+    const userData = await response.json();
+    console.log("getUserByWallet - User data retrieved:", userData);
+    return userData;
   } catch (error) {
     console.error("Failed to get user by wallet:", error);
     return null;
