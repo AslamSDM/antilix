@@ -17,7 +17,7 @@ import { Header } from "@/components/Header";
 import { Suspense } from "react";
 import localFont from "next/font/local";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
-import { cookies } from "next/headers"; // Import cookies
+import { cookies, headers } from "next/headers"; // Import cookies
 import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
 
 const blackBird = localFont({
@@ -79,8 +79,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const cookieStore = await cookies().toString();
-
+  const headersData = await headers();
+  const cookies = headersData.get("cookie");
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -96,7 +96,7 @@ export default async function RootLayout({
           <Suspense fallback={<LoadingScreen />}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
               <AuthProvider>
-                <ContextProviderAsWalletProviders cookies={null}>
+                <ContextProviderAsWalletProviders cookies={cookies}>
                   {/* Global loading screen */}
                   <LoadingScreen />
 
