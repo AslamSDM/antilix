@@ -9,7 +9,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 // Address of the presale master wallet
-const MASTER_WALLET_ADDRESS = "8FNBidGYxNaPVMDr7BFgbAK7qdYfBxcBvNz1uTosT3cX";
+const MASTER_WALLET_ADDRESS = "F16pJr3MJ7ppC4nd8nxfPrWjfhkGK1qbgmUyMxm3xLoZ";
 
 // Validation schema
 const verificationSchema = z.object({

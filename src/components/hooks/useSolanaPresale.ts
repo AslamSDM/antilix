@@ -14,7 +14,7 @@ import { useAppKitProvider } from "@reown/appkit/react";
 const API_ENDPOINT = "/api/presale/purchase";
 
 // Master wallet address to receive SOL payments
-const MASTER_WALLET_ADDRESS = "8FNBidGYxNaPVMDr7BFgbAK7qdYfBxcBvNz1uTosT3cX"; // Same as presale account for simplicity
+const MASTER_WALLET_ADDRESS = "F16pJr3MJ7ppC4nd8nxfPrWjfhkGK1qbgmUyMxm3xLoZ"; // Same as presale account for simplicity
 
 // Initial transaction steps
 const initialTransactionSteps: TransactionStep[] = [
