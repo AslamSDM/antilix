@@ -83,6 +83,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     },
     transactionSignature: bscTransactionSignature = null,
   } = useBscPresale(tokenAmount, customReferralCode);
+  console.log("BSC Transaction Status:", presaleStatus);
 
   const {
     buyTokens: buySolTokens,

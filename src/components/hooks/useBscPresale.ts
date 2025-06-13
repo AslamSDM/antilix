@@ -19,7 +19,7 @@ import { useTransactionStatus, TransactionStep } from "./useTransactionStatus";
 const API_ENDPOINT = "/api/presale/purchase";
 
 export const BSC_PRESALE_CONTRACT_ADDRESS =
-  "0x61a89a280Bc66998626A2E7FC721B617B3113d2d";
+  "0x1b3CA560f04860C287Cfec8f1a7Db666082ab2cF";
 
 // Initial transaction steps for BSC
 const initialTransactionSteps: TransactionStep[] = [

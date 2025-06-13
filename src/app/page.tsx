@@ -23,6 +23,7 @@ import StakeEarnSection from "@/components/sections/StakeEarnSection";
 import SecuritySection from "@/components/sections/SecuritySection";
 import CtaSection from "@/components/sections/CtaSection";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 // Define the total "units" your animation and sections will span across.
 // This is arbitrary but helps map the 0-1 scrollYProgress to a more granular scale.
@@ -47,7 +48,7 @@ export default function HomePage() {
   // Handle referral code from URL
   const referralInfo = useReferralHandling();
   const { data: session, status } = useSession(); // Apply referral code if user is authenticated
-  console.log("Referral Info:", session, status, referralInfo);
+
   useEffect(() => {
     const applyReferralIfAuthenticated = async () => {
       // Check if user is logged in and we have a valid referral code
