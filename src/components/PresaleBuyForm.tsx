@@ -22,6 +22,9 @@ import { useSolanaPresale } from "./hooks/useSolanaPresale";
 import TransactionStatusModal from "./TransactionStatusModal";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { solana, base, bsc } from "@reown/appkit/networks";
+import { formatEther } from "viem";
+import { getCookie } from "@/lib/cookies";
+import { getStoredReferralCode } from "@/lib/referral";
 
 interface PresaleBuyFormProps {
   referralCode?: string;
@@ -36,10 +39,46 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const [customReferralCode, setCustomReferralCode] = useState<string>(
     referralCode || ""
   );
-  const [tokenAmount, setTokenAmount] = useState<number>(100);
+  const [usdAmount, setUsdAmount] = useState<number>(50); // Default USD amount
+  const [tokenAmount, setTokenAmount] = useState<number>(100); // Derived from USD amount
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
   const { chainId, switchNetwork } = useAppKitNetwork();
   const { isConnected, address } = useAppKitAccount();
+
+  // Get referral code from multiple sources
+  useEffect(() => {
+    // Skip if referral code is already set via props
+    if (referralCode) {
+      console.log("Using referral code from props:", referralCode);
+      return;
+    }
+
+    // Try to get referral code from cookies
+    const cookieRefCode = getCookie("referralCode");
+    if (cookieRefCode) {
+      console.log("Using referral code from cookie:", cookieRefCode);
+      setCustomReferralCode(cookieRefCode);
+      return;
+    }
+
+    // Try to get referral code from localStorage
+    const storedRefCode = getStoredReferralCode();
+    if (storedRefCode) {
+      console.log("Using referral code from localStorage:", storedRefCode);
+      setCustomReferralCode(storedRefCode);
+      return;
+    }
+
+    // Try to get referral code from URL (for new visitors)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRefCode = urlParams.get("ref") || urlParams.get("referral");
+    if (urlRefCode) {
+      console.log("Using referral code from URL:", urlRefCode);
+      setCustomReferralCode(urlRefCode);
+    } else {
+      console.log("No referral code found in any source");
+    }
+  }, [referralCode]);
 
   const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
 
@@ -120,38 +159,53 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     setNetwork(newNetwork);
   };
 
-  // Update crypto amount when token amount changes or network changes
-  const updateCryptoAmount = (amount: number) => {
-    if (!cryptoPrices) return;
+  // Update token and crypto amounts when USD amount changes
+  const updateAmounts = (usdValue: number) => {
+    if (!cryptoPrices || !lmxPriceUsd) return;
 
+    // Calculate LMX tokens from USD
+    const tokens = usdValue / lmxPriceUsd;
+    setTokenAmount(tokens);
+    
+    // Calculate crypto amount from USD
     if (network === "bsc") {
-      const bnbCost = (amount * lmxPriceUsd) / cryptoPrices.bnb;
+      const bnbCost = usdValue / cryptoPrices.bnb;
       setCryptoAmount(parseFloat(bnbCost.toFixed(8))); // BNB precision
     } else {
-      const solCost = (amount * lmxPriceUsd) / cryptoPrices.sol;
+      const solCost = usdValue / cryptoPrices.sol;
       setCryptoAmount(parseFloat(solCost.toFixed(9))); // SOL has 9 decimals
     }
   };
 
   // Run calculation when network changes or when prices update
   useEffect(() => {
-    if (tokenAmount > 0 && cryptoPrices) {
-      updateCryptoAmount(tokenAmount);
+    if (usdAmount > 0 && cryptoPrices && lmxPriceUsd) {
+      updateAmounts(usdAmount);
     }
-  }, [network, cryptoPrices, tokenAmount, lmxPriceUsd]);
+  }, [network, cryptoPrices, usdAmount, lmxPriceUsd]);
 
-  // Handle token amount change with validation
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Make sure token amount is updated if LMX price changes
+  useEffect(() => {
+    if (usdAmount > 0 && lmxPriceUsd > 0) {
+      // Update token amount when LMX price changes
+      const newTokenAmount = usdAmount / lmxPriceUsd;
+      setTokenAmount(newTokenAmount);
+    }
+  }, [lmxPriceUsd, usdAmount]);
+
+  // Handle USD amount change with validation
+  const handleUsdAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
 
     if (isNaN(value) || value < 0) {
+      setUsdAmount(0);
       setTokenAmount(0);
       setCryptoAmount(0);
       return;
     }
 
-    setTokenAmount(value);
-    updateCryptoAmount(value);
+    setUsdAmount(value);
+    updateAmounts(value);
   };
 
   // Handle purchase
@@ -172,14 +226,18 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     const minPurchase = parseFloat(String(min) ?? "0") / 1000000000000000000;
     const maxPurchase = parseFloat(String(max) ?? "0") / 1000000000000000000;
 
-    // Validate purchase amount
-    if (tokenAmount < minPurchase) {
-      toast.error(`Minimum purchase amount is ${minPurchase} LMX tokens`);
+    // Calculate min and max in USD
+    const minPurchaseUsd = minPurchase * lmxPriceUsd;
+    const maxPurchaseUsd = maxPurchase * lmxPriceUsd;
+
+    // Validate purchase amount in USD
+    if (usdAmount < minPurchaseUsd) {
+      toast.error(`Minimum purchase amount is $${minPurchaseUsd.toFixed(2)} (${minPurchase} LMX tokens)`);
       return;
     }
 
-    if (tokenAmount > maxPurchase) {
-      toast.error(`Maximum purchase amount is ${maxPurchase} LMX tokens`);
+    if (usdAmount > maxPurchaseUsd) {
+      toast.error(`Maximum purchase amount is $${maxPurchaseUsd.toFixed(2)} (${maxPurchase} LMX tokens)`);
       return;
     }
 
@@ -260,35 +318,32 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
           {/* Current Price Information */}
           <div className="mb-6 p-3 bg-black/40 rounded-lg border border-primary/10">
             <div className="text-sm font-medium text-white/80 mb-2">
-              Current LMX Price:
+              Token Price Information:
             </div>
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center">
                 <DollarSign className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-green-400">
-                  ${lmxPriceUsd.toFixed(4)}
+                <span className="text-green-400 font-bold">
+                  ${lmxPriceUsd.toFixed(4)} per LMX
                 </span>
               </div>
               <span className="text-xs text-white/60">Fixed USD Price</span>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-3">
               <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">1 LMX =</div>
+                <div className="text-xs text-white/60 mb-1">For $1 USD you get</div>
                 <div className="text-sm">
-                  <span className="text-amber-400">
-                    {cryptoPrices
-                      ? (lmxPriceUsd / cryptoPrices.bnb).toFixed(8)
-                      : "..."}{" "}
-                    BNB
+                  <span className="text-amber-400 font-medium">
+                    {lmxPriceUsd > 0 ? (1 / lmxPriceUsd).toFixed(4) : "..."} LMX
                   </span>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">1 BNB =</div>
+                <div className="text-xs text-white/60 mb-1">1 {network === "bsc" ? "BNB" : "SOL"} =</div>
                 <div className="text-sm">
                   <span className="text-amber-400">
                     {cryptoPrices
-                      ? (cryptoPrices.bnb / lmxPriceUsd).toFixed(2)
+                      ? (cryptoPrices[network === "bsc" ? "bnb" : "sol"] / lmxPriceUsd).toFixed(2)
                       : "..."}{" "}
                     LMX
                   </span>
@@ -300,55 +355,59 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
           {/* Purchase Form */}
           {presaleStatus && (
             <>
-              {/* Token Amount Input */}
+              {/* USD Amount Input */}
               <div className="mb-6">
                 <Label
-                  htmlFor="amount"
+                  htmlFor="usdAmount"
                   className="text-sm text-white/70 block mb-2"
                 >
-                  Number of LMX Tokens
+                  Amount in USD
                 </Label>
                 <div className="flex gap-2 items-center">
                   <Input
-                    id="amount"
+                    id="usdAmount"
                     type="number"
-                    value={tokenAmount}
-                    onChange={handleAmountChange}
+                    value={usdAmount}
+                    onChange={handleUsdAmountChange}
                     className="bg-black/30 border border-primary/20 text-white"
                     step="1"
-                    placeholder="100"
+                    placeholder="50"
                   />
                   <div className="bg-black/40 px-3 py-2 rounded-md text-white/80">
-                    LMX
+                    USD
                   </div>
                 </div>
 
                 {/* Cost Breakdown */}
                 <div className="mt-2 text-sm text-center text-white/70">
-                  ≈ {cryptoAmount.toFixed(8)} {currencySymbol}
-                  <span className="mx-2 text-white/40">|</span>$
-                  {(tokenAmount * lmxPriceUsd).toFixed(2)} USD
+                  ≈ {tokenAmount.toFixed(2)} LMX
+                  <span className="mx-2 text-white/40">|</span>
+                  {cryptoAmount.toFixed(8)} {currencySymbol}
                 </div>
               </div>
 
-              {/* Referral Code Input */}
+              {/* Referral Code Display (read-only) */}
               <div className="mb-6">
                 <Label
                   htmlFor="referral"
                   className="text-sm text-white/70 block mb-2"
                 >
-                  Referral Code (Optional)
+                  Referral Code
                 </Label>
-                <Input
-                  id="referral"
-                  type="text"
-                  value={customReferralCode}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setCustomReferralCode(e.target.value)
-                  }
-                  className="bg-black/30 border border-primary/20 text-white"
-                  placeholder="Enter referral code"
-                />
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="referral"
+                    type="text"
+                    value={customReferralCode}
+                    readOnly
+                    className="bg-black/30 border border-primary/20 text-white cursor-default"
+                  />
+                  {customReferralCode ? (
+                    <div className="text-green-500 text-xs">Applied</div>
+                  ) : (
+                    <div className="text-yellow-500 text-xs">None</div>
+                  )}
+                </div>
               </div>
 
               {/* Buy Button */}
@@ -358,7 +417,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 ) : (
                   <GlowButton
                     onClick={handleBuy}
-                    disabled={isLoading || !presaleStatus || tokenAmount <= 0}
+                    disabled={isLoading || !presaleStatus || usdAmount <= 0}
                     className="w-full py-3"
                   >
                     {isLoading ? (
@@ -368,8 +427,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                       </>
                     ) : (
                       <>
-                        Buy {tokenAmount} LMX for {cryptoAmount.toFixed(6)}{" "}
-                        {currencySymbol}
+                        Buy ${usdAmount.toFixed(2)} worth of LMX ({tokenAmount.toFixed(2)} LMX)
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </>
                     )}
@@ -406,13 +464,34 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Tokens Sold:</span>
                     <span className="text-white">
-                      {String(soldTokens)} / {String(hardcap)} LMX
+                      {formatEther(
+                        BigInt(
+                          typeof soldTokens === "string" ||
+                            typeof soldTokens === "number"
+                            ? soldTokens
+                            : "0"
+                        )
+                      )}{" "}
+                      /{" "}
+                      {formatEther(
+                        BigInt(
+                          typeof hardcap === "string" ||
+                            typeof hardcap === "number"
+                            ? hardcap
+                            : "0"
+                        )
+                      )}{" "}
+                      LMX
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-white/70">Total Raised:</span>
                     <span className="text-white">
-                      {String(totalRaised)} {currencySymbol}
+                      {typeof totalRaised === "string" ||
+                      typeof totalRaised === "number"
+                        ? parseFloat(String(totalRaised)).toFixed(4)
+                        : "0"}{" "}
+                      {currencySymbol}
                     </span>
                   </div>
                 </div>

@@ -90,7 +90,7 @@ export const authOptions: NextAuthOptions = {
         // Set the user ID from the token
         session.user.id = token.sub!;
 
-        console.log(`Setting up session for user: ${token.sub}`);
+        // console.log(`Setting up session for user: ${token.sub}`);
 
         // Include wallet data from token if available
         if (token.walletAddress)

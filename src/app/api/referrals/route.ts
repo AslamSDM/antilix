@@ -14,13 +14,15 @@ export async function GET(req: NextRequest) {
     // Get the current user's session
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.walletAddress) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const walletAddress = session.user.walletAddress;
+
     // Get user info including referral details
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    let user = await prisma.user.findUnique({
+      where: { email: walletAddress },
       select: {
         id: true,
         referralCode: true,
@@ -42,8 +44,43 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // If user doesn't exist, create a new user
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      // Generate a unique referral code
+      const referralCode = await generateUniqueReferralCode();
+
+      // Create the new user
+      const newUser = await prisma.user.create({
+        data: {
+          email: walletAddress,
+          walletAddress: walletAddress,
+          walletType: walletAddress.length > 40 ? "solana" : "ethereum", // Simple heuristic to determine wallet type
+          referralCode: referralCode,
+          verified: true,
+        },
+        select: {
+          id: true,
+          referralCode: true,
+          referrerId: true,
+          referrer: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+          referrals: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      user = newUser;
+      console.log(`Created new user with wallet address: ${walletAddress}`);
     }
 
     // Get stats like total referrals
@@ -69,18 +106,47 @@ export async function POST(req: NextRequest) {
     // Get the current user's session
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.walletAddress) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const walletAddress = session.user.walletAddress;
+
     // Get user
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    let user = await prisma.user.findUnique({
+      where: { email: walletAddress },
       select: { id: true, referralCode: true },
     });
 
+    // If user doesn't exist, create a new user
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      // Generate a unique referral code
+      const referralCode = await generateUniqueReferralCode();
+
+      // Create the new user
+      const newUser = await prisma.user.create({
+        data: {
+          email: walletAddress,
+          walletAddress: walletAddress,
+          walletType: walletAddress.length > 40 ? "solana" : "ethereum", // Simple heuristic to determine wallet type
+          referralCode: referralCode,
+          verified: true,
+        },
+        select: {
+          id: true,
+          referralCode: true,
+        },
+      });
+
+      user = newUser;
+      console.log(
+        `Created new user with wallet address: ${walletAddress} and referral code: ${referralCode}`
+      );
+
+      return NextResponse.json({
+        referralCode: referralCode,
+        message: "New user created with referral code",
+      });
     }
 
     // Generate a new referral code if the user doesn't have one

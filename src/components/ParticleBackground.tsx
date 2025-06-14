@@ -75,9 +75,17 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     };
   }, [count, colors]);
 
+  // Store particles data in a ref to avoid re-renders
+  const particlesRef = useRef<Particle[]>([]);
+  
+  // Update particles ref when particles state changes
+  useEffect(() => {
+    particlesRef.current = [...particles];
+  }, [particles]);
+
   // Animation loop
   useEffect(() => {
-    if (!canvasRef.current || particles.length === 0 || dimensions.width === 0)
+    if (!canvasRef.current || dimensions.width === 0 || particlesRef.current.length === 0)
       return;
 
     const canvas = canvasRef.current;
@@ -87,44 +95,29 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     const animate = () => {
       ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
-      // Draw and update each particle
-      setParticles((prevParticles) =>
-        prevParticles.map((particle) => {
-          // Update position
-          const newX =
-            particle.x + particle.speedX * (1 + scrollPercentage * 2);
-          const newY =
-            particle.y + particle.speedY * (1 + scrollPercentage * 2);
+      // Update and draw each particle without setting state
+      for (let i = 0; i < particlesRef.current.length; i++) {
+        const particle = particlesRef.current[i];
+        
+        // Update position
+        particle.x += particle.speedX * (1 + scrollPercentage * 2);
+        particle.y += particle.speedY * (1 + scrollPercentage * 2);
 
-          // Reset if out of bounds
-          const newParticle = {
-            ...particle,
-            x:
-              newX < 0 || newX > dimensions.width
-                ? Math.random() * dimensions.width
-                : newX,
-            y:
-              newY < 0 || newY > dimensions.height
-                ? Math.random() * dimensions.height
-                : newY,
-          };
+        // Reset if out of bounds
+        if (particle.x < 0 || particle.x > dimensions.width) {
+          particle.x = Math.random() * dimensions.width;
+        }
+        if (particle.y < 0 || particle.y > dimensions.height) {
+          particle.y = Math.random() * dimensions.height;
+        }
 
-          // Draw the particle
-          ctx.beginPath();
-          ctx.arc(
-            newParticle.x,
-            newParticle.y,
-            newParticle.size,
-            0,
-            Math.PI * 2
-          );
-          ctx.fillStyle = newParticle.color;
-          ctx.globalAlpha = newParticle.opacity * (1 - scrollPercentage * 0.5);
-          ctx.fill();
-
-          return newParticle;
-        })
-      );
+        // Draw the particle
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.opacity * (1 - scrollPercentage * 0.5);
+        ctx.fill();
+      }
 
       animationFrameId.current = requestAnimationFrame(animate);
     };
@@ -134,7 +127,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     return () => {
       cancelAnimationFrame(animationFrameId.current);
     };
-  }, [particles, dimensions, scrollPercentage]);
+  }, [dimensions, scrollPercentage]);
 
   return (
     <canvas

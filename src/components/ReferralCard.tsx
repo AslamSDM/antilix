@@ -32,7 +32,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
 
   // Ensure we have fresh data
   useEffect(() => {
-    fetchUserReferralInfo();
+    // fetchUserReferralInfo();
 
     // Fetch referral bonus data if we have a wallet connected
     const fetchBonusData = async () => {

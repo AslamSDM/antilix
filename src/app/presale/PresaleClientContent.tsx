@@ -26,6 +26,7 @@ import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pa
 import { HyperText } from "@/components/magicui/hyper-text";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
+import ParticleBackground from "@/components/ParticleBackground";
 import "../../components/sections/animation-utils.css"; // Use the /next import for Spline with React.lazy
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 
@@ -211,14 +212,54 @@ const PresaleClientContent = () => {
         )}
       </AnimatePresence>
 
-      {/* Background grid pattern */}
-      <div className="fixed inset-0 z-0">
+      {/* Enhanced interactive backgrounds */}
+      <div className="fixed inset-0 z-0 bg-gradient-radial from-primary/5 via-background to-background">
+        {/* Interactive particle background */}
+        {/* <ParticleBackground
+          count={20}
+          scrollPercentage={activeSection / 5}
+          className="absolute inset-0 z-0 w-full h-full"
+        /> */}
+
+        {/* Interactive grid pattern */}
         <InteractiveGridPattern
           className="h-full w-full"
           squares={[15, 15]}
-          squaresClassName="stroke-primary/10 fill-transparent"
+          squaresClassName="stroke-primary/15 fill-transparent"
           width={45}
           height={45}
+        />
+
+        {/* Animated orbs that follow cursor */}
+        <motion.div
+          className="absolute w-[300px] h-[300px] rounded-full bg-primary/5 blur-[100px] pointer-events-none"
+          animate={{
+            opacity: [0.1, 0.2, 0.1],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
+          style={{
+            left: "20%",
+            top: "30%",
+          }}
+        />
+
+        <motion.div
+          className="absolute w-[400px] h-[400px] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none"
+          animate={{
+            opacity: [0.05, 0.15, 0.05],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            repeatType: "reverse",
+            delay: 2,
+          }}
+          style={{
+            right: "25%",
+            top: "40%",
+          }}
         />
       </div>
 
@@ -249,6 +290,56 @@ const PresaleClientContent = () => {
         ref={statsSectionRef}
         className="min-h-screen relative z-10 py-20 px-4 overflow-hidden flex flex-col justify-center"
       >
+        {/* Hero section special effect overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {/* Interactive mouse trail effect */}
+          <motion.div
+            className="absolute w-40 h-40 rounded-full bg-primary/10 blur-[40px] pointer-events-none"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+            style={{
+              left: "50%",
+              top: "30%",
+              translateX: "-50%",
+              translateY: "-50%",
+            }}
+          />
+
+          {/* Animated glow lines */}
+          <svg className="absolute inset-0 w-full h-full opacity-30">
+            <motion.path
+              d="M0,250 C250,150 350,350 500,250"
+              stroke="rgba(212, 175, 55, 0.2)"
+              strokeWidth="1"
+              fill="transparent"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 5, repeat: Infinity, repeatType: "loop" }}
+            />
+            <motion.path
+              d="M0,350 C150,300 350,400 500,350"
+              stroke="rgba(212, 175, 55, 0.1)"
+              strokeWidth="1"
+              fill="transparent"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                repeatType: "loop",
+                delay: 2,
+              }}
+            />
+          </svg>
+        </div>
+
         <div className="container mx-auto relative">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -256,15 +347,31 @@ const PresaleClientContent = () => {
             transition={{ duration: 0.6 }}
             className="mb-16"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center font-display">
-              <span className="text-primary">
-                <HyperText>LITMEX Token Presale</HyperText>
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-center max-w-2xl mx-auto text-white/80">
+            <motion.div
+              className="overflow-hidden relative mb-3"
+              style={{ maxWidth: "max-content", margin: "0 auto" }}
+            >
+              <h1 className="text-4xl md:text-6xl font-bold text-center font-display">
+                <span className="text-primary">
+                  <HyperText>LITMEX Token Presale</HyperText>
+                </span>
+              </h1>
+              <motion.div
+                className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent"
+                initial={{ width: 0, left: "50%" }}
+                animate={{ width: "100%", left: "0%" }}
+                transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
+              />
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-lg md:text-xl text-center max-w-2xl mx-auto text-white/80"
+            >
               Join early for exclusive benefits, reduced fees, and priority
               access
-            </p>
+            </motion.p>
           </motion.div>
 
           <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
@@ -795,8 +902,72 @@ const PresaleClientContent = () => {
       {/* Referral Section */}
       <section
         ref={referralSectionRef}
-        className="py-12 md:py-20 bg-gradient-to-b from-gray-900 to-purple-900/30 relative"
+        className="py-12 md:py-20 relative overflow-hidden"
       >
+        {/* Enhanced referral section background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-purple-900/30 overflow-hidden">
+          <motion.div
+            className="absolute w-full h-full"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            {/* Animated star-like dots */}
+            {Array.from({ length: 20 }).map((_, i) => (
+              <motion.div
+                key={`star-${i}`}
+                className="absolute rounded-full bg-white"
+                style={{
+                  width: Math.random() * 3 + 1 + "px",
+                  height: Math.random() * 3 + 1 + "px",
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                animate={{
+                  opacity: [0.1, 0.8, 0.1],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 5,
+                  repeat: Infinity,
+                  delay: Math.random() * 5,
+                }}
+              />
+            ))}
+
+            {/* Animated connection lines */}
+            <svg className="absolute inset-0 w-full h-full">
+              <motion.path
+                d="M0,100 C150,200 350,0 500,100"
+                stroke="rgba(212, 175, 55, 0.1)"
+                strokeWidth="0.5"
+                fill="transparent"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.3 }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              />
+              <motion.path
+                d="M100,0 C200,150 300,50 400,200"
+                stroke="rgba(212, 175, 55, 0.1)"
+                strokeWidth="0.5"
+                fill="transparent"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.3 }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  delay: 2,
+                }}
+              />
+            </svg>
+          </motion.div>
+        </div>
+
         <BackgroundDecorations />
         <div className="container mx-auto px-4 relative z-10">
           <ScrollAnimationWrapper delay={0.2}>
@@ -813,18 +984,86 @@ const PresaleClientContent = () => {
             <ReferralCard />
           </ScrollAnimationWrapper>
         </div>
+
+        {/* Floating decorative elements */}
+        <motion.div
+          className="absolute bottom-10 right-10 w-20 h-20 opacity-20 pointer-events-none"
+          animate={{
+            y: [0, -15, 0],
+            rotate: [0, 5, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <DecorativeIcon icon="diamond" size="lg" className="text-primary" />
+        </motion.div>
       </section>
 
       {/* FAQ Section */}
       <section
         ref={faqSectionRef}
-        className="py-12 md:py-20 bg-gray-900 relative"
+        className="py-12 md:py-20 relative overflow-hidden"
       >
-        <div className="container mx-auto max-w-4xl">
+        {/* Interactive gradient background */}
+        <div className="absolute inset-0 bg-gray-900 overflow-hidden">
+          {/* Animated gradient overlay */}
+          <motion.div
+            className="absolute inset-0 opacity-30"
+            style={{
+              background:
+                "radial-gradient(circle at center, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 70%)",
+            }}
+            animate={{
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+
+          {/* Subtle floating shapes */}
+          <motion.div
+            className="absolute w-96 h-96 rounded-full bg-primary/5 blur-[100px]"
+            style={{ left: "10%", top: "20%" }}
+            animate={{
+              x: [0, 30, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+
+          <motion.div
+            className="absolute w-64 h-64 rounded-full bg-purple-500/5 blur-[80px]"
+            style={{ right: "15%", bottom: "10%" }}
+            animate={{
+              x: [0, -20, 0],
+              y: [0, 20, 0],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: 2,
+            }}
+          />
+        </div>
+
+        <div className="container mx-auto max-w-4xl relative z-10">
           <ScrollAnimationWrapper>
-            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
-              Frequently <span className="text-primary">Asked</span> Questions
-            </h2>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
+                Frequently <span className="text-primary">Asked</span> Questions
+              </h2>
+            </motion.div>
           </ScrollAnimationWrapper>
 
           <div className="space-y-6">

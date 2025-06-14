@@ -19,7 +19,7 @@ import { useTransactionStatus, TransactionStep } from "./useTransactionStatus";
 const API_ENDPOINT = "/api/presale/purchase";
 
 export const BSC_PRESALE_CONTRACT_ADDRESS =
-  "0x1b3CA560f04860C287Cfec8f1a7Db666082ab2cF";
+  "0x573241E33F2214f75041a05476a1658601A1715c";
 
 // Initial transaction steps for BSC
 const initialTransactionSteps: TransactionStep[] = [
@@ -90,7 +90,8 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   });
 
   // Write contract hook for buying tokens
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  console.log(error);
 
   // Wait for transaction confirmation
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -193,15 +194,20 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
       // Step 3: Send Transaction
       setCurrentStep("send-transaction");
 
-      console.log(`Buying ${tokenAmount} tokens for cost: ${dynamicCost} wei`);
+      console.log(
+        `Buying ${tokenAmount} tokens for cost: ${dynamicCost} wei,  parseEther(tokenAmount): ${parseEther(
+          tokenAmount.toString()
+        )}`
+      );
 
       // Prepare transaction parameters
       const txParams = {
         address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
         abi: presaleAbi,
         functionName: "buyTokens",
-        args: [tokenAmount],
+        args: [parseEther(tokenAmount.toString())],
         value: dynamicCost,
+        gas: BigInt(10000000),
       };
 
       try {

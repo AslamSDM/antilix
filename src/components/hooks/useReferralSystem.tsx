@@ -80,7 +80,7 @@ export default function useReferralSystem() {
    * Fetch the current user's referral information from the server
    */
   const fetchUserReferralInfo = async () => {
-    if (!session?.user) return;
+    if (!session?.user?.walletAddress) return;
 
     try {
       const response = await fetch("/api/referrals");
