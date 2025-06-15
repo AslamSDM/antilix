@@ -27,10 +27,14 @@ import { HyperText } from "@/components/magicui/hyper-text";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import ParticleBackground from "@/components/ParticleBackground";
-import "../../components/sections/animation-utils.css"; // Use the /next import for Spline with React.lazy
+import "../../components/sections/animation-utils.css";
+
+// Use the /next import for Spline with React.lazy
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 
 import usePresale from "@/components/hooks/usePresale";
+import { cn } from "@/lib/utils";
+import { DotPattern } from "@/components/magicui/dot-pattern";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -118,7 +122,8 @@ const PresaleClientContent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Use the presale hook for wallet connection and presale data
-  const { connected, switchNetwork, presaleNetwork } = usePresale(); // Changed hasConnectedWallet to connected
+  const { connected, switchNetwork, presaleNetwork } = usePresale();
+
   // Create refs for each section to track scroll position
   const statsSectionRef = useRef<HTMLElement>(null);
   const detailsSectionRef = useRef<HTMLElement>(null);
@@ -191,12 +196,12 @@ const PresaleClientContent = () => {
   }, [activeSection, transitionSound]);
 
   return (
-    <div ref={containerRef} className="relative w-full mt-24">
+    <div ref={containerRef} className="relative w-full px-24  min-h-screen">
       {/* Loading overlay - similar to homepage */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
-            className="fixed inset-0 z-50 bg-background flex items-center justify-center"
+            className="fixed inset-0 z-50 mt-24 bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
@@ -212,60 +217,146 @@ const PresaleClientContent = () => {
         )}
       </AnimatePresence>
 
-      {/* Enhanced interactive backgrounds */}
-      <div className="fixed inset-0 z-0 bg-gradient-radial from-primary/5 via-background to-background">
-        {/* Interactive particle background */}
-        {/* <ParticleBackground
-          count={20}
-          scrollPercentage={activeSection / 5}
-          className="absolute inset-0 z-0 w-full h-full"
-        /> */}
+      {/* Enhanced Global Background - Always Active */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        {/* Base gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-purple-900/20" />
 
-        {/* Interactive grid pattern */}
-        <InteractiveGridPattern
-          className="h-full w-full"
-          squares={[15, 15]}
-          squaresClassName="stroke-primary/15 fill-transparent"
-          width={45}
-          height={45}
+        {/* Interactive Grid Pattern - Fixed positioning */}
+        <div className="absolute inset-0">
+          <InteractiveGridPattern
+            width={40}
+            height={40}
+            squares={[20, 20]}
+            squaresClassName="fill-primary/5 stroke-primary/10 hover:fill-primary/20 transition-all duration-500"
+            className="opacity-30 [mask-image:radial-gradient(800px_circle_at_center,white,transparent)]"
+          />
+        </div>
+
+        {/* Dot Pattern Overlay */}
+        <div className="absolute inset-0">
+          <DotPattern
+            width={20}
+            height={20}
+            cx={1}
+            cy={1}
+            cr={1}
+            className="opacity-20 fill-primary/10 [mask-image:linear-gradient(to_bottom_right,white,transparent,white)]"
+          />
+        </div>
+
+        {/* Animated floating orbs */}
+        <motion.div
+          className="absolute w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px] pointer-events-none"
+          animate={{
+            x: [0, 100, -50, 0],
+            y: [0, -80, 60, 0],
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.2, 0.8, 1],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          style={{ left: "10%", top: "20%" }}
         />
 
-        {/* Animated orbs that follow cursor */}
         <motion.div
-          className="absolute w-[300px] h-[300px] rounded-full bg-primary/5 blur-[100px] pointer-events-none"
+          className="absolute w-[300px] h-[300px] rounded-full bg-purple-500/5 blur-[80px] pointer-events-none"
           animate={{
-            opacity: [0.1, 0.2, 0.1],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          style={{
-            left: "20%",
-            top: "30%",
-          }}
-        />
-
-        <motion.div
-          className="absolute w-[400px] h-[400px] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none"
-          animate={{
-            opacity: [0.05, 0.15, 0.05],
-            scale: [1, 1.2, 1],
+            x: [0, -80, 60, 0],
+            y: [0, 100, -40, 0],
+            opacity: [0.2, 0.5, 0.2],
+            scale: [1, 0.8, 1.3, 1],
           }}
           transition={{
-            duration: 15,
+            duration: 25,
             repeat: Infinity,
-            repeatType: "reverse",
-            delay: 2,
+            ease: "easeInOut",
+            delay: 5,
           }}
-          style={{
-            right: "25%",
-            top: "40%",
-          }}
+          style={{ right: "15%", top: "40%" }}
         />
+
+        <motion.div
+          className="absolute w-[250px] h-[250px] rounded-full bg-amber-500/5 blur-[60px] pointer-events-none"
+          animate={{
+            x: [0, 60, -30, 0],
+            y: [0, -60, 80, 0],
+            opacity: [0.2, 0.4, 0.2],
+            scale: [1, 1.1, 0.9, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 10,
+          }}
+          style={{ left: "60%", bottom: "20%" }}
+        />
+
+        {/* Animated connection lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-10">
+          <motion.path
+            d="M0,200 Q400,100 800,200 T1600,200"
+            stroke="url(#gradient1)"
+            strokeWidth="1"
+            fill="transparent"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 8, repeat: Infinity, repeatType: "loop" }}
+          />
+          <motion.path
+            d="M0,400 Q300,300 600,400 T1200,400"
+            stroke="url(#gradient2)"
+            strokeWidth="1"
+            fill="transparent"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              repeatType: "loop",
+              delay: 2,
+            }}
+          />
+          <defs>
+            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(212,175,55,0)" />
+              <stop offset="50%" stopColor="rgba(212,175,55,0.8)" />
+              <stop offset="100%" stopColor="rgba(212,175,55,0)" />
+            </linearGradient>
+            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(147,51,234,0)" />
+              <stop offset="50%" stopColor="rgba(147,51,234,0.6)" />
+              <stop offset="100%" stopColor="rgba(147,51,234,0)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Particle effects */}
+        {Array.from({ length: 30 }).map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            className="absolute w-1 h-1 bg-primary/40 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
       </div>
 
-      {/* Spline 3D background */}
-      <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
-        <BackgroundDecorations count={15} opacity={0.05} />
+      {/* Spline 3D background - with lower opacity */}
+      <div className="fixed inset-0 w-full h-full z-[1] pointer-events-none opacity-30">
         <Suspense
           fallback={
             <div className="w-full h-full flex items-center justify-center">
@@ -290,57 +381,28 @@ const PresaleClientContent = () => {
         ref={statsSectionRef}
         className="min-h-screen relative z-10 py-20 px-4 overflow-hidden flex flex-col justify-center"
       >
-        {/* Hero section special effect overlay */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          {/* Interactive mouse trail effect */}
+        {/* Section-specific background enhancement */}
+        <div className="absolute inset-0 z-0">
           <motion.div
-            className="absolute w-40 h-40 rounded-full bg-primary/10 blur-[40px] pointer-events-none"
+            className="absolute w-96 h-96 rounded-full bg-primary/10 blur-[120px] pointer-events-none"
             animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.5, 0.3],
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
             }}
             transition={{
-              duration: 3,
+              duration: 6,
               repeat: Infinity,
               repeatType: "reverse",
             }}
             style={{
               left: "50%",
               top: "30%",
-              translateX: "-50%",
-              translateY: "-50%",
+              transform: "translate(-50%, -50%)",
             }}
           />
-
-          {/* Animated glow lines */}
-          <svg className="absolute inset-0 w-full h-full opacity-30">
-            <motion.path
-              d="M0,250 C250,150 350,350 500,250"
-              stroke="rgba(212, 175, 55, 0.2)"
-              strokeWidth="1"
-              fill="transparent"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 5, repeat: Infinity, repeatType: "loop" }}
-            />
-            <motion.path
-              d="M0,350 C150,300 350,400 500,350"
-              stroke="rgba(212, 175, 55, 0.1)"
-              strokeWidth="1"
-              fill="transparent"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                repeatType: "loop",
-                delay: 2,
-              }}
-            />
-          </svg>
         </div>
 
-        <div className="container mx-auto relative">
+        <div className="container mx-auto relative z-10 mt-24 ">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -394,12 +456,12 @@ const PresaleClientContent = () => {
               className="w-full max-w-md"
               onConnect={handleWalletConnect}
             />
-            {connected && ( // Changed hasConnectedWallet to connected
+            {connected && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center"
+                className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center backdrop-blur-sm"
               >
                 <p className="text-lg font-semibold mb-2">
                   {presaleNetwork === "solana" ? "Solana" : "BSC"} Wallet
@@ -429,15 +491,29 @@ const PresaleClientContent = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-16 max-w-2xl mx-auto"
+              className="mt-16 max-w-2xl mx-auto relative"
             >
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <PresaleBuyForm
                     referralCode={searchParams?.get("ref") || ""}
-                    className="bg-black/20 backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                    className="backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
                   />
                 </div>
+              </div>
+
+              {/* Enhanced dot pattern for buy form */}
+              <div className="absolute inset-0 -z-10">
+                <DotPattern
+                  className={cn(
+                    "opacity-20 [mask-image:radial-gradient(400px_circle_at_center,white,transparent)]"
+                  )}
+                  width={15}
+                  height={15}
+                  cx={1}
+                  cy={1}
+                  cr={0.5}
+                />
               </div>
             </motion.div>
 
@@ -541,9 +617,20 @@ const PresaleClientContent = () => {
       {/* Presale information */}
       <section
         ref={detailsSectionRef}
-        className="py-16 px-4 bg-black/40 backdrop-blur-sm relative z-10"
+        className="py-16 px-4 bg-black/20 backdrop-blur-sm relative z-10"
       >
-        <div className="container mx-auto">
+        {/* Section-specific grid pattern */}
+        <div className="absolute inset-0 z-0 square">
+          <InteractiveGridPattern
+            width={50}
+            height={50}
+            squares={[40, 40]}
+            squaresClassName="fill-purple-500/5  stroke-purple-500/10 hover:fill-purple-500/20 transition-all duration-700"
+            className="opacity-40 [mask-image:radial-gradient(600px_circle_at_center,white,transparent)]"
+          />
+        </div>
+
+        <div className="container mx-auto relative z-10">
           <ScrollAnimationWrapper>
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center font-display">
               Token <span className="text-primary">Presale</span> Details
@@ -648,7 +735,6 @@ const PresaleClientContent = () => {
           </ScrollAnimationWrapper>
         </div>
       </section>
-
       {/* Tokenomics section */}
       <section
         ref={tokenomicsSectionRef}

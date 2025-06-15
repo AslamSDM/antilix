@@ -58,13 +58,13 @@ const LoadingScreen: React.FC = () => {
         <div className="flex justify-center mb-12">
           <div className="relative">
             {/* Spinning rings */}
-            <div className="w-32 h-32 border-4 border-primary/40 border-t-transparent rounded-full animate-spin flex items-center justify-center">
+            {/* <div className="w-32 h-32 border-4 border-primary/40 border-t-transparent rounded-full animate-spin flex items-center justify-center">
               <div className="w-24 h-24 border-4 border-primary/60 border-b-transparent rounded-full animate-spin-slow-reverse flex items-center justify-center">
                 <div className="w-16 h-16 text-primary animate-pulse">
                   <Diamond className="h-full w-full" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Card shuffle animation */}
             <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">

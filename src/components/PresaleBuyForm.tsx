@@ -122,7 +122,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     },
     transactionSignature: bscTransactionSignature = null,
   } = useBscPresale(tokenAmount, customReferralCode);
-  console.log("BSC Transaction Status:", presaleStatus);
 
   const {
     buyTokens: buySolTokens,
@@ -166,7 +165,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     // Calculate LMX tokens from USD
     const tokens = usdValue / lmxPriceUsd;
     setTokenAmount(tokens);
-    
+
     // Calculate crypto amount from USD
     if (network === "bsc") {
       const bnbCost = usdValue / cryptoPrices.bnb;
@@ -232,12 +231,20 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
     // Validate purchase amount in USD
     if (usdAmount < minPurchaseUsd) {
-      toast.error(`Minimum purchase amount is $${minPurchaseUsd.toFixed(2)} (${minPurchase} LMX tokens)`);
+      toast.error(
+        `Minimum purchase amount is $${minPurchaseUsd.toFixed(
+          2
+        )} (${minPurchase} LMX tokens)`
+      );
       return;
     }
 
     if (usdAmount > maxPurchaseUsd) {
-      toast.error(`Maximum purchase amount is $${maxPurchaseUsd.toFixed(2)} (${maxPurchase} LMX tokens)`);
+      toast.error(
+        `Maximum purchase amount is $${maxPurchaseUsd.toFixed(
+          2
+        )} (${maxPurchase} LMX tokens)`
+      );
       return;
     }
 
@@ -331,7 +338,9 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-4 mt-3">
               <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">For $1 USD you get</div>
+                <div className="text-xs text-white/60 mb-1">
+                  For $1 USD you get
+                </div>
                 <div className="text-sm">
                   <span className="text-amber-400 font-medium">
                     {lmxPriceUsd > 0 ? (1 / lmxPriceUsd).toFixed(4) : "..."} LMX
@@ -339,11 +348,16 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">1 {network === "bsc" ? "BNB" : "SOL"} =</div>
+                <div className="text-xs text-white/60 mb-1">
+                  1 {network === "bsc" ? "BNB" : "SOL"} =
+                </div>
                 <div className="text-sm">
                   <span className="text-amber-400">
                     {cryptoPrices
-                      ? (cryptoPrices[network === "bsc" ? "bnb" : "sol"] / lmxPriceUsd).toFixed(2)
+                      ? (
+                          cryptoPrices[network === "bsc" ? "bnb" : "sol"] /
+                          lmxPriceUsd
+                        ).toFixed(2)
                       : "..."}{" "}
                     LMX
                   </span>
@@ -427,7 +441,8 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                       </>
                     ) : (
                       <>
-                        Buy ${usdAmount.toFixed(2)} worth of LMX ({tokenAmount.toFixed(2)} LMX)
+                        Buy ${usdAmount.toFixed(2)} worth of LMX (
+                        {tokenAmount.toFixed(2)} LMX)
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </>
                     )}
