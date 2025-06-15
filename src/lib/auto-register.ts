@@ -91,11 +91,15 @@ export async function autoRegisterUser(
     let user;
     try {
       // Attempt to create a new user
+      const network = address.length > 40 ? "solana" : "ethereum";
+
       user = await prisma.user.create({
         data: {
           id: newUserId,
           username,
-          walletAddress: address, // Set the primary wallet address
+          walletAddress: network === "solana" ? address : address.toLowerCase(),
+          evmAddress: network === "ethereum" ? address.toLowerCase() : null,
+          solanaAddress: network === "solana" ? address : null,
           [walletField]: address, // Set the type-specific wallet address field
           referralCode,
           referrerId,

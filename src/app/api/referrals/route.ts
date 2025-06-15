@@ -48,13 +48,17 @@ export async function GET(req: NextRequest) {
     if (!user) {
       // Generate a unique referral code
       const referralCode = await generateUniqueReferralCode();
-
+      const network = walletAddress.length > 40 ? "solana" : "ethereum";
       // Create the new user
       const newUser = await prisma.user.create({
         data: {
           email: walletAddress,
-          walletAddress: walletAddress,
-          walletType: walletAddress.length > 40 ? "solana" : "ethereum", // Simple heuristic to determine wallet type
+          walletAddress:
+            network === "solana" ? walletAddress : walletAddress.toLowerCase(),
+          solanaAddress: network === "solana" ? walletAddress : null,
+          evmAddress:
+            network === "ethereum" ? walletAddress.toLowerCase() : null,
+          walletType: network, // Simple heuristic to determine wallet type
           referralCode: referralCode,
           verified: true,
         },
@@ -122,13 +126,16 @@ export async function POST(req: NextRequest) {
     if (!user) {
       // Generate a unique referral code
       const referralCode = await generateUniqueReferralCode();
-
+      const network = walletAddress.length > 40 ? "solana" : "ethereum";
       // Create the new user
       const newUser = await prisma.user.create({
         data: {
           email: walletAddress,
-          walletAddress: walletAddress,
-          walletType: walletAddress.length > 40 ? "solana" : "ethereum", // Simple heuristic to determine wallet type
+          walletAddress:
+            network === "solana" ? walletAddress : walletAddress.toLowerCase(),
+          evmAddress:
+            network === "ethereum" ? walletAddress.toLowerCase() : null,
+          walletType: network, // Simple heuristic to determine wallet type
           referralCode: referralCode,
           verified: true,
         },
