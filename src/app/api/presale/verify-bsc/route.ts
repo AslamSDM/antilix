@@ -7,10 +7,7 @@ import { LMX_PRICE_USD } from "@/lib/price-utils";
 import { formatEther } from "viem";
 
 import { sendReferralTokens } from "@/lib/send-referral";
-
-// BSC contract address
-const BSC_PRESALE_CONTRACT_ADDRESS =
-  "0x1b3CA560f04860C287Cfec8f1a7Db666082ab2cF";
+import { BSC_PRESALE_CONTRACT_ADDRESS } from "@/lib/constants";
 
 // Validation schema
 const verificationSchema = z.object({
@@ -51,6 +48,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify this is a transaction to our presale contract
+    console.log(
+      receipt.to?.toLowerCase(),
+      BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
+    );
     if (
       receipt.to?.toLowerCase() !== BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
     ) {

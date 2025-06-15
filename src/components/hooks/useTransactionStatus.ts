@@ -145,11 +145,16 @@ export function useTransactionStatus(initialSteps: TransactionStep[]) {
     });
   };
 
+  // Get the current active step
+  const currentStep =
+    status.steps.find((step) => step.id === status.currentStepId) || null;
+
   return {
     status,
     updateStep,
     setCurrentStep,
     nextStep,
+    currentStep: status.currentStepId ? currentStep : null,
     completeTransaction,
     setError,
     resetStatus,

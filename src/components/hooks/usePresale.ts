@@ -15,11 +15,12 @@ import {
   LMX_PRICE_USD,
 } from "@/lib/price-utils";
 import { solanaPresale } from "@/lib/presale-contract";
-import { BSC_PRESALE_CONTRACT_ADDRESS, useBscPresale } from "./useBscPresale";
+import { useBscPresale } from "./useBscPresale";
 import { useReadContract } from "wagmi";
 import { presaleAbi } from "@/lib/abi";
+import { BSC_PRESALE_CONTRACT_ADDRESS } from "@/lib/constants";
 
-// Define an explicit shape for appKitState to resolve type discrepancies
+// Define an explicit shape for appKitState to resolve type BSCdiscrepancies
 export interface AppKitStateShape {
   // Fields TS currently infers for appKitState in usePresale.ts
   initialized: boolean;

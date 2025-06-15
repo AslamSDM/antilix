@@ -14,12 +14,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { useTransactionStatus, TransactionStep } from "./useTransactionStatus";
+import { BSC_PRESALE_CONTRACT_ADDRESS } from "@/lib/constants";
+import { set } from "zod";
 
 // API endpoint for recording purchases in the database
-const API_ENDPOINT = "/api/presale/purchase";
-
-export const BSC_PRESALE_CONTRACT_ADDRESS =
-  "0x573241E33F2214f75041a05476a1658601A1715c";
 
 // Initial transaction steps for BSC
 const initialTransactionSteps: TransactionStep[] = [
@@ -70,6 +68,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   const {
     status,
     setCurrentStep,
+    currentStep,
     nextStep,
     completeTransaction,
     setError,
@@ -139,6 +138,65 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
 
     calculateDynamicCost();
   }, [tokenAmount, tokenPrice]);
+  useEffect(() => {
+    if (!hash) return;
+    if (currentStep?.id !== "verify-transaction") return;
+    if (isPending) return;
+
+    console.log(isPending, isConfirming, isConfirmed, currentStep);
+
+    if (hash) {
+      setTransactionSignature(hash);
+    } else {
+      setError("verify-transaction", "No transaction hash returned");
+      toast.error("Transaction sent but could not be verified");
+      setIsLoading(false);
+    }
+    async function verifyTransaction() {
+      try {
+        const verificationResponse = await fetch("/api/presale/verify-bsc", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            hash,
+          }),
+        });
+
+        if (!verificationResponse.ok) {
+          const error = await verificationResponse.json();
+          console.error("Transaction verification failed:", error);
+          setError("verify-transaction", "Transaction verification failed");
+          toast.error(
+            "Transaction verification failed. Please contact support."
+          );
+          setIsLoading(false);
+          return false;
+        }
+
+        const verificationData = await verificationResponse.json();
+      } catch (verificationError) {
+        console.error("Error during verification:", verificationError);
+        setError("verify-transaction", "Transaction confirmation timed out");
+        toast.warning(
+          "Transaction sent but confirmation timed out. Check your wallet for status."
+        );
+        setIsLoading(false);
+        return true; // Return true since tx was sent
+      }
+
+      nextStep(); // Move to final step
+
+      // Step 5: Save allocation in database
+      setCurrentStep("save-allocation");
+      nextStep(); // Move to next step
+      completeTransaction(); // Mark transaction as complete
+      toast.success(`Successfully purchased ${tokenAmount} LMX tokens!`);
+      return true; // Return true to indicate success
+    }
+    verifyTransaction();
+  }, [currentStep, hash]);
 
   // Function to set referrer - simplified implementation
   const setReferrer = async () => {
@@ -217,7 +275,8 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
       try {
         // Send transaction
         console.log("Transaction parameters:", txParams);
-        await writeContract(txParams);
+        const hash = await writeContract(txParams);
+        console.log("Transaction sent, hash:", hash);
       } catch (txError) {
         console.error("Transaction error:", txError);
         const errorMessage =
@@ -227,171 +286,25 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
             ? (txError as { message: string }).message
             : String(txError);
 
-        // Handle gas-related errors
-        if (
-          errorMessage.toLowerCase().includes("intrinsic gas") ||
-          errorMessage.toLowerCase().includes("gas limit") ||
-          errorMessage.toLowerCase().includes("gas required exceeds")
-        ) {
-          if (!retryWithExplicitGas) {
-            setCurrentStep("prepare-transaction");
-            toast.info("Adjusting gas parameters and retrying transaction...");
-            try {
-              return await buyTokens(true); // Retry with explicit gas
-            } catch (retryError) {
-              setError(
-                "send-transaction",
-                "Transaction would fail: Gas calculation issue"
-              );
-              toast.error(
-                "Transaction would fail: Try a smaller token amount or try again later"
-              );
-              setIsLoading(false);
-              return false;
-            }
-          } else {
-            setError("send-transaction", "Transaction failed after retry");
-            toast.error(
-              "Transaction would fail: Try a smaller token amount or try again later"
-            );
-            setIsLoading(false);
-            return false;
-          }
-        }
-
         setError("send-transaction", errorMessage);
         toast.error("Failed to send transaction");
         setIsLoading(false);
         return false;
       }
-
-      // If we got here, transaction was sent successfully
-      nextStep();
-
-      // Step 4: Verify transaction
+      nextStep(); // Move to next step
       setCurrentStep("verify-transaction");
 
-      // Store the transaction hash
-      if (hash) {
-        setTransactionSignature(hash);
-      } else {
-        setError("verify-transaction", "No transaction hash returned");
-        toast.error("Transaction sent but could not be verified");
-        setIsLoading(false);
-        return false;
-      }
+      // Complete transaction flow
 
-      // Wait for transaction confirmation (first through wagmi hook)
-      let retries = 0;
-      const maxRetries = 10;
-      let confirmed = false;
-
-      while (retries < maxRetries && !confirmed) {
-        if (isConfirmed) {
-          confirmed = true;
-          break;
-        }
-
-        // Wait 2 seconds before checking again
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        retries++;
-      }
-
-      if (!confirmed) {
-        // Try to verify directly through the API as a backup
-        try {
-          const verificationResponse = await fetch("/api/presale/verify-bsc", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              hash,
-            }),
-          });
-
-          if (!verificationResponse.ok) {
-            const error = await verificationResponse.json();
-            console.error("Transaction verification failed:", error);
-            setError("verify-transaction", "Transaction verification failed");
-            toast.error(
-              "Transaction verification failed. Please contact support."
-            );
-            setIsLoading(false);
-            return false;
-          }
-
-          const verificationData = await verificationResponse.json();
-          confirmed = verificationData.verified;
-        } catch (verificationError) {
-          console.error("Error during verification:", verificationError);
-          setError("verify-transaction", "Transaction confirmation timed out");
-          toast.warning(
-            "Transaction sent but confirmation timed out. Check your wallet for status."
-          );
-          setIsLoading(false);
-          return true; // Return true since tx was sent
-        }
-      }
-
-      nextStep(); // Move to final step
-
-      // Step 5: Save allocation in database
-      setCurrentStep("save-allocation");
-
-      // Save the purchase in database
-      try {
-        const response = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: address,
-            network: "BSC",
-            paymentAmount: (dynamicCost / BigInt(10 ** 18)).toString(), // Convert from Wei to BNB
-            paymentCurrency: "BNB",
-            lmxTokensAllocated: tokenAmount,
-            pricePerLmxInUsdt: LMX_PRICE_USD,
-            transactionSignature: hash,
-            referralCode: referrer || "",
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          console.error("Error saving allocation:", error);
-          setError("save-allocation", "Failed to record purchase in database");
-          toast.warning(
-            "Transaction completed, but there was an error recording your purchase. Please contact support."
-          );
-          setIsLoading(false);
-          return true; // Return true because the blockchain tx succeeded
-        }
-
-        // Complete transaction flow
-        completeTransaction();
-        toast.success(`Successfully purchased ${tokenAmount} LMX tokens!`);
-        return true;
-      } catch (dbError) {
-        console.error("Database error:", dbError);
-        setError("save-allocation", "Failed to record purchase in database");
-        toast.warning(
-          "Transaction completed on blockchain, but failed to save in our records. Please contact support."
-        );
-        setIsLoading(false);
-        return true; // Return true because the blockchain tx succeeded
-      }
-    } catch (error: any) {
-      console.error("Error in BSC purchase:", error);
-
-      // Determine which step failed
-      const currentStep = status.currentStepId || "prepare-transaction";
-      setError(currentStep, error.message || "An unexpected error occurred");
-
-      toast.error("Failed to complete the purchase. Please try again.");
+      return true;
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      setError("save-allocation", "Failed to record purchase in database");
+      toast.warning(
+        "Transaction completed on blockchain, but failed to save in our records. Please contact support."
+      );
       setIsLoading(false);
-      return false;
+      return true; // Return true because the blockchain tx succeeded
     }
   };
 
