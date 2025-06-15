@@ -230,7 +230,6 @@ export default function usePresale() {
   const [solanaStatus, setSolanaStatus] = useState<PresaleStatus | null>(null);
   const [userPurchasedTokens, setUserPurchasedTokens] = useState("0");
   const { presaleStatus } = useBscPresale(tokenAmount);
-  console.log("Presale Status:", presaleStatus);
   const [cryptoPrices, setCryptoPrices] = useState<{
     bnb: number;
     sol: number;

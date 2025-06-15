@@ -3,6 +3,10 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { ethers } from "ethers";
 import { presaleAbi } from "@/lib/abi";
+import { LMX_PRICE_USD } from "@/lib/price-utils";
+import { formatEther } from "viem";
+
+import { sendReferralTokens } from "@/lib/send-referral";
 
 // BSC contract address
 const BSC_PRESALE_CONTRACT_ADDRESS =
@@ -110,6 +114,45 @@ export async function POST(req: NextRequest) {
     const tokenAmount = Number(decodedData.args[0]);
     const valueInWei = transaction.value.toString();
     const valueInBnb = ethers.formatEther(valueInWei);
+
+    let user = await prisma.user.findFirst({
+      where: {
+        evmAddress: transaction.from.toLowerCase(),
+      },
+    });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          evmAddress: transaction.from.toLowerCase(),
+          walletAddress: transaction.from.toLowerCase(),
+          referralCode: `LMX${Math.random()
+            .toString(36)
+            .substring(2, 10)
+            .toUpperCase()}`,
+        },
+      });
+    }
+    if (user.referrerId) {
+      const referrer = await prisma.user.findUnique({
+        where: { id: user.referrerId },
+      });
+      if (referrer?.solanaAddress) {
+        await sendReferralTokens(referrer.solanaAddress, tokenAmount, "bsc");
+      }
+    }
+    // Create a new purchase record
+    const newPurchase = await prisma.purchase.create({
+      data: {
+        userId: user.id,
+        transactionSignature: hash,
+        paymentAmount: valueInBnb, // Store as wei
+        lmxTokensAllocated: formatEther(BigInt(tokenAmount)),
+        pricePerLmxInUsdt: LMX_PRICE_USD, // Set to 0 for now, update later if needed
+        network: "BSC",
+        status: "COMPLETED",
+        paymentCurrency: "BNB", // Adding the required paymentCurrency field
+      },
+    });
 
     return NextResponse.json({
       verified: true,

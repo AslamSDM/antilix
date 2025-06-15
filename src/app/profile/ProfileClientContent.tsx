@@ -16,6 +16,9 @@ import { useAppKitState, useAppKitAccount } from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
 import { AppKitStateShape, getWalletType } from "@/components/hooks/usePresale";
 import { Button } from "@/components/ui/button";
+import { UserActivityHistory } from "@/components/UserActivityHistory";
+import { UserBalanceDisplay } from "@/components/UserBalanceDisplay";
+import { RecentActivitySummary } from "@/components/RecentActivitySummary";
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const ProfileClientContent: React.FC = () => {
@@ -23,7 +26,21 @@ const ProfileClientContent: React.FC = () => {
   const appkitAccountData = useAppKitAccount();
   const { loading } = appKitState;
 
-  const [activeTab, setActiveTab] = useState("overview");
+  // Get the tab from URL query parameter if available
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    // Only run in the browser, not during SSR
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get("tab");
+      if (
+        tab &&
+        ["overview", "wallets", "activity", "referrals"].includes(tab)
+      ) {
+        return tab;
+      }
+    }
+    return "overview";
+  });
 
   const connected = appkitAccountData?.isConnected ?? false;
   const walletAddress = appkitAccountData?.address;
@@ -53,6 +70,18 @@ const ProfileClientContent: React.FC = () => {
 
   const handleDisconnect = () => {
     modal.disconnect();
+  };
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+
+    // Update URL without full page reload
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      window.history.pushState({}, "", url);
+    }
   };
 
   const containerVariants = {
@@ -222,7 +251,7 @@ const ProfileClientContent: React.FC = () => {
             <div className="border-b border-primary/20">
               <div className="flex overflow-x-auto">
                 <motion.button
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => handleTabChange("overview")}
                   className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "overview"
                       ? "border-b-2 border-primary text-primary"
@@ -234,7 +263,7 @@ const ProfileClientContent: React.FC = () => {
                   Overview
                 </motion.button>
                 <motion.button
-                  onClick={() => setActiveTab("wallets")}
+                  onClick={() => handleTabChange("wallets")}
                   className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "wallets"
                       ? "border-b-2 border-primary text-primary"
@@ -246,7 +275,7 @@ const ProfileClientContent: React.FC = () => {
                   Wallets
                 </motion.button>
                 <motion.button
-                  onClick={() => setActiveTab("activity")}
+                  onClick={() => handleTabChange("activity")}
                   className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "activity"
                       ? "border-b-2 border-primary text-primary"
@@ -258,7 +287,7 @@ const ProfileClientContent: React.FC = () => {
                   Activity
                 </motion.button>
                 <motion.button
-                  onClick={() => setActiveTab("referrals")}
+                  onClick={() => handleTabChange("referrals")}
                   className={`px-6 py-4 font-medium text-sm transition-all duration-300 ${
                     activeTab === "referrals"
                       ? "border-b-2 border-primary text-primary"
@@ -330,9 +359,7 @@ const ProfileClientContent: React.FC = () => {
                       </div>
 
                       {connected ? (
-                        <p className="text-white/70">
-                          No recent activity to display.
-                        </p>
+                        <RecentActivitySummary walletAddress={walletAddress} />
                       ) : (
                         <p className="text-white/70">
                           Connect wallet to view your activity.
@@ -344,17 +371,12 @@ const ProfileClientContent: React.FC = () => {
                       <div className="flex items-center mb-4">
                         <Award className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
                         <h3 className="text-lg font-medium luxury-text">
-                          Rewards
+                          LMX Balance
                         </h3>
                       </div>
 
-                      {connected ? (
-                        <p className="text-white/70">No rewards earned yet.</p>
-                      ) : (
-                        <p className="text-white/70">
-                          Connect wallet to view your rewards.
-                        </p>
-                      )}
+                      {/* Add the UserBalanceDisplay component */}
+                      <UserBalanceDisplay />
                     </div>
                   </motion.div>
                 </div>
@@ -446,23 +468,9 @@ const ProfileClientContent: React.FC = () => {
                     variants={itemVariants}
                     className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                   >
-                    <div className="flex items-center mb-4">
-                      <Clock className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
-                      <h3 className="text-lg font-medium luxury-text">
-                        Transaction History
-                      </h3>
-                    </div>
-
+                    {/* Import and use the UserActivityHistory component */}
                     {connected ? (
-                      <div className="text-center py-10">
-                        <motion.p
-                          className="text-white/70"
-                          animate={{ opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          No transactions found.
-                        </motion.p>
-                      </div>
+                      <UserActivityHistory />
                     ) : (
                       <div className="text-center py-10">
                         <motion.p

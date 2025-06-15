@@ -11,7 +11,8 @@ import {
 import { toast } from "sonner";
 
 // Contract addresse
-const SOLANA_PRESALE_ADDRESS = "8FNBidGYxNaPVMDr7BFgbAK7qdYfBxcBvNz1uTosT3cX"; // Solana program address
+export const SOLANA_PRESALE_ADDRESS =
+  "Y7JGR3z7kp98GtxnwHd6Lm6G7hG2wKD56XNN5TXoN44"; // Solana program address
 
 // Network configurations
 export const networks = {
@@ -40,20 +41,36 @@ export const solanaPresale = {
    */
   buyTokens: async (
     connection: Connection,
-    wallet: any,
+    wallet: any, // Wallet adapter's wallet object
     amountInSol: number,
-    referrer?: string
+    referrer?: string // Note: referrer is currently unused in this implementation.
   ) => {
     if (!wallet.publicKey) {
-      toast.error("Wallet not connected");
-      return false;
+      toast.error(
+        "Wallet not connected. Please connect your wallet to proceed."
+      );
+      return null;
     }
 
     try {
-      // Calculate amount in lamports
-      const lamports = Number((amountInSol * LAMPORTS_PER_SOL).toFixed(0));
+      const lamports = Math.floor(amountInSol * LAMPORTS_PER_SOL);
 
-      // Create transaction
+      const balance = await connection.getBalance(wallet.publicKey);
+      // A fixed 5000 lamports is a common fee for a simple SOL transfer.
+      // For more accuracy, you could use `connection.getFeeForMessage` before sending.
+      const estimatedFee = 5000;
+
+      if (balance < lamports + estimatedFee) {
+        toast.error("Insufficient SOL balance for this transaction.");
+        return null;
+      }
+
+      const { blockhash, lastValidBlockHeight } =
+        await connection.getLatestBlockhash("finalized");
+
+      // This creates a simple SOL transfer transaction.
+      // If your program requires a custom instruction with data (like a referrer),
+      // you would create a TransactionInstruction here instead of a SystemProgram transfer.
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: wallet.publicKey,
@@ -62,47 +79,37 @@ export const solanaPresale = {
         })
       );
 
-      // Add referrer memo if provided - use the memo program to include referrer info
-      if (referrer) {
-        // Simply add the referral code as a transaction memo
-        const encodedMessage = `ref:${referrer}`;
-
-        // Use the TransactionInstruction constructor for the memo
-        const memoInstruction = new TransactionInstruction({
-          keys: [],
-          programId: new PublicKey(
-            "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo"
-          ),
-          data: Buffer.from(encodedMessage, "utf-8"),
-        });
-
-        transaction.add(memoInstruction);
-      }
-
-      // Sign and send transaction
-      const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = wallet.publicKey;
 
       const signature = await wallet.sendTransaction(transaction, connection);
 
-      // Confirm transaction
       const confirmation = await connection.confirmTransaction(
-        signature,
+        {
+          signature,
+          blockhash,
+          lastValidBlockHeight,
+        },
         "confirmed"
       );
 
       if (confirmation.value.err) {
-        toast.error("Transaction failed");
-        return false;
+        throw new Error(
+          `Transaction failed: ${JSON.stringify(confirmation.value.err)}`
+        );
       }
 
-      toast.success("Successfully purchased tokens on Solana!");
-      return true;
+      toast.success(`Successfully sent ${amountInSol} SOL! View on Solscan:`, {
+        description: signature,
+      });
+      return { success: true, signature };
     } catch (error: any) {
-      console.error("Error buying Solana tokens:", error);
-      toast.error(error.message || "Failed to purchase tokens on Solana");
-      return false;
+      console.error("Error during SOL transaction:", error);
+      toast.error("Transaction Failed", {
+        description:
+          error.message || "An unknown error occurred while sending SOL.",
+      });
+      return null;
     }
   },
 

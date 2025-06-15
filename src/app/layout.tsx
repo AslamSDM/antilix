@@ -93,7 +93,7 @@ export default async function RootLayout({
         }
       >
         <LoadingProvider>
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<></>}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
               <AuthProvider>
                 <ContextProviderAsWalletProviders cookies={cookies}>
@@ -106,7 +106,7 @@ export default async function RootLayout({
                   {/* Automatic referral application when user is authenticated */}
                   <AutomaticReferralHandler />
 
-                  <div className="min-h-screen flex flex-col bg-background text-foreground">
+                  <div className="min-h-screen flex flex-col  text-foreground">
                     {/* Navigation Header */}
                     <Header />
 

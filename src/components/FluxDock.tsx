@@ -10,7 +10,7 @@ export function FluxDock() {
 
   return (
     <Dock
-      className="fixed bottom-8 w-auto left-1/2 transform -translate-x-1/2 z-50 shadow-xl rounded-full bg-background/90 backdrop-blur-md px-8 py-3 border border-border/40 flex gap-6"
+      className="fixed bottom-8 w-auto left-1/2 transform -translate-x-1/2 z-50 shadow-xl rounded-full bgb/90 backdrop-blur-md px-8 py-3 border border-border/40 flex gap-6"
       iconSize={56}
       iconMagnification={80}
       iconDistance={160}

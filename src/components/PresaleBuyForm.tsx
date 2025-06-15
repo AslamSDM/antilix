@@ -25,6 +25,20 @@ import { solana, base, bsc } from "@reown/appkit/networks";
 import { formatEther } from "viem";
 import { getCookie } from "@/lib/cookies";
 import { getStoredReferralCode } from "@/lib/referral";
+import { useSession } from "next-auth/react";
+
+// Extended type for our session with referredBy field
+interface CustomSessionUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  walletAddress?: string | null;
+  solanaAddress?: string | null;
+  evmAddress?: string | null;
+  referralCode?: string | null;
+  referredBy?: string | null;
+}
 
 interface PresaleBuyFormProps {
   referralCode?: string;
@@ -44,12 +58,29 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
   const { chainId, switchNetwork } = useAppKitNetwork();
   const { isConnected, address } = useAppKitAccount();
+  const { data: session } = useSession();
+  const user = session?.user as CustomSessionUser | undefined;
+
+  // Debug: Log session data to help understand its structure
+  useEffect(() => {
+    if (session) {
+      console.log("Session data:", session);
+      console.log("User data with referredBy:", user);
+    }
+  }, [session, user]);
 
   // Get referral code from multiple sources
   useEffect(() => {
     // Skip if referral code is already set via props
     if (referralCode) {
       console.log("Using referral code from props:", referralCode);
+      return;
+    }
+
+    // Check for referral code in session data first
+    if (user?.referredBy) {
+      console.log("Using referral code from session:", user.referredBy);
+      setCustomReferralCode(user.referredBy);
       return;
     }
 
@@ -78,7 +109,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     } else {
       console.log("No referral code found in any source");
     }
-  }, [referralCode]);
+  }, [referralCode, user]);
 
   const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
 
@@ -417,11 +448,24 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     className="bg-black/30 border border-primary/20 text-white cursor-default"
                   />
                   {customReferralCode ? (
-                    <div className="text-green-500 text-xs">Applied</div>
+                    <div className="text-green-500 text-xs">
+                      {user?.referredBy === customReferralCode
+                        ? "From Session"
+                        : "Applied"}
+                    </div>
                   ) : (
                     <div className="text-yellow-500 text-xs">None</div>
                   )}
                 </div>
+
+                {/* Debug info (remove in production) */}
+                {process.env.NODE_ENV !== "production" && (
+                  <div className="mt-1 text-xs text-primary/50">
+                    {user?.referredBy
+                      ? `Session referral: ${user.referredBy}`
+                      : "No session referral"}
+                  </div>
+                )}
               </div>
 
               {/* Buy Button */}

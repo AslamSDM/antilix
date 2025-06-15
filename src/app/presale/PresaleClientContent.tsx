@@ -493,13 +493,11 @@ const PresaleClientContent = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-16 max-w-2xl mx-auto relative"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <PresaleBuyForm
-                    referralCode={searchParams?.get("ref") || ""}
-                    className="backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
-                  />
-                </div>
+              <div className="lg:col-span-2">
+                <PresaleBuyForm
+                  referralCode={searchParams?.get("ref") || ""}
+                  className="backdrop-blur-xl border-primary/20 shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                />
               </div>
 
               {/* Enhanced dot pattern for buy form */}

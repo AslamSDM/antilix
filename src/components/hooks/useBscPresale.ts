@@ -88,10 +88,14 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
     abi: presaleAbi,
     functionName: "presaleActive",
   });
+  const { data: userBalance } = useReadContract({
+    address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+    abi: presaleAbi,
+    functionName: "balanceOf",
+  });
 
   // Write contract hook for buying tokens
   const { writeContract, data: hash, isPending, error } = useWriteContract();
-  console.log(error);
 
   // Wait for transaction confirmation
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -406,5 +410,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
     closeModal,
     transactionSignature,
     presaleStatus,
+    userBalance: userBalance ? Number(userBalance) : 0,
   };
 }

@@ -236,3 +236,22 @@ export function getLastPriceUpdateTime(): Date | null {
     return null;
   }
 }
+export async function getTokenDetails(address?: string) {
+  try {
+    if (!address) {
+      return undefined;
+    }
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${address}`
+    );
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return data?.pairs[0];
+  } catch (error) {
+    console.error("Error fetching token details:", error);
+  }
+}

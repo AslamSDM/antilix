@@ -77,7 +77,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
 
   // Store particles data in a ref to avoid re-renders
   const particlesRef = useRef<Particle[]>([]);
-  
+
   // Update particles ref when particles state changes
   useEffect(() => {
     particlesRef.current = [...particles];
@@ -85,7 +85,11 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
 
   // Animation loop
   useEffect(() => {
-    if (!canvasRef.current || dimensions.width === 0 || particlesRef.current.length === 0)
+    if (
+      !canvasRef.current ||
+      dimensions.width === 0 ||
+      particlesRef.current.length === 0
+    )
       return;
 
     const canvas = canvasRef.current;
@@ -98,7 +102,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
       // Update and draw each particle without setting state
       for (let i = 0; i < particlesRef.current.length; i++) {
         const particle = particlesRef.current[i];
-        
+
         // Update position
         particle.x += particle.speedX * (1 + scrollPercentage * 2);
         particle.y += particle.speedY * (1 + scrollPercentage * 2);
