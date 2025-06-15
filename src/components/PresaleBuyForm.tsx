@@ -454,9 +454,9 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                         : "Applied"}
                     </div>
                   ) : (
-                    <div className="text-yellow-500 text-xs">None</div> */}
+                    <div className="text-yellow-500 text-xs">None</div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Debug info (remove in production) */}
                 {process.env.NODE_ENV !== "production" && (
