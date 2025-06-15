@@ -90,7 +90,6 @@ export async function fetchCryptoPrices(
     return prices;
   } catch (error) {
     console.error("Failed to fetch crypto prices:", error);
-    toast.error("Failed to fetch current crypto prices, using fallback prices");
 
     // Return fallback prices on error
     return FALLBACK_PRICES;

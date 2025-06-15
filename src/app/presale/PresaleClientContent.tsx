@@ -37,11 +37,16 @@ import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 
 // Tokenomics data
+// Tokenomics data
 const tokenomicsData = [
-  { name: "Presale", percentage: 40, color: "bg-primary" },
-  { name: "Team", percentage: 10, color: "bg-purple-600" },
-  { name: "Marketing", percentage: 10, color: "bg-amber-500" },
-  { name: "Rewards", percentage: 10, color: "bg-rose-500" },
+  { name: "Community", percentage: 30, color: "bg-primary" },
+  { name: "Presale", percentage: 25, color: "bg-purple-600" },
+  { name: "Team", percentage: 5, color: "bg-amber-500" },
+  { name: "Liquidity", percentage: 15, color: "bg-green-500" },
+  { name: "Advisers", percentage: 5, color: "bg-rose-500" },
+  { name: "Marketing", percentage: 10, color: "bg-blue-500" },
+  { name: "Developments", percentage: 4, color: "bg-indigo-500" },
+  { name: "Partnerships", percentage: 6, color: "bg-pink-500" },
 ];
 
 // Presale phases

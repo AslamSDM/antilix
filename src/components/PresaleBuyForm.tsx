@@ -433,7 +433,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
               {/* Referral Code Display (read-only) */}
               <div className="mb-6">
-                <Label
+                {/* <Label
                   htmlFor="referral"
                   className="text-sm text-white/70 block mb-2"
                 >
@@ -454,7 +454,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                         : "Applied"}
                     </div>
                   ) : (
-                    <div className="text-yellow-500 text-xs">None</div>
+                    <div className="text-yellow-500 text-xs">None</div> */}
                   )}
                 </div>
 

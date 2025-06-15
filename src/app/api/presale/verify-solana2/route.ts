@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
     // Check if the transaction is a transfer to our master wallet
     let isTransferToMasterWallet = false;
     let senderAddress = "";
-    console.log(transaction.transaction);
 
     try {
       // Get the transaction message object and cast as any to bypass TypeScript errors
@@ -150,6 +149,7 @@ export async function POST(req: NextRequest) {
     // If we have a referral code, and this is a new transaction (not existing),
     // save the purchase so we can process referral bonus
     let newPurchase = null;
+
     let sender = await prisma.user.findFirst({
       where: {
         OR: [
@@ -158,7 +158,27 @@ export async function POST(req: NextRequest) {
         ],
       },
     });
-    if (referralCode && !existingTransaction) {
+    if (!sender && !referralCode) {
+      // Create new user for this sender
+      const newReferralCode = `LMX${Math.random()
+        .toString(36)
+        .substring(2, 10)
+        .toUpperCase()}`;
+      sender = await prisma.user.create({
+        data: {
+          walletAddress: senderAddress,
+          solanaAddress: senderAddress,
+          walletType: "solana",
+          referralCode: newReferralCode,
+          // Only link to referrer if referralCode exists
+        },
+      });
+    }
+    console.log(
+      `Sender found: ${sender ? sender.id : "No existing user found"}`
+    );
+
+    if (referralCode) {
       try {
         // Find the referrer by their referral code
         const referrer = await prisma.user.findUnique({
@@ -168,26 +188,10 @@ export async function POST(req: NextRequest) {
 
         // Find or create the sender user
 
-        if (!sender) {
-          // Create new user for this sender
-          const newReferralCode = `LMX${Math.random()
-            .toString(36)
-            .substring(2, 10)
-            .toUpperCase()}`;
-          sender = await prisma.user.create({
-            data: {
-              walletAddress: senderAddress,
-              solanaAddress: senderAddress,
-              walletType: "solana",
-              referralCode: newReferralCode,
-              // If referrer found, link it to the new user
-              ...(referrer ? { referrerId: referrer.id } : {}),
-            },
-          });
-        } else if (referrer && !sender.referrerId) {
+        if (referrer && !sender?.referrerId) {
           // If sender exists but doesn't have a referrer, update it
           await prisma.user.update({
-            where: { id: sender.id },
+            where: { id: sender?.id },
             data: { referrerId: referrer.id },
           });
         }
@@ -275,30 +279,18 @@ export async function POST(req: NextRequest) {
             //     transaction,
             //     [distributionWallet]
             //   );
-            await sendReferralTokens(
-              referrer.solanaAddress,
-              transferAmount / 1_000_000_000, // Convert from lamports to SOL
-              "sol"
-            );
+            try {
+              await sendReferralTokens(
+                referrer.solanaAddress,
+                transferAmount / 1_000_000_000, // Convert from lamports to SOL
+                "sol"
+              );
+            } catch (error) {
+              console.error("Error sending referral tokens:", error);
+              // Don't block the verification response if sending referral tokens fails
+            }
           }
         }
-        const prices = await fetchCryptoPrices();
-        const purchase = await (prisma as any).purchase.create({
-          data: {
-            userId: sender.id,
-            network: "solana",
-            paymentAmount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
-            paymentCurrency: "SOL",
-            lmxTokensAllocated: calculateTokenAmount(
-              transferAmount / 1_000_000_000,
-              "sol",
-              prices
-            ), // Example: 1 SOL = 100 LMX tokens,
-            pricePerLmxInUsdt: LMX_PRICE_USD,
-            transactionSignature: signature,
-            status: "COMPLETED", // Mark as completed since we already verified it
-          },
-        });
       } catch (purchaseError) {
         console.error(
           "Error recording purchase or processing referral:",
@@ -307,6 +299,23 @@ export async function POST(req: NextRequest) {
         // Don't block the verification response if saving the purchase fails
       }
     }
+    const prices = await fetchCryptoPrices();
+    const purchase = await (prisma as any).purchase.create({
+      data: {
+        userId: sender?.id ?? 0,
+        network: "SOLANA",
+        paymentAmount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
+        paymentCurrency: "SOL",
+        lmxTokensAllocated: calculateTokenAmount(
+          transferAmount / 1_000_000_000,
+          "sol",
+          prices
+        ), // Example: 1 SOL = 100 LMX tokens,
+        pricePerLmxInUsdt: LMX_PRICE_USD,
+        transactionSignature: signature,
+        status: "COMPLETED", // Mark as completed since we already verified it
+      },
+    });
 
     return NextResponse.json({
       verified: true,
@@ -317,7 +326,7 @@ export async function POST(req: NextRequest) {
         referralCode,
       },
       // Include purchase data if we found it earlier or just created it
-      purchase: existingTransaction || newPurchase,
+      purchase: existingTransaction || newPurchase || purchase,
     });
   } catch (error) {
     console.error("Error verifying Solana transaction:", error);

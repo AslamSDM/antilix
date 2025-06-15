@@ -139,7 +139,7 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       );
       // const success = {
       //   signature:
-      //     "3jz4mT1un9u8HtB1McESfcQprmy7KZ5CWiHG3zhoUG5bXYprw5gvD7RkXjLFqK5cEspbcwMDb3Jk3riu7zA6zMEu",
+      //     "21op59ggNVcEbZfdt2qubarXvPgqhW9DQF6KknVze8WJWoHWQSbZH9eRTvQRZWmygkWUDvEBwEEAtUQqFq1UbRWW",
       // };
 
       if (!success) {
@@ -185,39 +185,6 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
 
       // Step 5: Save allocation in database
       setCurrentStep("save-allocation");
-
-      // If transaction was successfully verified, save the allocation in database
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: address || wallet.publicKey.toString(), // Using wallet address as userId
-          network: "SOLANA",
-          paymentAmount: solAmount,
-          paymentCurrency: "SOL",
-          lmxTokensAllocated: tokenAmount,
-          pricePerLmxInUsdt: LMX_PRICE_USD,
-          transactionSignature: signature,
-          referralCode:
-            referralCode || verificationData.transaction.referralCode || "",
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Error saving allocation:", error);
-        setError(
-          "save-allocation",
-          "Failed to record purchase in our database"
-        );
-        toast.warning(
-          "Transaction completed, but there was an error recording your purchase. Please contact support."
-        );
-        setIsLoading(false);
-        return true; // Return true because the blockchain tx succeeded even if our DB record failed
-      }
 
       // Complete all steps
       completeTransaction();
