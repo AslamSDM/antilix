@@ -439,12 +439,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   <HyperText>LITMEX Token Presale</HyperText>
                 </span>
               </h1>
-              <motion.div
-                className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent"
-                initial={{ width: 0, left: "50%" }}
-                animate={{ width: "100%", left: "0%" }}
-                transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
-              />
             </motion.div>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
