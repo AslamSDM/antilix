@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Dice5 } from "lucide-react";
 import "../sections/animation-utils.css";
 
 interface BettingMarketsSectionProps {
@@ -44,7 +43,7 @@ export default function BettingMarketsSection({
         </motion.h1>
       </motion.div>
 
-      {/* Icon - top left */}
+      {/* Icon - top left
       <motion.div
         className="floating-text top-left floating-animation"
         animate={
@@ -66,7 +65,7 @@ export default function BettingMarketsSection({
         }}
       >
         <Dice5 className="w-12 h-12 text-primary" />
-      </motion.div>
+      </motion.div> */}
 
       {/* Subtitle - top right */}
       <motion.div

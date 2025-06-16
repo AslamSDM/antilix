@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
 import "../sections/animation-utils.css";
 
 interface FutureGamblingSectionProps {
@@ -42,30 +41,6 @@ export default function FutureGamblingSection({
         >
           The Future of Gambling
         </motion.h1>
-      </motion.div>
-
-      {/* Icon - scattered on right */}
-      <motion.div
-        className="floating-text top-right floating-animation"
-        animate={
-          isVisible
-            ? { scale: 1, opacity: 1, rotate: 0 }
-            : { scale: 0.5, opacity: 0, rotate: -10 }
-        }
-        transition={{
-          duration: 0.6,
-          delay: 0.2,
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-        }}
-        whileHover={{
-          scale: 1.1,
-          rotate: 5,
-          transition: { duration: 0.2 },
-        }}
-      >
-        <Zap className="w-12 h-12 text-primary" />
       </motion.div>
 
       {/* Smart Contract text - top left */}

@@ -29,12 +29,6 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         willChange: "opacity",
       }}
     >
-      <VelocityScroll className="z-[-10] absolute top-8 right-20">
-        <span className="text-5xl md:text-7xl font-display text-primary">
-          Join
-        </span>
-      </VelocityScroll>
-
       {/* Title - huge at bottom left */}
       <motion.div
         className="title-text absolute bottom-20 left-12"
@@ -65,10 +59,10 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         </p>
         <div className="flex justify-end">
           <Link href="/presale" className="inline-block">
-            <button className="bg-primary text-primary-foreground px-8 py-4 text-lg hover:scale-105 transition-all duration-300 ease-out rounded-md flex items-center">
+            {/* <button className="bg-primary text-primary-foreground px-8 py-4 text-lg hover:scale-105 transition-all duration-300 ease-out rounded-md flex items-center">
               <span className="mr-2">Buy LITMEX Tokens</span>
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </button> */}
           </Link>
         </div>
       </motion.div>
@@ -84,6 +78,11 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
           Limited allocation available • Early bird bonus ends soon
         </p>
       </motion.div>
+      <VelocityScroll className="z-[-10] absolute bottom-8 right-20">
+        <span className="text-5xl md:text-7xl font-display text-primary">
+          JOIN
+        </span>
+      </VelocityScroll>
 
       {/* Additional floating elements - more spread out positions */}
       <motion.div

@@ -26,7 +26,7 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
     >
       {/* Title text - huge at bottom left */}
       <motion.div
-        className="title-text"
+        className="title-text "
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
@@ -74,15 +74,6 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
         transition={{ duration: 0.8, delay: 0.7 }}
       >
         <p className="text-lg text-primary/80">Transparent Odds</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text bottom-right slide-in"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: isVisible ? 0.8 : 0, x: isVisible ? 0 : 30 }}
-        transition={{ duration: 0.8, delay: 0.9 }}
-      >
-        <p className="text-lg text-primary/80">Community-driven</p>
       </motion.div>
     </motion.div>
   );
