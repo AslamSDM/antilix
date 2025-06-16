@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Application } from "@splinetool/runtime";
-import Spline from "@splinetool/react-spline/next";
+import Spline from "@splinetool/react-spline";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 // import useSectionCentering from "@/components/hooks/useSectionCentering"; // May not be needed if sections are fixed
@@ -456,6 +456,7 @@ export default function HomePage() {
         />
         <Spline
           scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
+          // scene="https://prod.spline.design/9X-ehZ9FXPrHcKJy/scene.splinecode"
           // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
           onLoad={handleSplineLoad}
           className="w-full h-full"
@@ -528,11 +529,6 @@ export default function HomePage() {
           {sectionVisibility[5] && <CtaSection isVisible={true} key="cta" />}
         </AnimatePresence>
       </div>
-
-      {/* Navigation hint for small screens */}
-      <AnimatePresence>
-        {isSmallScreen && <NavigationHint isSmallScreen={isSmallScreen} />}
-      </AnimatePresence>
 
       {/* Continue button */}
       <AnimatePresence>

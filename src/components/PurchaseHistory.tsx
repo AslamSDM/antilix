@@ -8,18 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 interface Purchase {
   id: string;
   createdAt: string;
   network: "SOLANA" | "BSC";
-  paymentAmount: string;
-  paymentCurrency: string;
+  paymentAmount?: string;
+  paymentCurrency?: string;
   lmxTokensAllocated: string;
-  pricePerLmxInUsdt: string;
+  pricePerLmxInUsdt?: string;
   transactionSignature: string;
   status: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED";
 }
@@ -30,8 +30,7 @@ const PurchaseHistory: React.FC<{ className?: string }> = ({
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { address } = useAccount();
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const { isConnected, address } = useAppKitAccount();
 
   useEffect(() => {
     const fetchPurchases = async () => {
@@ -42,12 +41,15 @@ const PurchaseHistory: React.FC<{ className?: string }> = ({
       }
 
       try {
-        const response = await fetch("/api/presale/history", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "/api/presale/history?walletAddress=" + address,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch purchase history");
@@ -64,13 +66,10 @@ const PurchaseHistory: React.FC<{ className?: string }> = ({
     };
 
     fetchPurchases();
-  }, [address]);
+  }, [address, isConnected]);
 
-  // Filter purchases based on active tab
-  const filteredPurchases = purchases.filter((purchase) => {
-    if (activeTab === "all") return true;
-    return purchase.network.toLowerCase() === activeTab.toLowerCase();
-  });
+  // No filtering by network tab anymore
+  const filteredPurchases = purchases;
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
@@ -121,91 +120,75 @@ const PurchaseHistory: React.FC<{ className?: string }> = ({
     >
       <CardHeader>
         <CardTitle className="text-primary">Purchase History</CardTitle>
-        <CardDescription>
-          View your LMX token purchase history across different networks
-        </CardDescription>
+        <CardDescription>View your LMX token purchase history</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs
-          defaultValue="all"
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="solana">Solana</TabsTrigger>
-            <TabsTrigger value="bsc">BSC</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="mt-0">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                <p className="text-white/70">Loading purchase history...</p>
-              </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
-                <p className="text-red-400">{error}</p>
-                {!address && !window.solana?.publicKey && (
-                  <p className="text-white/70 mt-2">
-                    Connect your wallet to view your purchase history
-                  </p>
-                )}
-              </div>
-            ) : filteredPurchases.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-white/70">
-                  No purchases found for this network.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredPurchases.map((purchase) => (
-                  <div
-                    key={purchase.id}
-                    className="bg-black/30 border border-primary/10 rounded-lg p-4"
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-white font-medium">
-                        {purchase.lmxTokensAllocated} LMX
-                      </span>
-                      <span className={getStatusColor(purchase.status)}>
-                        {purchase.status}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-sm text-white/70">
-                      <span>
-                        {purchase.paymentAmount} {purchase.paymentCurrency}
-                      </span>
-                      <span>{formatDate(purchase.createdAt)}</span>
-                    </div>
-
-                    <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center">
-                      <span className="text-xs text-white/50">
-                        Network: {purchase.network}
-                      </span>
-                      <a
-                        href={getExplorerUrl(
-                          purchase.transactionSignature,
-                          purchase.network
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-xs text-primary hover:text-primary/80 transition-colors"
-                      >
-                        View Transaction{" "}
-                        <ExternalLink className="ml-1 h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+            <p className="text-white/70">Loading purchase history...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
+            <p className="text-red-400">{error}</p>
+            {!address && !window.solana?.publicKey && (
+              <p className="text-white/70 mt-2">
+                Connect your wallet to view your purchase history
+              </p>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        ) : filteredPurchases.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-white/70">No purchase history found.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredPurchases.map((purchase) => (
+              <div
+                key={purchase.id}
+                className="bg-black/30 border border-primary/10 rounded-lg p-4"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-white font-medium">
+                    {purchase.lmxTokensAllocated} LMX
+                  </span>
+                  <span className={getStatusColor(purchase.status)}>
+                    {purchase.status}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm text-white/70">
+                  <span>
+                    {purchase.paymentAmount
+                      ? `${purchase.paymentAmount} ${
+                          purchase.paymentCurrency || ""
+                        }`
+                      : "Purchase amount not available"}
+                  </span>
+                  <span>{formatDate(purchase.createdAt)}</span>
+                </div>
+
+                <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center">
+                  <span className="text-xs text-white/50">
+                    Network: {purchase.network}
+                  </span>
+                  <a
+                    href={getExplorerUrl(
+                      purchase.transactionSignature,
+                      purchase.network
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-xs text-primary hover:text-primary/80 transition-colors"
+                  >
+                    View Transaction <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

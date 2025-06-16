@@ -1,12 +1,17 @@
-import { Suspense } from "react";
 import PresaleClientContent from "./PresaleClientContent";
+import getPresaleData from "./getPresaleData";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 60; // Revalidate data every 60 seconds
 
-export default function PresalePage() {
+export default async function PresalePage() {
+  const presaleData = await getPresaleData();
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PresaleClientContent />
-    </Suspense>
+    <PresaleClientContent
+      contributorCount={presaleData.contributorCount}
+      totalRaised={presaleData.totalRaised}
+      usdRaised={presaleData.usdRaised}
+    />
   );
 }

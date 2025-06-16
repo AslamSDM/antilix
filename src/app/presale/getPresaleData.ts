@@ -1,0 +1,60 @@
+// src/app/presale/getPresaleData.ts
+import prisma from "@/lib/prisma";
+import { presaleCache } from "@/lib/createCache";
+import { fetchCryptoPrices } from "@/lib/price-utils";
+
+export default async function getPresaleData() {
+  // Check if we have cached data
+  const cachedData = presaleCache.get("presaleStats");
+  if (cachedData) {
+    console.log("Using cached presale data");
+    return cachedData;
+  }
+
+  try {
+    console.log("Fetching fresh presale data from database");
+
+    // Get total number of contributors
+    const contributors = await prisma.purchase.groupBy({
+      by: ["userId"],
+      where: { status: "COMPLETED" },
+    });
+    const contributorCount = contributors.length;
+
+    // Get total raised in SOL
+    const totalRaised = await prisma.purchase.aggregate({
+      _sum: {
+        paymentAmount: true,
+      },
+      where: {
+        status: "COMPLETED",
+        network: "SOLANA",
+      },
+    });
+
+    // Convert SOL to USD (approximation - would be better with real exchange rate API)
+    // Assuming 1 SOL = $170 USD (example value, would need real-time price feed)
+    const prices = await fetchCryptoPrices();
+    const solPrice = prices.sol || 150;
+    const solRaised = totalRaised._sum.paymentAmount || 0;
+    const usdRaised = parseFloat(solRaised.toString()) * solPrice;
+
+    const result = {
+      contributorCount: contributorCount || 0,
+      totalRaised: parseFloat(solRaised.toString()) || 0,
+      usdRaised: usdRaised || 0,
+    };
+
+    // Store in cache for 60 seconds
+    presaleCache.set("presaleStats", result);
+
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch presale data:", error);
+    return {
+      contributorCount: 0,
+      totalRaised: 0,
+      usdRaised: 0,
+    };
+  }
+}

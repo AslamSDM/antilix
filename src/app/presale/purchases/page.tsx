@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default function PurchasesPage() {
   return (
-    <div className="container mx-auto py-12 px-4 max-w-4xl">
+    <div className="container mx-auto mt-24 py-12 px-4 max-w-4xl">
       <div className="mb-8">
         <Link href="/presale" passHref>
           <Button

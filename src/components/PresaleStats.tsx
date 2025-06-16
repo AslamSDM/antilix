@@ -7,6 +7,7 @@ import { Users, Database, Clock, Gift } from "lucide-react";
 interface PresaleStatsProps {
   contributors: number;
   raised: number;
+  usdRaised?: number;
   daysLeft: number;
   referralBonus: string;
   className?: string;
@@ -15,6 +16,7 @@ interface PresaleStatsProps {
 export const PresaleStats: React.FC<PresaleStatsProps> = ({
   contributors,
   raised,
+  usdRaised,
   daysLeft,
   referralBonus,
   className = "",
@@ -29,8 +31,14 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
     {
       icon: <Database className="w-6 h-6 text-primary" />,
       value: raised,
-      label: "ETH Raised",
-      formatter: (val: number) => val.toLocaleString(),
+      label: "SOL Raised",
+      formatter: (val: number) => val.toFixed(2),
+    },
+    {
+      icon: <Database className="w-6 h-6 text-emerald-400" />,
+      value: usdRaised ? usdRaised : raised * 170, // Fallback calculation if usdRaised isn't provided
+      label: "USD Value",
+      formatter: (val: number) => `$${val.toLocaleString()}`,
     },
     {
       icon: <Clock className="w-6 h-6 text-amber-400" />,
@@ -48,7 +56,7 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
   ];
 
   return (
-    <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${className}`}>
+    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 ${className}`}>
       {statsItems.map((item, index) => (
         <motion.div
           key={index}
