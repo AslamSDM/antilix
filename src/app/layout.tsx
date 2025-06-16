@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"; // Added Viewport
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LoadingProvider } from "@/components/providers/loading-provider";
@@ -8,16 +8,14 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import LoadingScreen from "@/components/LoadingScreen";
 import NavigationLoadingHandler from "@/components/NavigationLoadingHandler";
 import PageTransition from "@/components/PageTransition";
-import Link from "next/link";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
-import { Inter, Playfair_Display } from "next/font/google";
-import { AnimatedBackgroundGrid } from "@/components/AnimatedBackgroundGrid";
+import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Suspense } from "react";
 import localFont from "next/font/local";
-import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
-import { cookies, headers } from "next/headers"; // Import cookies
+import { headers } from "next/headers"; // Import cookies
+
 import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
 
 const blackBird = localFont({

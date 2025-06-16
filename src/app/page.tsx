@@ -47,30 +47,6 @@ export default function HomePage() {
   const referralInfo = useReferralHandling();
   const { data: session, status } = useSession(); // Apply referral code if user is authenticated
 
-  useEffect(() => {
-    const applyReferralIfAuthenticated = async () => {
-      // Check if user is logged in and we have a valid referral code
-      if (session?.user && referralInfo.isValid && referralInfo.code) {
-        try {
-          // Get the user ID from the session - this may be stored differently depending on your auth setup
-          const userId = (session.user as any).id || session.user.email;
-          if (userId) {
-            const applied = await referralInfo.applyReferral(userId);
-            if (applied) {
-              console.log(
-                "Referral automatically applied to authenticated user"
-              );
-            }
-          }
-        } catch (error) {
-          console.error("Error applying referral automatically:", error);
-        }
-      }
-    };
-
-    applyReferralIfAuthenticated();
-  }, [session, referralInfo]);
-
   // Get scroll progress (0 to 1) for the containerRef
   const { scrollYProgress, scrollY } = useScroll({
     target: containerRef,

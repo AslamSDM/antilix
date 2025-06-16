@@ -8,7 +8,6 @@ interface ReferralInfo {
   referrerAddress: string | null;
   referrerUsername: string | null;
   isValid: boolean;
-  applyReferral: (userId: string) => Promise<boolean>;
 }
 
 /**
@@ -96,60 +95,11 @@ export default function useReferralHandling(): ReferralInfo {
     }
   }, []);
 
-  /**
-   * Automatically apply the stored referral code to a user account
-   * @param userId The ID of the user to apply the referral to
-   * @returns Promise resolving to true if successful, false otherwise
-   */
-  const applyReferral = async (userId: string): Promise<boolean> => {
-    if (!referralCode || !isValid || !userId || !referrerId) {
-      return false;
-    }
-
-    try {
-      // Call the API to apply the referral
-      const response = await fetch("/api/referrals/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          referralCode,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log(
-          `Referral successfully applied: ${referralCode} → ${userId}`
-        );
-        // Clear the cookies since the referral has been applied
-        setCookie("referralCode", "", -1);
-        setCookie("referrerId", "", -1);
-        setCookie("referrerAddress", "", -1);
-        setCookie("referrerUsername", "", -1);
-        setCookie("referralIsValid", "", -1);
-        return true;
-      } else {
-        console.warn(
-          `Failed to apply referral: ${data.message || "Unknown error"}`
-        );
-        return false;
-      }
-    } catch (error) {
-      console.error("Error applying referral:", error);
-      return false;
-    }
-  };
-
   return {
     code: referralCode,
     referrerId,
     referrerAddress,
     referrerUsername,
     isValid,
-    applyReferral,
   };
 }

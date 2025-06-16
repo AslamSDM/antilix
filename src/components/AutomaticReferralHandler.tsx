@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import useAutomaticReferral from "@/components/hooks/useAutomaticReferral";
 import { toast } from "sonner"; // Assuming you use sonner for toasts
 import { useAccount } from "wagmi";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
@@ -13,7 +12,6 @@ import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
  * This is an invisible component that should be included in layouts where users might log in
  */
 export default function AutomaticReferralHandler() {
-  const { referralApplied, referralInfo } = useAutomaticReferral();
   const searchParams = useSearchParams();
   const [savedReferralCode, setSavedReferralCode] = useState<string | null>(
     null
@@ -101,19 +99,8 @@ export default function AutomaticReferralHandler() {
       }
     };
 
-    applyReferralCode();
+    // applyReferralCode();
   }, [isWalletConnected, savedReferralCode, walletAddress]);
-
-  // Show a notification when a referral is successfully applied (from the hook)
-  useEffect(() => {
-    if (referralApplied && referralInfo.referrerUsername) {
-      toast.success(
-        `Referral from ${referralInfo.referrerUsername} has been applied to your account!`
-      );
-    } else if (referralApplied) {
-      toast.success("Referral has been applied to your account!");
-    }
-  }, [referralApplied, referralInfo]);
 
   // No visible UI - this component just handles the referral application
   return null;

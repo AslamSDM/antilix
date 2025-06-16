@@ -121,41 +121,6 @@ export default function useReferralSystem() {
     return null;
   };
 
-  /**
-   * Apply the stored referral code to a user account
-   * This should be called after a user registers or logs in
-   * @param userId The ID of the user to apply the referral to
-   */
-  const applyStoredReferralToUser = async (userId: string) => {
-    const storedCode = getStoredReferralCode();
-    if (!storedCode || !userId) return false;
-
-    try {
-      const response = await fetch("/api/referrals/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          referralCode: storedCode,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Clear the stored code once it's been successfully applied
-        clearStoredReferralCode();
-        return true;
-      }
-    } catch (error) {
-      console.error("Error applying stored referral:", error);
-    }
-
-    return false;
-  };
-
   // Fetch user's referral info when session changes
   useEffect(() => {
     if (session?.user) {
@@ -221,6 +186,5 @@ export default function useReferralSystem() {
     clearReferralCode,
     generateReferralCode,
     fetchUserReferralInfo,
-    applyStoredReferralToUser,
   };
 }
