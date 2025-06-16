@@ -5,7 +5,12 @@ import { solanaPresale } from "@/lib/presale-contract";
 export async function GET(req: NextRequest) {
   try {
     // Get wallet address from query param
-    const walletAddress = req.nextUrl.searchParams.get("walletAddress");
+    const address = req.nextUrl.searchParams.get("walletAddress");
+    const walletAddress = address?.startsWith("0x")
+      ? address.toLowerCase()
+      : address;
+
+    console.log("Fetching user balance for wallet:", walletAddress);
 
     if (!walletAddress) {
       return NextResponse.json(

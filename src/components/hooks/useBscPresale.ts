@@ -91,6 +91,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
     abi: presaleAbi,
     functionName: "balanceOf",
+    args: [address as `0x${string}`],
   });
 
   // Write contract hook for buying tokens

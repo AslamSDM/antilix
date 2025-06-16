@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { Application } from "@splinetool/runtime";
-import Spline, { SplineEvent } from "@splinetool/react-spline";
+import Spline from "@splinetool/react-spline/next";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 // import useSectionCentering from "@/components/hooks/useSectionCentering"; // May not be needed if sections are fixed
@@ -22,8 +22,6 @@ import BettingMarketsSection from "@/components/sections/BettingMarketsSection";
 import StakeEarnSection from "@/components/sections/StakeEarnSection";
 import SecuritySection from "@/components/sections/SecuritySection";
 import CtaSection from "@/components/sections/CtaSection";
-import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
-import { useAppKitAccount } from "@reown/appkit/react";
 
 // Define the total "units" your animation and sections will span across.
 // This is arbitrary but helps map the 0-1 scrollYProgress to a more granular scale.
@@ -134,7 +132,7 @@ export default function HomePage() {
         // Try each variable name until one works
         for (const varName of variableNames) {
           try {
-            splineApp.setVariable(varName, splineValue);
+            // splineApp.setVariable(varName, splineValue);
             break; // Exit the loop once we find a working variable
           } catch (error) {
             // Variable doesn't exist, continue to the next one
@@ -150,7 +148,7 @@ export default function HomePage() {
       setSplineApp(app);
       setIsLoading(false);
       console.log("Spline scene loaded successfully");
-      app.setBackgroundColor("transparent"); // Set background to transparent if needed
+      // app.setBackgroundColor("transparent"); // Set background to transparent if needed
       // You might want to set an initial state for the Spline animation here if needed
       // app.setVariable("splineScrollValue", 0);
 
@@ -235,7 +233,7 @@ export default function HomePage() {
         // Try each variable name until one works
         for (const varName of variableNames) {
           try {
-            splineApp.setVariable(varName, splineScrollValue);
+            // splineApp.setVariable(varName, splineScrollValue);
             break; // Exit the loop once we find a working variable
           } catch (error) {
             // Variable doesn't exist, continue to the next one
@@ -461,6 +459,9 @@ export default function HomePage() {
           // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
           onLoad={handleSplineLoad}
           className="w-full h-full"
+          onMouseDown={(e) => console.log("Spline mousedown:", e)}
+          onScroll={(e) => console.log("Spline scroll:", e)}
+          onKeyDown={(e) => console.log("Spline keydown:", e)}
           // onSplineScroll is not needed if we drive it via setVariable
         />
 

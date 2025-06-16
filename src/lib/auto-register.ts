@@ -28,6 +28,9 @@ export async function autoRegisterUser(
     // Now, with a singleton Prisma client, you generally won't need
     // the specific `disconnect/connect` retry for "prepared statement" errors.
     // The connection should be consistently managed by the singleton.
+
+    // Check if the user already exists in any of the wallet fields
+
     let existingUser = await prisma.user.findFirst({
       where: {
         OR: [

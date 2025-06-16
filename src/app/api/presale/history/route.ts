@@ -4,8 +4,12 @@ import prisma from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     // Get wallet address from query param only
-    const walletAddress = req.nextUrl.searchParams.get("walletAddress");
+    const address = req.nextUrl.searchParams.get("walletAddress");
+    const walletAddress = address?.startsWith("0x")
+      ? address.toLowerCase()
+      : address;
 
+    console.log("Fetching purchase history for wallet:", walletAddress);
     if (!walletAddress) {
       return NextResponse.json(
         { error: "No wallet address provided in query parameters" },
@@ -28,12 +32,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ purchases: [] }, { status: 200 });
     }
 
-    // Get purchases directly rather than through relation
-    const purchases = await prisma.$queryRaw`
-      SELECT * FROM "Purchase"
-      WHERE "userId" = ${user.id}
-      ORDER BY "createdAt" DESC
-    `;
+    const purchases = await prisma.purchase.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        lmxTokensAllocated: true,
+        status: true,
+        network: true,
+        transactionSignature: true,
+      },
+    });
 
     return NextResponse.json({
       purchases: purchases || [],
