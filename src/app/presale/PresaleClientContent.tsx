@@ -498,8 +498,8 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           <div className="mt-12">
             <PresaleStats
               contributors={contributorCount}
-              raised={totalRaised}
-              usdRaised={usdRaised}
+              raised={Number(totalRaised.toFixed(0))}
+              usdRaised={Number(usdRaised.toFixed(0))}
               daysLeft={Math.ceil(
                 (new Date("2025-06-30T23:59:59").getTime() -
                   new Date().getTime()) /
