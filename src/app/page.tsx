@@ -259,52 +259,6 @@ export default function HomePage() {
     onEnd: goToLastSection,
   });
 
-  // Add tap/touch support for small screens
-  useEffect(() => {
-    // Only enable for small screens
-    if (!isSmallScreen) return;
-
-    // Add a tap overlay that spans the screen
-    const tapOverlay = document.createElement("div");
-    tapOverlay.className =
-      "fixed inset-0 z-40 bg-transparent pointer-events-none";
-
-    // Create an interactive button that will handle double taps
-    const tapButton = document.createElement("div");
-    tapButton.className =
-      "fixed bottom-24 right-8 w-16 h-16 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-auto";
-    tapButton.innerHTML = `<div class="text-white/70 text-sm">2×</div>`;
-
-    // Add double tap detection
-    let lastTap = 0;
-    tapButton.addEventListener("touchend", (e) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-
-      // If double tap detected (within 300ms)
-      if (tapLength < 300 && tapLength > 0) {
-        e.preventDefault();
-        goToNextSection();
-
-        // Visual feedback
-        tapButton.classList.add("bg-white/30");
-        setTimeout(() => tapButton.classList.remove("bg-white/30"), 200);
-      }
-
-      lastTap = currentTime;
-    });
-
-    // Append to body
-    document.body.appendChild(tapOverlay);
-    document.body.appendChild(tapButton);
-
-    // Clean up
-    return () => {
-      document.body.removeChild(tapOverlay);
-      document.body.removeChild(tapButton);
-    };
-  }, [isSmallScreen, goToNextSection]);
-
   // Show continue button after a period of inactivity
   useEffect(() => {
     // Initialize user activity detection
@@ -407,7 +361,7 @@ export default function HomePage() {
       // It needs to be scrollable, so its height matters.
     >
       {/* Background music toggle - position it as needed */}
-      <MusicToggle isPlaying={musicActive} onToggle={toggleMusic} />
+      {/* <MusicToggle isPlaying={musicActive} onToggle={toggleMusic} /> */}
 
       {/* Referral indicator */}
       {referralInfo.isValid && referralInfo.code && (

@@ -3,7 +3,7 @@
 /* Scattered layout positioning */
 .title-text {
   position: absolute;
-  top: 20%;
+  top: 25%;
   left: 5%;
   max-width: 90%;
   z-index: 10;
@@ -25,26 +25,26 @@
 
 .center-left {
   left: 5%;
-  bottom: 5%;
+  bottom: 15%;
   max-width: 400px;
   transform: translateY(-50%);
 }
 
 .center-right {
   right: 5%;
-  top: 50%;
+  top: 70%;
   max-width: 350px;
   transform: translateY(-50%);
 }
 
 .top-left {
-  right: 7%;
-  top: 15%;
+  left: 7%;
+  bottom: 25%;
 }
 
 .top-right {
   right: 8%;
-  top: 12%;
+  top: 62%;
 }
 
 .bottom-left {

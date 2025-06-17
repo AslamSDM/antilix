@@ -18,6 +18,7 @@ import {
 } from "./ui/select";
 import { useAppKitNetwork } from "@reown/appkit/react";
 import { solana, bsc } from "@reown/appkit/networks";
+import { Button } from "./ui/button";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -49,10 +50,10 @@ const NetworkSelector = () => {
 
   return (
     <Select value={currentNetwork} onValueChange={handleNetworkChange}>
-      <SelectTrigger className="w-24 h-8 text-xs bg-black/30 border-white/10">
+      <SelectTrigger className="w-24 h-8 text-xs bg-black/50 border-white/10 backdrop-blur-sm">
         <SelectValue placeholder="Network" />
       </SelectTrigger>
-      <SelectContent className="bg-black/90 border-primary/20">
+      <SelectContent className="bg-black/90 backdrop-blur-md border-primary/20">
         <SelectItem value="bsc">BSC</SelectItem>
         <SelectItem value="solana">Solana</SelectItem>
       </SelectContent>
@@ -96,66 +97,42 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {/* {navLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={`text-sm font-medium transition-colors hover:text-primary relative group ${
-          pathname === link.href ? "text-primary" : "text-white/80"
-          }`}
-        >
-          {link.label}
-          {pathname === link.href && (
-          <motion.div
-            layoutId="navbar-indicator"
-            className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          />
-          )}
-          <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
-        </Link>
-        ))} */}
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm font-medium transition-colors hover:text-primary relative group ${
+                pathname === link.href ? "text-primary" : "text-white/80"
+              }`}
+            >
+              {link.label}
+              {pathname === link.href && (
+                <motion.div
+                  layoutId="navbar-indicator"
+                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform" />
+            </Link>
+          ))}
           <div className="h-5 w-px bg-white/20" />
           <div className="flex items-center gap-4">
             <NetworkSelector />
 
             <Link href="/presale">
-              <motion.button
-                className="bg-gradient-to-r from-primary to-[#8a63d2] text-white font-display p-2 rounded-md shadow-lg flex items-center justify-center border border-white/20 backdrop-blur-sm relative overflow-hidden"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              <Button
+                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none group relative overflow-hidden"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-[#ff7e33] to-[#ff4b8b] opacity-0"
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.6 }}
-                />
-                <motion.div
-                  className="absolute -inset-10 bg-white/20 rounded-full z-0 scale-0 opacity-0 font-display"
-                  whileTap={{
-                    scale: 4,
-                    opacity: 0.3,
-                    transition: { duration: 0.5 },
-                  }}
-                />
-                <span className="mr-1 relative z-10">Buy Now</span>
-                <motion.span
-                  className="relative z-10"
-                  initial={{ x: 0 }}
-                  animate={{
-                    x: [0, 5, 0],
-                    rotate: [0, 0, 5, 0],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.5,
-                    ease: "easeInOut",
-                  }}
-                >
-                  →
-                </motion.span>
-              </motion.button>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#8a63d2] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative z-10 flex items-center justify-center gap-1">
+                  Buy Now
+                  <span className="inline-block group-hover:translate-x-1 transition-transform duration-300">
+                    →
+                  </span>
+                </span>
+              </Button>
             </Link>
             <WalletConnectButton />
             {/* <ThemeToggle /> */}
@@ -164,7 +141,7 @@ export function Header() {
 
         {/* Mobile Navigation Button */}
         <div className="md:hidden flex items-center space-x-4">
-          <ThemeToggle />
+          <WalletConnectButton variant="minimal" />
           <button
             className="text-white focus:outline-none"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -214,6 +191,20 @@ export function Header() {
                 <span className="text-xs text-white/70">Select Network:</span>
                 <NetworkSelector />
               </div>
+              <Link href="/presale" className="block mb-3">
+                <Button
+                  className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none group relative overflow-hidden"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#8a63d2] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 flex items-center justify-center gap-1">
+                    Buy Now
+                    <span className="inline-block group-hover:translate-x-1 transition-transform duration-300">
+                      →
+                    </span>
+                  </span>
+                </Button>
+              </Link>
               <WalletConnectButton className="w-full" />
             </div>
           </div>

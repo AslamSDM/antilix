@@ -347,11 +347,21 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
     <>
       <div className={cn("relative", className)}>
         <Button
-          variant={variant === "fancy" ? "default" : "outline"}
+          variant={
+            variant === "fancy"
+              ? "default"
+              : variant === "minimal"
+              ? "ghost"
+              : "outline"
+          }
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg",
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg",
             variant === "fancy" &&
               "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none",
+            variant === "minimal" &&
+              "bg-transparent hover:bg-black/20 text-white px-2 py-1 h-auto",
+            variant === "default" &&
+              "bg-black/50 backdrop-blur-sm border-white/10 text-white",
             className
           )}
           onClick={() =>
@@ -362,52 +372,48 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
         >
           {!isClient ? ( // Initial render before client check
             <>
-              <Wallet size={16} />
-              <span>Connect Wallet</span>
+              <Wallet size={variant === "minimal" ? 14 : 16} />
+              {variant !== "minimal" && <span>Connect</span>}
             </>
           ) : isConnected ? (
             <>
-              <Wallet size={16} />
-              <span>Wallet Connected</span>
+              <Wallet size={variant === "minimal" ? 14 : 16} />
+              {variant !== "minimal" && <span>Connected</span>}
+              {variant !== "minimal" && walletTypeDisplay && (
+                <div
+                  className={cn(
+                    "px-1.5 py-0.5 rounded text-xs",
+                    currentWalletType === "solana"
+                      ? "bg-purple-500/20"
+                      : "bg-amber-500/20"
+                  )}
+                >
+                  {walletTypeDisplay}
+                </div>
+              )}
             </>
           ) : (
             <>
-              <Wallet size={16} />
-              <span>Connect Wallet</span>
+              <Wallet size={variant === "minimal" ? 14 : 16} />
+              {variant !== "minimal" && <span>Connect</span>}
             </>
           )}
-          {isClient && isConnected && (
-            <>
-              <div className="flex items-center gap-1 ml-2">
-                {walletTypeDisplay && (
-                  <div
-                    className={cn(
-                      "px-2 py-0.5 rounded text-xs",
-                      currentWalletType === "solana"
-                        ? "bg-purple-500/20"
-                        : "bg-amber-500/20"
-                    )}
-                  >
-                    {walletTypeDisplay}
-                  </div>
-                )}
-              </div>
-              <ChevronDown size={14} className="ml-1 opacity-70" />
-            </>
+          {isClient && isConnected && variant !== "minimal" && (
+            <ChevronDown size={12} className="ml-1 opacity-70" />
           )}
         </Button>
 
         {isClient && showOptions && isConnected && (
           <div
             ref={dropdownRef}
-            className="absolute top-full mt-2 right-0 bg-card/80 backdrop-blur-md border border-border rounded-lg shadow-lg p-2 z-50 min-w-[220px]"
+            className="absolute top-full mt-2 right-0 bg-black/70 backdrop-blur-lg border border-white/10 rounded-lg shadow-lg p-2 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-5 duration-200"
           >
             <div className="flex flex-col gap-1">
-              <div className="p-2 mb-1 text-sm font-medium text-primary border-b border-border/50">
+              <div className="p-2 mb-1 text-sm font-medium text-primary border-b border-primary/20">
                 Connected Wallet ({walletTypeDisplay})
               </div>
-              <div className="px-2 py-1 text-xs text-muted-foreground">
-                NextAuth:{" "}
+              <div className="px-2 py-1 text-xs text-white/60">
+                Status:{" "}
                 {status === "authenticated" ? (
                   <span className="text-green-500">Authenticated</span>
                 ) : (
@@ -416,7 +422,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
               </div>
 
               {displayAddress && (
-                <div className="p-2 text-xs border-b border-border/50">
+                <div className="p-2 text-xs border-b border-white/10">
                   <div className="flex items-center gap-2 mb-1">
                     <div
                       className={cn(
@@ -426,11 +432,11 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
                           : "bg-amber-500"
                       )}
                     ></div>
-                    <div className="text-white/70 font-medium">
+                    <div className="text-white/80 font-medium">
                       {currentWalletType === "solana" ? "Solana" : "BSC/EVM"}
                     </div>
                   </div>
-                  <div className="font-mono bg-black/40 p-1.5 rounded text-xs overflow-hidden text-ellipsis">
+                  <div className="font-mono bg-black/60 p-2 rounded text-xs overflow-hidden text-ellipsis text-white/90">
                     {displayAddress}
                   </div>
                 </div>
@@ -439,7 +445,7 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center justify-start gap-2 hover:bg-destructive/10 text-destructive mt-1"
+                className="flex items-center justify-start gap-2 hover:bg-red-500/10 text-red-400 mt-1"
                 onClick={handleDisconnect}
               >
                 <X size={14} />
@@ -449,11 +455,6 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
           </div>
         )}
       </div>
-      {/* WalletConnectModal removed as AppKit's modal will be used via modal.open() */}
-      {/* <WalletConnectModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
     </>
   );
 };

@@ -69,7 +69,7 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
 
       {/* Additional text - moved to bottom right */}
       <motion.div
-        className="floating-text floating-animation absolute right-12 bottom-6"
+        className="floating-text center-left paragraph-text hidden md:block"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -78,7 +78,7 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
           Limited allocation available • Early bird bonus ends soon
         </p>
       </motion.div>
-      <VelocityScroll className="z-[-10] absolute bottom-8 right-20">
+      <VelocityScroll className="z-[-10] absolute top-[50] right-20">
         <span className="text-5xl md:text-7xl font-display text-primary">
           JOIN
         </span>

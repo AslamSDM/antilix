@@ -80,7 +80,7 @@ export default function BettingMarketsSection({
 
       {/* Main description - center right */}
       <motion.div
-        className="floating-text center-right paragraph-text"
+        className="floating-text center-left paragraph-text hidden md:block"
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : 30 }}
         transition={{ duration: 0.6, delay: 0.2 }}
