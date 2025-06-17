@@ -778,35 +778,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                 className="relative aspect-square w-[240px] sm:w-[280px] md:w-[320px] lg:max-w-md mx-auto"
               >
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-full h-full rounded-full border-4 border-primary/10 flex items-center justify-center animate-pulse-slow shadow-glow">
-                    <div
-                      className="w-[80%] h-[80%] rounded-full border-4 border-primary/20 flex items-center justify-center animate-spin-slow"
-                      style={{ animationDirection: "reverse" }}
-                    >
-                      <div
-                        className="w-[60%] h-[60%] rounded-full border-4 border-primary/30 flex items-center justify-center animate-spin-slow"
-                        style={{ animationDuration: "20s" }}
-                      >
-                        <div className="w-[40%] h-[40%] rounded-full bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center text-xl font-bold shadow-[0_0_20px_rgba(212,175,55,0.5)]">
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.15, 1],
-                              textShadow: [
-                                "0 0 5px rgba(212, 175, 55, 0.5)",
-                                "0 0 20px rgba(212, 175, 55, 0.9)",
-                                "0 0 5px rgba(212, 175, 55, 0.5)",
-                              ],
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="luxury-text font-display"
-                          >
-                            LMX
-                          </motion.div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {tokenomicsData.map((item, index) => {
+                  {/* {tokenomicsData.map((item, index) => {
                     const angle =
                       index * (360 / tokenomicsData.length) * (Math.PI / 180);
                     const x = Math.cos(angle) * 45 + 50;
@@ -857,7 +829,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                         </motion.span>
                       </motion.div>
                     );
-                  })}
+                  })} */}
                 </div>
               </motion.div>
             </ScrollAnimationWrapper>
