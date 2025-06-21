@@ -558,7 +558,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   Connected
                 </p>
                 <p className="text-xs sm:text-sm opacity-80">
-                  You can now participate in the presale
+                  You can now participate in the Seed Round
                 </p>
               </motion.div>
             )}
