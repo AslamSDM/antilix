@@ -36,14 +36,21 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
       >
-        <motion.h1
-          className="text-6xl md:text-8xl font-display text-white"
+        <motion.div
+          className="angular-bg slide-in-bg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.6 }}
         >
-          Join Presale Now
-        </motion.h1>
+          <motion.h1
+            className="text-6xl md:text-8xl font-display text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Join Presale Now
+          </motion.h1>
+        </motion.div>
       </motion.div>
       {/* Main content - right side */}
       {/* <motion.div
@@ -70,14 +77,16 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
           Litmex
         </span>
       </VelocityScroll> */}
-      <motion.div
-        className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center max-w-sm mx-auto"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
-        <p className="text-white/90 mb-3 -mx-10">Join Presale</p>
-      </motion.div>
+      <Link href="/presale" className="cursor-pointer ">
+        <motion.div
+          className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center max-w-sm mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <p className="text-white/90 mb-3 -mx-14">Join Presale &gt;</p>
+        </motion.div>
+      </Link>
       {/* Additional floating elements - more spread out positions */}
       <motion.div
         className="floating-text floating-animation-fast absolute top-16 left-16"

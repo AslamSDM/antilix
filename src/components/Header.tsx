@@ -80,18 +80,19 @@ export function Header() {
     <header
       className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 backdrop-blur-lg bg-black/30 border border-white/10 rounded-2xl ${
         scrolled
-          ? "py-3 w-[90%] md:w-[80%] lg:w-[70%] translate-y-0 shadow-lg"
-          : "py-4 w-[95%] md:w-[85%] lg:w-[75%] translate-y-4"
+          ? "py-2 sm:py-3 w-[90%] md:w-[80%] lg:w-[70%] translate-y-0 shadow-lg"
+          : "py-3 sm:py-4 w-[95%] md:w-[85%] lg:w-[75%] translate-y-4"
       }`}
     >
-      <div className="px-4 md:px-8 flex items-center justify-between">
+      <div className="px-3 sm:px-4 md:px-8 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
             src={"/lit_logo.png"}
             alt="Litmex Logo"
             width={70}
             height={70}
-            className="mr-2"
+            className="mr-2 w-[70px] min-w-[70px] h-auto md:w-[80px] md:min-w-[80px] lg:w-[90px] lg:min-w-[90px]"
+            style={{ minHeight: "35px" }}
           />
         </Link>
 
@@ -140,10 +141,10 @@ export function Header() {
         </nav>
 
         {/* Mobile Navigation Button */}
-        <div className="md:hidden flex items-center space-x-4">
+        <div className="md:hidden flex items-center space-x-2 sm:space-x-4">
           <WalletConnectButton variant="minimal" />
           <button
-            className="text-white focus:outline-none"
+            className="text-white focus:outline-none p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (

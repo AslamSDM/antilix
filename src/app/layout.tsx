@@ -12,6 +12,7 @@ import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Suspense } from "react";
 import localFont from "next/font/local";
 import { headers } from "next/headers"; // Import cookies
@@ -104,7 +105,7 @@ export default async function RootLayout({
                   {/* Automatic referral application when user is authenticated */}
                   <AutomaticReferralHandler />
 
-                  <div className="min-h-screen flex flex-col  text-foreground">
+                  <div className="min-h-screen flex flex-col text-foreground">
                     {/* Navigation Header */}
                     <Header />
 
@@ -116,6 +117,9 @@ export default async function RootLayout({
                       <PageTransition>{children}</PageTransition>
                       <FluxDock />
                     </main>
+
+                    {/* Footer */}
+                    <Footer />
                   </div>
                 </ContextProviderAsWalletProviders>
               </AuthProvider>

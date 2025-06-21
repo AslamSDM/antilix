@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Diamond,
@@ -912,7 +913,109 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         </div>
       </section>
 
-      {/* Referral Section */}
+      {/* Investor Logos Gallery */}
+      <div className="mt-12 sm:mt-16 md:mt-20">
+        <h3 className="text-xl text-white sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center">
+          Backed by <span className="text-primary">Top Investors</span>
+        </h3>
+
+        <ScrollAnimationWrapper delay={150}>
+          <LuxuryCard className="p-6 md:p-8 lg:p-10 overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg">
+            <div className="relative w-full">
+              {/* First set of logos - will be animated */}
+              <motion.div
+                className="flex items-center gap-16 sm:gap-24 md:gap-32"
+                animate={{ x: [0, "-100%"] }}
+                transition={{
+                  x: {
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    duration: 30,
+                    ease: "linear",
+                  },
+                }}
+              >
+                {" "}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/dragonfly-removebg-preview.png"
+                    alt="Dragonfly Capital"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/cbventures-removebg-preview.png"
+                    alt="CB Ventures"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                {/* Duplicate logos for seamless loop */}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </LuxuryCard>
+        </ScrollAnimationWrapper>
+      </div>
+
+      {/* Referral section */}
       <section
         ref={referralSectionRef}
         className="py-8 sm:py-12 md:py-20 relative overflow-hidden"

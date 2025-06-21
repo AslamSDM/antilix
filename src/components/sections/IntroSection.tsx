@@ -11,7 +11,7 @@ interface IntroSectionProps {
 export default function IntroSection({ isVisible }: IntroSectionProps) {
   return (
     <motion.div
-      className="sticky top-0 left-0 w-screen h-screen z-50 overflow-hidden"
+      className="sticky top-0 left-0 w-screen h-screen z-50 overflow-hidden "
       animate={{
         opacity: isVisible ? 1 : 0,
       }}
@@ -31,14 +31,22 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
       >
-        <motion.h1
-          className="text-6xl md:text-8xl font-display text-white"
+        <motion.div
+          className="angular-bg slide-in-bg"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          animate={{ opacity: isVisible ? 1 : 0 }}
+          transition={{ duration: 0.6 }}
+          style={{ zIndex: 2, position: "relative" }}
         >
-          LITMEX PROTOCOL
-        </motion.h1>
+          <motion.h1
+            className="text-6xl md:text-8xl font-display text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            LITMEX PROTOCOL
+          </motion.h1>
+        </motion.div>
       </motion.div>
 
       {/* Main description text - scattered on the left */}

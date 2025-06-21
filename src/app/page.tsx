@@ -397,7 +397,7 @@ export default function HomePage() {
         />
 
         {/* Scroll hint that fades out as user starts scrolling */}
-        {activeSection === 0 && (
+        {/* {activeSection === 0 && (
           <motion.div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 flex flex-col items-center z-10"
             initial={{ opacity: 0, y: 20 }}
@@ -434,7 +434,7 @@ export default function HomePage() {
             </motion.div>
             <span className="text-sm">Scroll to explore</span>
           </motion.div>
-        )}
+        )} */}
       </div>
 
       {/* Sections container - we no longer need to center it since each section has absolute positioning */}
@@ -460,12 +460,12 @@ export default function HomePage() {
         </AnimatePresence>
       </div>
 
-      {/* Continue button */}
+      {/* Continue button
       <AnimatePresence>
         {showContinueButton && (
           <ContinueButton isVisible={true} onClick={goToNextSection} />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* ---- THE KEY TO INCREASE SCROLL ---- */}
       {/* This div creates the scrollable height. Adjust height as needed. */}

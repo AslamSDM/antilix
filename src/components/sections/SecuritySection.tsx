@@ -31,14 +31,21 @@ export default function SecuritySection({ isVisible }: SecuritySectionProps) {
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -50 }}
         transition={{ duration: 0.6 }}
       >
-        <motion.h1
-          className="text-6xl md:text-8xl font-display text-white"
+        <motion.div
+          className="angular-bg slide-in-bg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.6 }}
         >
-          Guaranteed Security
-        </motion.h1>
+          <motion.h1
+            className="text-6xl md:text-8xl font-display text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Guaranteed Security
+          </motion.h1>
+        </motion.div>
       </motion.div>
 
       {/* Subtitle - center top */}

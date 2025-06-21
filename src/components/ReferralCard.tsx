@@ -80,12 +80,13 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     <LuxuryCard className={`p-6 ${className}`}>
       <div className="flex items-center mb-4">
         <Share2 className="w-6 h-6 text-primary mr-3" />
-        <h3 className="text-xl font-bold">Refer Friends & Earn 5% Bonus</h3>
+        <h3 className="text-xl font-bold">Refer Friends & Earn 15% Bonus</h3>
       </div>
 
       <p className="text-gray-300 mb-6">
-        Share your unique referral link with friends and earn a 5% bonus on
-        their contribution. Your friends will also receive a 2.5% bonus!
+        Share your unique referral link with friends and earn a 15% bonus on
+        their contribution. also earn 10% bonus in $TRUMP tokens on their
+        contribution'
       </p>
 
       <div className="relative">
