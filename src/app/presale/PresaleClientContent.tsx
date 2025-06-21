@@ -37,6 +37,7 @@ import usePresale from "@/components/hooks/usePresale";
 import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 import { TypingAnimation } from "@/components/magicui/typing-animation";
+import { LMX_PRICE } from "@/lib/constants";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -54,7 +55,7 @@ const tokenomicsData = [
 const presalePhases = [
   {
     name: "Seed round",
-    price: "0.006 USD",
+    price: "0.06 USD",
     bonus: "+30%",
     status: "Active",
     date: "June 1 - July 1",
@@ -65,6 +66,13 @@ const presalePhases = [
     bonus: "+15%",
     status: "Upcoming",
     date: "July 16 - July 31",
+  },
+  {
+    name: "Phase 3",
+    price: "0.012 USD",
+    bonus: "+0%",
+    status: "Upcoming",
+    date: "Aug 16 - Aug 31",
   },
 ];
 
@@ -556,7 +564,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    {"$0.006"}
+                    {LMX_PRICE}
                   </motion.p>
                 </div>
               </LuxuryCard>
@@ -674,7 +682,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Current Price</span>
-                    <span className="font-medium">$0.006</span>
+                    <span className="font-medium">${LMX_PRICE}</span>
                   </div>
                 </div>
               </LuxuryCard>
@@ -978,7 +986,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     alt="CB Ventures"
                     width={160}
                     height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain scale-150 filter brightness-0 invert"
                   />
                 </div>
                 {/* Duplicate logos for seamless loop */}
@@ -1096,93 +1104,111 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               Spread the Word & Earn
             </h2>
             <div className="text-center mb-6 max-w-4xl mx-auto">
-              <div className=" backdrop-blur-sm border border-primary/20 rounded-lg p-4 sm:p-6 mb-6">
-                <h3 className="text-lg sm:text-xl font-semibold text-primary mb-4">
-                  Two-Tier Referral Rewards
-                </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <LuxuryCard className="p-6 md:p-8 overflow-hidden bg-gradient-to-br from-primary/10 to-black/80">
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    <div className="text-left">
+                      <div className="flex items-center gap-3 mb-6">
+                        <Image
+                          src="/logos/wlf.svg"
+                          alt="World Liberty Finance"
+                          width={400}
+                          height={100}
+                          className="object-contain filter brightness-0 invert"
+                        />
+                      </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className=" p-4 rounded-lg border border-primary/10">
-                    <div className="flex items-center mb-3">
-                      <DecorativeIcon
-                        icon="diamond"
-                        size="xs"
-                        className="text-primary mr-2"
-                      />
-                      <h4 className="text-base sm:text-lg font-medium">
-                        LMX Token Rewards
+                      <h4 className="text-lg text-amber-400 font-semibold mb-3 mt-4">
+                        Backed by Approval. Built for Patriots. Powered by
+                        Crypto.
                       </h4>
+
+                      <p className="text-sm md:text-base text-gray-200 mb-4">
+                        The World Liberty Finance Treasury (WLFT) is a
+                        legitimately approved crypto initiative aligned with
+                        core economic principles of the Trump administration.
+                        WLFT stands at the forefront of pro sovereignty finance,
+                        rewarding its holders and builders through a federally
+                        inspired Treasury reward mechanism.
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white border border-white/20">
+                          FINANCIAL FREEDOM
+                        </span>
+                        <span className="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-white border border-white/20">
+                          BUILT FOR PATRIOTS
+                        </span>
+                      </div>
                     </div>
-                    <ul className="list-disc list-inside space-y-2 text-sm sm:text-base text-left text-gray-300">
-                      <li>
-                        Level 1 (direct):{" "}
-                        <span className="text-primary font-medium">
-                          15% LMX
-                        </span>{" "}
-                        tokens
-                      </li>
-                      <li>
-                        Level 2:{" "}
-                        <span className="text-primary font-medium">
-                          15% LMX
-                        </span>{" "}
-                        tokens
-                      </li>
-                      <li>
-                        Level 3:{" "}
-                        <span className="text-primary font-medium">
-                          15% LMX
-                        </span>{" "}
-                        tokens
-                      </li>
-                      <li>
-                        Level 4:{" "}
-                        <span className="text-primary font-medium">
-                          15% LMX
-                        </span>{" "}
-                        tokens
-                      </li>
-                      <li>
-                        Level 5:{" "}
-                        <span className="text-primary font-medium">
-                          15% LMX
-                        </span>{" "}
-                        tokens
-                      </li>
-                    </ul>
+                  </div>
+                </LuxuryCard>
+
+                <div className="p-6 md:p-8 bg-gradient-to-br from-amber-500/10 to-black/80 relative overflow-hidden">
+                  {/* Background image with overlay */}
+                  <div className="absolute inset-0 z-0">
+                    <Image
+                      src="/logos/trumpimage.webp"
+                      alt="President Trump"
+                      fill
+                      className="object-cover opacity-25"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-amber-900/30 to-black/90 z-1"></div>
                   </div>
 
-                  <div className=" p-4 rounded-lg border border-primary/10">
-                    <div className="flex items-center mb-3">
-                      <DecorativeIcon
-                        icon="crown"
-                        size="xs"
-                        className="text-amber-400 mr-2"
-                      />
-                      <h4 className="text-base sm:text-lg font-medium">
-                        Trump Token Rewards
-                      </h4>
+                  {/* Content with relative positioning to appear above the background */}
+                  <DecorativeIcon
+                    icon="crown"
+                    size="xs"
+                    className="text-amber-400 mr-2 mb-4"
+                  />
+                  <div className="relative z-10 mt-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center">
+                      Trump Token Referral Rewards
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="bg-white/5 backdrop-filter backdrop-blur-lg border border-amber-400/20 p-6 sm:p-8 rounded-xl flex flex-col items-center justify-center text-center w-64">
+                      <span className="text-amber-400 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2">
+                        10%
+                      </span>
+                      <span className="text-sm sm:text-base md:text-lg text-amber-300/80">
+                        REFERRAL BONUS
+                      </span>
                     </div>
-                    <p className="text-sm sm:text-base text-left text-gray-300 mb-3">
+                  </div>
+
+                  <div className="text-left">
+                    <p className="text-sm sm:text-base text-gray-300 mb-3">
                       Direct referrers will receive{" "}
                       <span className="text-amber-400 font-medium">
-                        10% Trump
+                        10% Trump Tokens
                       </span>{" "}
-                      tokens in Solana immediately upon successful referral
-                      purchase.
+                      in Solana immediately upon successful referral purchase.
+                      World Liberty Finance Treasury rewards your patriotism.
                     </p>
-                    <div className="flex items-center text-xs sm:text-sm bg-amber-500/10 p-2 rounded">
+
+                    <div className="flex items-center text-xs sm:text-sm bg-amber-500/10 p-3 rounded mb-3">
                       <span className="text-amber-300">
-                        ⚠️ Immediately transferred to your Solana wallet
+                        ⚠️ Rewards immediately transferred to your Solana wallet
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm border-t border-white/10 pt-3">
+                      <span className="text-gray-300">Referral Limit</span>
+                      <span className="text-amber-400 font-medium">
+                        Unlimited
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <p className="text-base sm:text-lg">
-                Share your unique referral link and earn rewards on every
-                purchase made through it
+              <p className="text-base sm:text-lg bg-black/30 p-3 rounded-lg border border-primary/10">
+                Share your unique referral link and earn Trump Tokens on every
+                purchase made through your World Liberty Finance referrals
               </p>
             </div>
           </ScrollAnimationWrapper>

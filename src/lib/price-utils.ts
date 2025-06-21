@@ -1,9 +1,10 @@
 import { toast } from "sonner";
+import { LMX_PRICE } from "./constants";
 
 /**
  * Fixed USD price for 1 LMX token
  */
-export const LMX_PRICE_USD = 0.012;
+export const LMX_PRICE_USD = LMX_PRICE;
 
 /**
  * Fallback prices in case API request fails
