@@ -27,9 +27,7 @@ export default function ReferralStats() {
       setLoading(true);
 
       try {
-        const response = await fetch(
-          `/api/referral/bonuses?walletAddress=${currentWalletAddress}`
-        );
+        const response = await fetch(`/api/referral/bonuses`);
 
         if (response.ok) {
           const data = await response.json();

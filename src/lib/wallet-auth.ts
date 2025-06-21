@@ -8,7 +8,16 @@ import bs58 from "bs58";
  * @returns A message string to be signed
  */
 export function createSignMessage(walletAddress: string): string {
-  return `Sign this message to verify your wallet ownership and generate your ltmex referral code.\n\nWallet: ${walletAddress}\nTimestamp: ${Date.now()}`;
+  const timestamp = Date.now();
+  const nonce = Math.random().toString(36).substring(2, 10);
+
+  return `Sign this message to verify your wallet ownership and generate your ltmex referral code.
+
+Wallet: ${walletAddress}
+Timestamp: ${timestamp}
+Nonce: ${nonce}
+
+This signature will not trigger any blockchain transaction or incur any fees.`;
 }
 
 /**
@@ -46,6 +55,36 @@ export function verifySignature(
 }
 
 /**
+ * Extracts the timestamp from a signed message
+ * @param message The message that was signed
+ * @returns The timestamp in milliseconds, or null if not found
+ */
+export function extractTimestampFromMessage(message: string): number | null {
+  const timestampMatch = message.match(/Timestamp: (\d+)/);
+  if (timestampMatch && timestampMatch[1]) {
+    return parseInt(timestampMatch[1], 10);
+  }
+  return null;
+}
+
+/**
+ * Checks if a signature has expired
+ * @param message The message that was signed
+ * @param maxAgeMs Maximum age of the signature in milliseconds
+ * @returns Boolean indicating if the signature has expired
+ */
+export function isSignatureExpired(
+  message: string,
+  maxAgeMs = 5 * 60 * 1000
+): boolean {
+  const timestamp = extractTimestampFromMessage(message);
+  if (!timestamp) return true;
+
+  const currentTime = Date.now();
+  return currentTime - timestamp > maxAgeMs;
+}
+
+/**
  * Connects referral code generation to wallet verification
  * This ensures that only verified wallet owners can generate referral codes
  * @param walletAddress The wallet address (public key as string)
@@ -58,5 +97,10 @@ export function verifyWalletForReferral(
   signature: string,
   message: string
 ): boolean {
+  // Check if signature is expired (5 minutes max)
+  if (isSignatureExpired(message)) {
+    return false;
+  }
+
   return verifySignature(signature, message, walletAddress);
 }

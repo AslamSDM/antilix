@@ -92,7 +92,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
         setProgress(1);
         setIsLoading(false); // Directly set isLoading to false
       }
-    }, 4000); // Watchdog timeout (e.g., 4 seconds)
+    }, 400); // Watchdog timeout (e.g., 4 seconds)
   };
 
   const completeLoading = () => {
@@ -135,7 +135,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
       if (isLoading) {
         completeLoading();
       }
-    }, 3000); // Fallback to complete loading after 3 seconds
+    }, 1000); // Fallback to complete loading after 3 seconds
 
     return () => {
       // Cleanup all timers when the provider unmounts
@@ -147,7 +147,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isLoading) {
       setTimeout(() => {
         setIsLoading(false);
-      }, 1000); // Simulate loading for 1 second on mount
+      }, 100); // Simulate loading for 1 second on mount
     }
   }, [isLoading]);
 

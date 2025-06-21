@@ -49,7 +49,7 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
     {
       icon: <Gift className="w-6 h-6 text-rose-400" />,
       value: referralBonus,
-      label: "Referral Bonus",
+      label: "Trump Bonus",
       formatter: (val: string) => val,
       isString: true,
     },

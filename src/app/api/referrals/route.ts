@@ -19,10 +19,17 @@ export async function GET(req: NextRequest) {
     }
 
     const walletAddress = session.user.walletAddress;
+    const email = session.user.email;
+    if (!email) {
+      return NextResponse.json(
+        { error: "Wallet address or email not found" },
+        { status: 400 }
+      );
+    }
 
     // Get user info including referral details
     let user = await prisma.user.findUnique({
-      where: { email: walletAddress },
+      where: { email: email },
       select: {
         id: true,
         referralCode: true,
@@ -46,13 +53,14 @@ export async function GET(req: NextRequest) {
 
     // If user doesn't exist, create a new user
     if (!user) {
+      console.log(`No user found with wallet address: ${walletAddress}`);
       // Generate a unique referral code
       const referralCode = await generateUniqueReferralCode();
       const network = walletAddress.length > 40 ? "solana" : "ethereum";
       // Create the new user
       const newUser = await prisma.user.create({
         data: {
-          email: walletAddress,
+          email: session.user.email,
           walletAddress:
             network === "solana" ? walletAddress : walletAddress.toLowerCase(),
           solanaAddress: network === "solana" ? walletAddress : null,
@@ -110,7 +118,7 @@ export async function POST(req: NextRequest) {
     // Get the current user's session
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.walletAddress) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -118,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     // Get user
     let user = await prisma.user.findUnique({
-      where: { email: walletAddress },
+      where: { email: session.user.email },
       select: { id: true, referralCode: true },
     });
 
@@ -126,16 +134,11 @@ export async function POST(req: NextRequest) {
     if (!user) {
       // Generate a unique referral code
       const referralCode = await generateUniqueReferralCode();
-      const network = walletAddress.length > 40 ? "solana" : "ethereum";
       // Create the new user
       const newUser = await prisma.user.create({
         data: {
-          email: walletAddress,
-          walletAddress:
-            network === "solana" ? walletAddress : walletAddress.toLowerCase(),
-          evmAddress:
-            network === "ethereum" ? walletAddress.toLowerCase() : null,
-          walletType: network, // Simple heuristic to determine wallet type
+          email: session.user.email,
+
           referralCode: referralCode,
           verified: true,
         },

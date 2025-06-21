@@ -4,6 +4,10 @@ import { JWT } from "next-auth/jwt";
 import prisma from "./prisma";
 import { validateReferralCode, applyReferral } from "./referral-utils";
 import { getCookie } from "@/lib/cookies";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { compare, hash } from "bcrypt";
+import { nanoid } from "nanoid";
 
 // Extend the session types to include user ID and wallet addresses
 declare module "next-auth" {
@@ -35,8 +39,90 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: "/auth/signin",
+    signUp: "/auth/signup",
+  },
   providers: [
-    // Credentials provider for wallet authentication
+    // Google Provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          referralCode: nanoid(10),
+        };
+      },
+    }),
+
+    // Email/Password Authentication
+    CredentialsProvider({
+      id: "email-password",
+      name: "Email & Password",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "email@example.com",
+        },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              password: true,
+              username: true,
+              referralCode: true,
+              solanaAddress: true,
+              evmAddress: true,
+              walletAddress: true,
+              walletType: true,
+            },
+          });
+
+          if (!user || !user.password) {
+            return null;
+          }
+
+          const passwordMatches = await compare(
+            credentials.password,
+            user.password
+          );
+
+          if (!passwordMatches) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.username || user.email?.split("@")[0],
+            referralCode: user.referralCode,
+            solanaAddress: user.solanaAddress,
+            evmAddress: user.evmAddress,
+            walletAddress: user.walletAddress,
+            walletType: user.walletType,
+          };
+        } catch (error) {
+          console.error("Email/Password authorization error:", error);
+          return null;
+        }
+      },
+    }),
+
+    // Wallet Credentials provider
     {
       id: "credentials",
       name: "Wallet",

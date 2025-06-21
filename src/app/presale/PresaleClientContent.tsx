@@ -231,7 +231,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Use the presale hook for wallet connection and presale data
   const { connected, switchNetwork, presaleNetwork } = usePresale();
@@ -249,14 +249,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
     src: "/sounds/section-change.mp3",
     volume: 0.2,
   });
-
-  useEffect(() => {
-    // Simulate loading time
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Handle wallet connection
   const handleWalletConnect = (type: "ethereum" | "solana") => {
@@ -574,7 +566,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   new Date().getTime()) /
                   (1000 * 60 * 60 * 24)
               )}
-              referralBonus="15%"
+              referralBonus="10%"
             />
 
             {/* Direct Buy Section */}
@@ -769,7 +761,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
       <section className="py-8 sm:py-12 md:py-16 px-4  relative z-10">
         <ScrollAnimationWrapper delay={150}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center font-display">
-            Our <span className="text-primary">Investors</span>
+            <span className="text-primary"> Backed </span> by Industry Leaders
           </h2>
           <div className="w-screen ">
             <div className="relative w-full">
@@ -787,6 +779,152 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                 }}
               >
                 {" "}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/dragonfly-removebg-preview.png"
+                    alt="Dragonfly Capital"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                {/* <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/cbventures-removebg-preview.png"
+                    alt="CB Ventures"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain scale-150 filter brightness-0 invert"
+                  />
+                </div> */}
+                {/* Duplicate logos for seamless loop */}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/dragonfly-removebg-preview.png"
+                    alt="Dragonfly Capital"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                {/* <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/cbventures-removebg-preview.png"
+                    alt="CB Ventures"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain scale-150 filter brightness-0 invert"
+                  />
+                </div> */}
+                {/* Duplicate logos for seamless loop */}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
                 <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
                   <Image
                     src="/logos/a16zcrypto_Logo.svg"

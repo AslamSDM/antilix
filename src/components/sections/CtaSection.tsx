@@ -74,16 +74,18 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
           Litmex
         </span>
       </VelocityScroll> */}
-      <Link href="/presale" className="cursor-pointer ">
-        <motion.div
-          className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center max-w-sm mx-auto"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <p className="text-white/90 mb-3 -mx-14">Join Presale &gt;</p>
-        </motion.div>
-      </Link>
+      <motion.div
+        className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center z-40 mr-24"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <Link href="/presale">
+          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 rounded-md text-lg font-medium transition-colors duration-300 flex items-center">
+            Join Presale <span className="ml-1">&gt;</span>
+          </button>
+        </Link>
+      </motion.div>
       {/* Additional floating elements - more spread out positions */}
       <motion.div
         className="floating-text floating-animation-fast absolute top-16 left-16"

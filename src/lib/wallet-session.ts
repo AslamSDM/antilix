@@ -35,6 +35,33 @@ export async function createWalletSession(
       return false;
     }
 
+    // Try to update the session data client-side if possible
+    try {
+      // Import useSession dynamically to avoid SSR issues
+      const { useSession } = await import("next-auth/react");
+      const session = useSession();
+
+      if (session && typeof session.update === "function") {
+        await session.update({
+          user: {
+            ...session.data?.user,
+            walletAddress: address,
+            walletType,
+            walletVerified: true,
+            ...(walletType === "solana"
+              ? { solanaAddress: address, solanaVerified: true }
+              : {}),
+            ...(walletType === "ethereum" || walletType === "bsc"
+              ? { evmAddress: address, evmVerified: true }
+              : {}),
+          },
+        });
+      }
+    } catch (updateError) {
+      console.warn("Could not update session client-side:", updateError);
+      // Not critical, the session will be updated on next navigation or refresh
+    }
+
     return true;
   } catch (error) {
     console.error("Failed to create wallet session:", error);

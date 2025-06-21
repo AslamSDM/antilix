@@ -5,6 +5,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -20,12 +26,15 @@ import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { useBscPresale } from "./hooks/useBscPresale";
 import { useSolanaPresale } from "./hooks/useSolanaPresale";
 import TransactionStatusModal from "./TransactionStatusModal";
+import { SolanaWalletPrompt } from "./SolanaWalletPrompt";
+import { BSCWalletPrompt } from "./BSCWalletPrompt";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { solana, base, bsc } from "@reown/appkit/networks";
 import { formatEther } from "viem";
 import { getCookie } from "@/lib/cookies";
 import { getStoredReferralCode } from "@/lib/referral";
 import { useSession } from "next-auth/react";
+import { modal } from "@/components/providers/wallet-provider";
 
 // Extended type for our session with referredBy field
 interface CustomSessionUser {
@@ -112,6 +121,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   }, [referralCode, user]);
 
   const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
+  const [showSolanaVerificationModal, setShowSolanaVerificationModal] =
+    useState(false);
+  const [showBSCVerificationModal, setShowBSCVerificationModal] =
+    useState(false);
 
   useEffect(() => {
     // Switch network based on CAIP network
@@ -121,6 +134,30 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       setNetwork("bsc");
     }
   }, [chainId]);
+
+  // Handle session updates after wallet verification
+  useEffect(() => {
+    // Check if wallet has been verified after a modal was shown
+    if (
+      network === "solana" &&
+      user?.solanaAddress &&
+      showSolanaVerificationModal
+    ) {
+      setShowSolanaVerificationModal(false);
+      toast.success("Solana wallet successfully verified!");
+    }
+
+    if (network === "bsc" && user?.evmAddress && showBSCVerificationModal) {
+      setShowBSCVerificationModal(false);
+      toast.success("BSC wallet successfully verified!");
+    }
+  }, [
+    user?.solanaAddress,
+    user?.evmAddress,
+    network,
+    showSolanaVerificationModal,
+    showBSCVerificationModal,
+  ]);
 
   // Get all presale functionality from the usePresale hook
   const {
@@ -187,6 +224,31 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const handleNetworkChange = (newNetwork: "bsc" | "solana") => {
     switchNetwork(newNetwork === "bsc" ? bsc : solana);
     setNetwork(newNetwork);
+  };
+
+  // Handle wallet verification based on current network
+  const handleVerifyWallet = () => {
+    // First connect wallet if needed, otherwise show relevant verification prompt
+    if (!hasWalletConnected) {
+      modal.open();
+    } else {
+      // Using toast to inform user what they need to do
+      if (network === "bsc" && !user?.evmAddress) {
+        toast.info("Please verify your BSC wallet to continue with purchase");
+        // Clear any skip flags
+        localStorage.removeItem("skipBSCWalletPrompt");
+        // Show BSC verification modal
+        setShowBSCVerificationModal(true);
+      } else if (network === "solana" && !user?.solanaAddress) {
+        toast.info(
+          "Please verify your Solana wallet to continue with purchase"
+        );
+        // Clear any skip flags
+        localStorage.removeItem("skipWalletPrompt");
+        // Show Solana verification modal
+        setShowSolanaVerificationModal(true);
+      }
+    }
   };
 
   // Update token and crypto amounts when USD amount changes
@@ -472,6 +534,28 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               <div className="mb-4">
                 {!hasWalletConnected ? (
                   <WalletConnectButton className="w-full py-3" />
+                ) : network === "solana" && !user?.solanaAddress ? (
+                  // If Solana network selected but no verified Solana address in session
+                  <GlowButton
+                    onClick={handleVerifyWallet}
+                    className="w-full py-3 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
+                  >
+                    <>
+                      Verify Solana Wallet
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  </GlowButton>
+                ) : network === "bsc" && !user?.evmAddress ? (
+                  // If BSC network selected but no verified EVM address in session
+                  <GlowButton
+                    onClick={handleVerifyWallet}
+                    className="w-full py-3 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
+                  >
+                    <>
+                      Verify BSC Wallet
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  </GlowButton>
                 ) : (
                   <GlowButton
                     onClick={handleBuy}
@@ -493,7 +577,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   </GlowButton>
                 )}
 
-                {/* Simplified wallet connection status */}
+                {/* Wallet status indicators */}
                 <div
                   className={`mt-2 text-sm text-center ${
                     hasWalletConnected ? "text-green-400" : "text-amber-400"
@@ -503,6 +587,12 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     <div className="flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
                       {network.toUpperCase()} Wallet Connected
+                      {(network === "solana" && !user?.solanaAddress) ||
+                      (network === "bsc" && !user?.evmAddress) ? (
+                        <span className="text-amber-400 ml-1">
+                          (Needs Verification)
+                        </span>
+                      ) : null}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center">
@@ -591,6 +681,52 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
         transactionSignature={transactionSignature || undefined}
         network={network}
       />
+      {/* Solana Wallet Verification Modal */}
+      <Dialog
+        open={showSolanaVerificationModal}
+        onOpenChange={setShowSolanaVerificationModal}
+      >
+        <DialogContent className="bg-black border border-white/10 text-white p-0 overflow-hidden">
+          <DialogHeader className="p-4 border-b border-white/10">
+            <DialogTitle className="text-lg font-medium">
+              Verify Your Solana Wallet
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-0">
+            <SolanaWalletPrompt
+              isModal={true}
+              onVerificationComplete={() => {
+                setShowSolanaVerificationModal(false);
+                // Small delay to allow session to update before refreshing
+                setTimeout(() => window.location.reload(), 500);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* BSC Wallet Verification Modal */}
+      <Dialog
+        open={showBSCVerificationModal}
+        onOpenChange={setShowBSCVerificationModal}
+      >
+        <DialogContent className="bg-black border border-white/10 text-white p-0 overflow-hidden">
+          <DialogHeader className="p-4 border-b border-white/10">
+            <DialogTitle className="text-lg font-medium">
+              Verify Your BSC Wallet
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-0">
+            <BSCWalletPrompt
+              isModal={true}
+              onVerificationComplete={() => {
+                setShowBSCVerificationModal(false);
+                // Small delay to allow session to update before refreshing
+                setTimeout(() => window.location.reload(), 500);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

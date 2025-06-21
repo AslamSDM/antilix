@@ -68,14 +68,6 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
       </motion.div>
 
       {/* Additional floating elements - scattered along the sides */}
-      <motion.div
-        className="floating-text top-left slide-in hidden md:block"
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: isVisible ? 0.8 : 0, x: isVisible ? 0 : -30 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-      >
-        <p className="text-lg text-primary/80">Blockchain-powered</p>
-      </motion.div>
     </motion.div>
   );
 }

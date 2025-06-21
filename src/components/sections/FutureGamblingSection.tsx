@@ -63,24 +63,6 @@ export default function FutureGamblingSection({
           code is law and the odds are on-chain.
         </p>
       </motion.div>
-
-      <motion.div
-        className="floating-text offset-bottom-right floating-animation hidden md:block"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.7 }}
-      >
-        <p className="text-lg text-primary/80">Immutable</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text random-middle floating-animation-slow hidden md:block"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.9 }}
-      >
-        <p className="text-lg text-primary/80">Trustless</p>
-      </motion.div>
     </motion.div>
   );
 }

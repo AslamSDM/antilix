@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Diamond } from "lucide-react";
+import Image from "next/image";
 
 interface LitmexLogoProps {
   className?: string;
@@ -14,11 +15,13 @@ export function LitmexLogo({ className }: LitmexLogoProps) {
 
   return (
     <Link href="/" className={`flex items-center gap-2 ${className || ""}`}>
-      <Diamond size={24} className="text-primary" />
-      <span className="font-display text-xl tracking-wide">
-        <span className="text-primary">ANTI</span>
-        <span style={{ color: textColor }}>LIXH</span>
-      </span>
+      <Image
+        src="/images/litmex-logo.png"
+        alt="Litmex Logo"
+        width={40}
+        height={40}
+      />
+      <span className="font-display text-xl tracking-wide">LITMEX</span>
     </Link>
   );
 }

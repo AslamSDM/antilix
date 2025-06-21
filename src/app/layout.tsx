@@ -18,6 +18,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers"; // Import cookies
 
 import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
+import { SolanaWalletPrompt } from "@/components/SolanaWalletPrompt";
 
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
@@ -104,6 +105,9 @@ export default async function RootLayout({
 
                   {/* Automatic referral application when user is authenticated */}
                   <AutomaticReferralHandler />
+
+                  {/* Prompt for Solana wallet connection */}
+                  <SolanaWalletPrompt />
 
                   <div className="min-h-screen flex flex-col text-foreground">
                     {/* Navigation Header */}
