@@ -52,28 +52,21 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
         transition={{ duration: 0.8, delay: 0.3 }}
       >
         <p className="text-xl text-white/90 max-w-lg">
-          The ultimate decentralized betting platform for the next generation of
-          gamblers
+          Built on Solana, Litmex combines decentralized prediction markets,
+          addictive mini games, and autonomous AI betting agents. It&apos;s not
+          just gambling it&apos;s intelligent, automated crypto wagering at
+          scale.
         </p>
       </motion.div>
 
       {/* Additional floating elements - scattered along the sides */}
       <motion.div
-        className="floating-text top-left slide-in"
+        className="floating-text top-left slide-in hidden md:block"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: isVisible ? 0.8 : 0, x: isVisible ? 0 : -30 }}
         transition={{ duration: 0.8, delay: 0.5 }}
       >
         <p className="text-lg text-primary/80">Blockchain-powered</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text top-right slide-in"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: isVisible ? 0.8 : 0, x: isVisible ? 0 : 30 }}
-        transition={{ duration: 0.8, delay: 0.7 }}
-      >
-        <p className="text-lg text-primary/80">Transparent Odds</p>
       </motion.div>
     </motion.div>
   );

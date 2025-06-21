@@ -45,9 +45,8 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
           Join Presale Now
         </motion.h1>
       </motion.div>
-
       {/* Main content - right side */}
-      <motion.div
+      {/* <motion.div
         className="floating-text floating-animation-slow absolute right-12 top-1/2 transform -translate-y-1/2"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
@@ -62,28 +61,23 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
             {/* <button className="bg-primary text-primary-foreground px-8 py-4 text-lg hover:scale-105 transition-all duration-300 ease-out rounded-md flex items-center">
               <span className="mr-2">Buy LITMEX Tokens</span>
               <ChevronRight className="w-5 h-5" />
-            </button> */}
+            </button> 
           </Link>
         </div>
-      </motion.div>
-
-      {/* Additional text - moved to bottom right */}
-      <motion.div
-        className="floating-text center-left paragraph-text hidden md:block"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-      >
-        <p className="text-sm text-white/70">
-          Limited allocation available • Early bird bonus ends soon
-        </p>
-      </motion.div>
-      <VelocityScroll className="z-[-10] absolute top-[50] right-20">
+      </motion.div> */}
+      {/* <VelocityScroll className="z-[-60] absolute top-[400px] ">
         <span className="text-5xl md:text-7xl font-display text-primary">
-          JOIN
+          Litmex
         </span>
-      </VelocityScroll>
-
+      </VelocityScroll> */}
+      <motion.div
+        className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center max-w-sm mx-auto"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <p className="text-white/90 mb-3 -mx-10">Join Presale</p>
+      </motion.div>
       {/* Additional floating elements - more spread out positions */}
       <motion.div
         className="floating-text floating-animation-fast absolute top-16 left-16"
@@ -92,25 +86,6 @@ export default function CtaSection({ isVisible }: CtaSectionProps) {
         transition={{ duration: 0.8, delay: 0.5 }}
       >
         <p className="text-lg text-primary/80">Early Access</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text floating-animation absolute top-1/3 left-1/4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.7 }}
-      >
-        <p className="text-lg text-primary/80">25% Bonus</p>
-      </motion.div>
-
-      {/* Additional floating elements for better distribution */}
-      <motion.div
-        className="floating-text floating-animation-slow absolute bottom-1/3 left-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-      >
-        <p className="text-lg text-primary/80">Exclusive Benefits</p>
       </motion.div>
     </motion.div>
   );

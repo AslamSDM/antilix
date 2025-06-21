@@ -39,33 +39,9 @@ export default function BettingMarketsSection({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Limitless Betting Markets
+          Bet on Anything
         </motion.h1>
       </motion.div>
-
-      {/* Icon - top left
-      <motion.div
-        className="floating-text top-left floating-animation"
-        animate={
-          isVisible
-            ? { scale: 1, opacity: 1, rotate: 0 }
-            : { scale: 0.5, opacity: 0, rotate: -10 }
-        }
-        transition={{
-          duration: 0.6,
-          delay: 0.2,
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-        }}
-        whileHover={{
-          scale: 1.1,
-          rotate: 5,
-          transition: { duration: 0.2 },
-        }}
-      >
-        <Dice5 className="w-12 h-12 text-primary" />
-      </motion.div> */}
 
       {/* Subtitle - top right */}
       <motion.div
@@ -80,47 +56,15 @@ export default function BettingMarketsSection({
 
       {/* Main description - center right */}
       <motion.div
-        className="floating-text center-left paragraph-text hidden md:block"
+        className="floating-text center-left paragraph-text  slide-in"
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : 30 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <p className="text-white/90 mb-3">
-          Create and participate in betting markets for any event - sports,
-          politics, finance and more.
+          Predict the World speaks to everything politics, sports,
+          entertainment, finance, etc.
         </p>
-        <p className="text-white/90">
-          User-generated markets with custom odds allow for unparalleled betting
-          opportunities.
-        </p>
-      </motion.div>
-
-      {/* Additional floating elements */}
-      <motion.div
-        className="floating-text random-middle floating-animation-slow"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-      >
-        <p className="text-lg text-primary/80">Sports</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text offset-bottom-left floating-animation"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.7 }}
-      >
-        <p className="text-lg text-primary/80">Politics</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text random-top floating-animation-fast"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.9 }}
-      >
-        <p className="text-lg text-primary/80">Finance</p>
       </motion.div>
     </motion.div>
   );

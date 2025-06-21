@@ -39,50 +39,26 @@ export default function FutureGamblingSection({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          The Future of Gambling
+          Future of gamblifi
         </motion.h1>
-      </motion.div>
-
-      {/* Smart Contract text - top left */}
-      <motion.div
-        className="floating-text top-left floating-animation-slow slide-in"
-        animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
-        <p className="text-lg text-primary/80 font-display">
-          Smart Contract Betting
-        </p>
       </motion.div>
 
       {/* Main description - center left */}
       <motion.div
-        className="floating-text center-left paragraph-text hidden md:block"
+        className="floating-text center-left paragraph-text  slide-in"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -30 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <p className="text-white/90 mb-3">
-          Litmex Protocol enables fully decentralized betting markets secured by
-          blockchain technology.
-        </p>
-        <p className="text-white/90">
-          No middlemen, no trusted third parties - just pure code-executed
-          wagers with guaranteed payouts.
+          Immutable smart contract betting meets DeFi. Litmex Protocol powers
+          fair, transparent, and unstoppable betting through blockchain where
+          code is law and the odds are on-chain.
         </p>
       </motion.div>
 
-      {/* Additional floating elements */}
       <motion.div
-        className="floating-text random-top floating-animation-fast"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 0.7 : 0 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-      >
-        <p className="text-lg text-primary/80">Verifiable</p>
-      </motion.div>
-
-      <motion.div
-        className="floating-text offset-bottom-right floating-animation"
+        className="floating-text offset-bottom-right floating-animation hidden md:block"
         initial={{ opacity: 0 }}
         animate={{ opacity: isVisible ? 0.7 : 0 }}
         transition={{ duration: 0.8, delay: 0.7 }}
@@ -91,7 +67,7 @@ export default function FutureGamblingSection({
       </motion.div>
 
       <motion.div
-        className="floating-text random-middle floating-animation-slow"
+        className="floating-text random-middle floating-animation-slow hidden md:block"
         initial={{ opacity: 0 }}
         animate={{ opacity: isVisible ? 0.7 : 0 }}
         transition={{ duration: 0.8, delay: 0.9 }}
