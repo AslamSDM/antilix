@@ -23,10 +23,8 @@
   --primary: rgba(212, 175, 55, 1);
   --primary-light: rgba(212, 175, 55, 0.5);
   --primary-dark: rgba(162, 125, 5, 1);
-  
+
 }
-
-
 
 /* Presale specific styles */
 .luxury-stat-card {
@@ -269,7 +267,16 @@
   0% {
     background-position: 0 0;}
   100% {
-    background-position: 100% -100%;}}}
+    background-position: 100% -100%;}}
+  --animate-shiny-text: shiny-text 8s infinite;
+  @keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }}
 
 :root {
   --radius: 0.625rem;
@@ -388,7 +395,7 @@
     50% { transform: translateY(-15px) rotate(5deg); }
     100% { transform: translateY(0) rotate(0deg); opacity: 1; }
   }
-  
+
   @keyframes fade-in {
     0% { opacity: 0; }
     100% { opacity: 1; }
@@ -397,11 +404,11 @@
   .animate-fade-in {
     animation: fade-in 1s forwards;
   }
-  
+
   .animation-delay-300 {
     animation-delay: 300ms;
   }
-  
+
   .animation-delay-500 {
     animation-delay: 500ms;
   }
@@ -533,7 +540,7 @@ html, body {
       0 0 25px rgba(212, 175, 55, 0.25);
     border: 1px solid rgba(212, 175, 55, 0.6);
   }
-  
+
   .luxury-card:hover::before {
     opacity: 1;
   }
@@ -548,7 +555,7 @@ html, body {
     z-index: 1;
     transition: all 0.3s ease;
   }
-  
+
   .luxury-card:hover .corner-decoration {
     width: 35px;
     height: 35px;
@@ -577,7 +584,7 @@ html, body {
     top: 50%;
     transform: translateY(-50%) rotate(180deg);
   }
-  
+
   .decorative-text-right {
     right: 1rem;
     top: 50%;
@@ -605,20 +612,20 @@ html, body {
     box-shadow: 0 0 10px 2px rgba(212, 175, 55, 0.5);
     animation: sparkle 3s ease-in-out infinite;
   }
-  
+
   @keyframes sparkle {
     0%, 100% { transform: scale(0.8); opacity: 0.5; }
     50% { transform: scale(1.2); opacity: 1; }
   }
-  
+
   .animation-delay-700 {
     animation-delay: 0.7s;
   }
-  
+
   .animation-delay-1000 {
     animation-delay: 1s;
   }
-  
+
   .animation-delay-1500 {
     animation-delay: 1.5s;
   }
@@ -630,7 +637,7 @@ html, body {
     z-index: 5;
     pointer-events: none;
   }
-  
+
   /* Grid pattern animations */
   .grid-pattern-container {
     position: fixed;
@@ -639,23 +646,23 @@ html, body {
     pointer-events: none;
     z-index: -1;
   }
-  
+
   .grid-background-animate {
     animation: grid-pulse 10s ease-in-out infinite;
   }
-  
+
   @keyframes grid-pulse {
     0%, 100% { opacity: 0.2; }
     50% { opacity: 0.3; }
   }
-  
+
   .grid-pattern-overlay {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at center, transparent 20%, rgba(0, 0, 0, 0.8) 100%);
     pointer-events: none;
   }
-  
+
   /* Glow shadow effect */
   .shadow-glow {
     box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary, rgba(212, 175, 55, 0.5));
@@ -736,7 +743,7 @@ html, body {
       0 0 25px rgba(212, 175, 55, 0.25);
     border: 1px solid rgba(212, 175, 55, 0.6);
   }
-  
+
   .luxury-card:hover::before {
     opacity: 1;
   }
@@ -751,7 +758,7 @@ html, body {
     z-index: 1;
     transition: all 0.3s ease;
   }
-  
+
   .luxury-card:hover .corner-decoration {
     width: 35px;
     height: 35px;
@@ -780,7 +787,7 @@ html, body {
     top: 50%;
     transform: translateY(-50%) rotate(180deg);
   }
-  
+
   .decorative-text-right {
     right: 1rem;
     top: 50%;
@@ -808,20 +815,20 @@ html, body {
     box-shadow: 0 0 10px 2px rgba(212, 175, 55, 0.5);
     animation: sparkle 3s ease-in-out infinite;
   }
-  
+
   @keyframes sparkle {
     0%, 100% { transform: scale(0.8); opacity: 0.5; }
     50% { transform: scale(1.2); opacity: 1; }
   }
-  
+
   .animation-delay-700 {
     animation-delay: 0.7s;
   }
-  
+
   .animation-delay-1000 {
     animation-delay: 1s;
   }
-  
+
   .animation-delay-1500 {
     animation-delay: 1.5s;
   }
@@ -833,7 +840,7 @@ html, body {
     z-index: 5;
     pointer-events: none;
   }
-  
+
   /* Grid pattern animations */
   .grid-pattern-container {
     position: fixed;
@@ -842,23 +849,23 @@ html, body {
     pointer-events: none;
     z-index: -1;
   }
-  
+
   .grid-background-animate {
     animation: grid-pulse 10s ease-in-out infinite;
   }
-  
+
   @keyframes grid-pulse {
     0%, 100% { opacity: 0.2; }
     50% { opacity: 0.3; }
   }
-  
+
   .grid-pattern-overlay {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at center, transparent 20%, rgba(0, 0, 0, 0.8) 100%);
     pointer-events: none;
   }
-  
+
   /* Glow shadow effect */
   .shadow-glow {
     box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary, rgba(212, 175, 55, 0.5));
@@ -888,3 +895,11 @@ html, body {
   animation: loading 1.2s linear infinite;
 }
 
+@layer base {
+  * {
+    @apply border-border ;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

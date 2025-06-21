@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Spline from "@splinetool/react-spline/next";
 import { Application } from "@splinetool/runtime";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { HyperText } from "@/components/magicui/hyper-text";
+import { FlipText } from "@/components/magicui/flip-text";
+
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { TypingAnimation } from "@/components/magicui/typing-animation";
 import { SpinningText } from "@/components/magicui/spinning-text";
@@ -72,14 +73,14 @@ const HeroPageScroll: React.FC = () => {
         {/* Section 1: Hero Title - Visible at the start */}
         <div className="absolute top-[10vh] inset-x-0 text-center">
           <motion.div style={{ opacity: opacityHeader }} className="px-4">
-            <HyperText
+            <FlipText
               className="text-5xl md:text-7xl font-bold text-white font-display"
               duration={1500}
               startOnView={true}
               animateOnHover={true}
             >
               Litmex
-            </HyperText>
+            </FlipText>
             <motion.p
               className="mt-6 text-xl md:text-2xl text-white/80"
               initial={{ opacity: 0, y: 20 }}
@@ -168,13 +169,13 @@ const HeroPageScroll: React.FC = () => {
           style={{ opacity: opacityFeaturesEnd }}
           className="absolute top-[180vh] inset-x-0 text-center"
         >
-          <HyperText
+          <FlipText
             className="text-3xl md:text-5xl font-bold text-white font-display"
             duration={1200}
             startOnView={true}
           >
             Join the Elite
-          </HyperText>
+          </FlipText>
         </motion.div>
 
         {/* Section 4: Call to Action - Appears at the end of scroll */}

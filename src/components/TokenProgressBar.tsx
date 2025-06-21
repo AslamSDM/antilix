@@ -57,26 +57,6 @@ export const TokenProgressBar: React.FC<TokenProgressBarProps> = ({
             />
           ))}
         </div>
-
-        <div className="flex justify-between items-center mt-2 text-xs text-gray-400">
-          <span>0 SOL</span>
-          <span>{goal} SOL</span>
-        </div>
-
-        <div className="text-center mt-2">
-          <span className="text-sm">
-            <span className="text-primary font-bold">
-              {raised.toFixed(2)} SOL
-            </span>
-            <span className="text-gray-400"> raised of </span>
-            <span className="font-medium">{goal} SOL</span>
-            <span className="text-gray-400 ml-1">hard goal</span>
-          </span>
-        </div>
-
-        <div className="text-center mt-1 text-xs text-gray-400">
-          <span>No cap on total tokens available for presale</span>
-        </div>
       </div>
     </Suspense>
   );

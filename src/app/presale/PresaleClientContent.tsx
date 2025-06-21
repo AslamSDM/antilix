@@ -23,10 +23,10 @@ import { ReferralCard } from "@/components/ReferralCard";
 import { WalletSelectorButton } from "@/components/WalletSelectorButton";
 import PresaleBuyForm from "@/components/PresaleBuyForm";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
-import { HyperText } from "@/components/magicui/hyper-text";
+import { FlipText } from "@/components/magicui/flip-text";
+
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
-import ParticleBackground from "@/components/ParticleBackground";
 import "../../components/sections/animation-utils.css";
 
 // Use the /next import for Spline with React.lazy
@@ -35,11 +35,12 @@ const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 import usePresale from "@/components/hooks/usePresale";
 import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
+import { TypingAnimation } from "@/components/magicui/typing-animation";
 
 // Tokenomics data
 const tokenomicsData = [
   { name: "Community", percentage: 35, color: "bg-primary" },
-  { name: "Presale", percentage: 30, color: "bg-purple-600" },
+  { name: "Seed Round", percentage: 30, color: "bg-purple-600" },
   { name: "Team", percentage: 10, color: "bg-amber-500" },
   { name: "Liquidity", percentage: 10, color: "bg-green-500" },
   { name: "Advisers", percentage: 5, color: "bg-rose-500" },
@@ -51,25 +52,18 @@ const tokenomicsData = [
 // Presale phases
 const presalePhases = [
   {
-    name: "Phase 1",
-    price: "0.008 SOL",
+    name: "Seed round",
+    price: "0.006 USD",
     bonus: "+30%",
-    status: "Completed",
-    date: "May 1 - May 15",
+    status: "Active",
+    date: "June 1 - July 1",
   },
   {
     name: "Phase 2",
-    price: "0.010 SOL",
+    price: "0.012 USD",
     bonus: "+15%",
-    status: "Completed",
-    date: "May 16 - May 31",
-  },
-  {
-    name: "Phase 3",
-    price: "0.012 SOL",
-    bonus: "None",
-    status: "Active",
-    date: "June 1 - June 30",
+    status: "Upcoming",
+    date: "July 16 - July 31",
   },
 ];
 
@@ -280,7 +274,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         />
 
         <motion.div
-          className="absolute w-[300px] h-[300px] rounded-full bg-purple-500/5 blur-[80px] pointer-events-none"
+          className="absolute w-[300px] h-[300px] rounded-full  blur-[80px] pointer-events-none"
           animate={{
             x: [0, -80, 60, 0],
             y: [0, 100, -40, 0],
@@ -297,7 +291,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         />
 
         <motion.div
-          className="absolute w-[250px] h-[250px] rounded-full bg-amber-500/5 blur-[60px] pointer-events-none"
+          className="absolute w-[250px] h-[250px] rounded-full  blur-[60px] pointer-events-none"
           animate={{
             x: [0, 60, -30, 0],
             y: [0, -60, 80, 0],
@@ -434,9 +428,9 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               className="overflow-hidden relative mb-3"
               style={{ maxWidth: "100%", margin: "0 auto" }}
             >
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-center font-display">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-center ">
                 <span className="text-primary">
-                  <HyperText>LITMEX Token Presale</HyperText>
+                  <TypingAnimation>LITMEX Token Seed Round</TypingAnimation>
                 </span>
               </h1>
             </motion.div>
@@ -451,9 +445,9 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             </motion.p>
           </motion.div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center font-display">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center ">
             <span className="text-primary">
-              <HyperText>Live Presale Statistics</HyperText>
+              <TypingAnimation>Live Seed Round Statistics</TypingAnimation>
             </span>
           </h2>
 
@@ -561,7 +555,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    0.012 USD
+                    {"$0.006"}
                   </motion.p>
                 </div>
               </LuxuryCard>
@@ -647,7 +641,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         <div className="container mx-auto relative z-10">
           <ScrollAnimationWrapper>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center font-display">
-              Token <span className="text-primary">Presale</span> Details
+              Token <span className="text-primary">Seed Round</span> Details
             </h2>
           </ScrollAnimationWrapper>
 
@@ -679,7 +673,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Current Price</span>
-                    <span className="font-medium">$0.012</span>
+                    <span className="font-medium">$0.006</span>
                   </div>
                 </div>
               </LuxuryCard>
@@ -769,71 +763,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             </h2>
           </ScrollAnimationWrapper>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <ScrollAnimationWrapper delay={150}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="relative aspect-square w-[240px] sm:w-[280px] md:w-[320px] lg:max-w-md mx-auto"
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {/* {tokenomicsData.map((item, index) => {
-                    const angle =
-                      index * (360 / tokenomicsData.length) * (Math.PI / 180);
-                    const x = Math.cos(angle) * 45 + 50;
-                    const y = Math.sin(angle) * 45 + 50;
-
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 260,
-                          damping: 20,
-                          delay: 0.2 * index,
-                        }}
-                        className="absolute flex flex-col items-center"
-                        style={{
-                          left: `${x}%`,
-                          top: `${y}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                        whileHover={{
-                          scale: 1.15,
-                          transition: { duration: 0.2 },
-                        }}
-                      >
-                        <motion.div
-                          className={`w-5 h-5 rounded-full ${item.color} mb-2 border border-white/10 shadow-glow`}
-                          animate={{
-                            boxShadow: [
-                              "0 0 5px rgba(212, 175, 55, 0.2)",
-                              "0 0 12px rgba(212, 175, 55, 0.5)",
-                              "0 0 5px rgba(212, 175, 55, 0.2)",
-                            ],
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        ></motion.div>
-                        <span className="text-[10px] xs:text-xs sm:text-sm font-medium luxury-text">
-                          {item.name}
-                        </span>
-                        <motion.span
-                          className="text-[8px] xs:text-[10px] sm:text-xs text-white/90 font-bold"
-                          animate={{ opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                        >
-                          {item.percentage}%
-                        </motion.span>
-                      </motion.div>
-                    );
-                  })} */}
-                </div>
-              </motion.div>
-            </ScrollAnimationWrapper>
-
+          <div className=" gap-8 md:gap-12 items-center w-full">
             <ScrollAnimationWrapper delay={300}>
               <LuxuryCard
                 className="p-4 sm:p-6 md:p-8 transform hover:scale-[1.02] transition-all duration-300"
@@ -846,15 +776,16 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     Token Allocation
                   </h3>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6 w-full">
                   {tokenomicsData.map((item, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.1 * index }}
+                      className="w-full"
                     >
-                      <div className="flex justify-between mb-1 sm:mb-2 items-center">
+                      <div className="flex justify-between mb-1 sm:mb-2 items-center w-full">
                         <div className="flex items-center">
                           <div
                             className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${item.color} mr-1 sm:mr-2 border border-white/10`}
@@ -887,7 +818,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
       {/* Why invest section */}
       <section
         ref={whyInvestSectionRef}
-        className="py-8 sm:py-12 md:py-16 px-4 bg-black/40 backdrop-blur-sm relative z-10"
+        className="py-8 sm:py-12 md:py-16 px-4  backdrop-blur-sm relative z-10"
       >
         <div className="container mx-auto">
           <ScrollAnimationWrapper>
@@ -987,7 +918,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         className="py-8 sm:py-12 md:py-20 relative overflow-hidden"
       >
         {/* Enhanced referral section background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-purple-900/30 overflow-hidden">
+        <div className="absolute inset-0  overflow-hidden">
           <motion.div
             className="absolute w-full h-full opacity-50 sm:opacity-60 md:opacity-70 lg:opacity-100"
             initial={{ opacity: 0 }}
@@ -1053,7 +984,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         <BackgroundDecorations />
         <div className="container mx-auto px-3 sm:px-4 relative z-10">
           <ScrollAnimationWrapper delay={0.2}>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-12 luxury-text-shadow text-gold-400">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 sm:mb-6 md:mb-8 lg:mb-12  text-gold-400">
               <DecorativeIcon
                 icon="spade"
                 size="xs"
@@ -1062,13 +993,13 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               Spread the Word & Earn
             </h2>
             <div className="text-center mb-6 max-w-4xl mx-auto">
-              <div className="bg-black/40 backdrop-blur-sm border border-primary/20 rounded-lg p-4 sm:p-6 mb-6">
+              <div className=" backdrop-blur-sm border border-primary/20 rounded-lg p-4 sm:p-6 mb-6">
                 <h3 className="text-lg sm:text-xl font-semibold text-primary mb-4">
                   Two-Tier Referral Rewards
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-black/40 p-4 rounded-lg border border-primary/10">
+                  <div className=" p-4 rounded-lg border border-primary/10">
                     <div className="flex items-center mb-3">
                       <DecorativeIcon
                         icon="diamond"
@@ -1118,7 +1049,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     </ul>
                   </div>
 
-                  <div className="bg-black/40 p-4 rounded-lg border border-primary/10">
+                  <div className=" p-4 rounded-lg border border-primary/10">
                     <div className="flex items-center mb-3">
                       <DecorativeIcon
                         icon="crown"
@@ -1156,18 +1087,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             <ReferralCard />
           </ScrollAnimationWrapper>
         </div>
-
-        {/* Floating decorative elements */}
-        <motion.div
-          className="absolute bottom-4 sm:bottom-6 md:bottom-10 right-4 sm:right-6 md:right-10 w-10 sm:w-16 md:w-20 h-10 sm:h-16 md:h-20 opacity-20 pointer-events-none"
-          animate={{
-            y: [0, -15, 0],
-            rotate: [0, 5, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <DecorativeIcon icon="diamond" size="lg" className="text-primary" />
-        </motion.div>
       </section>
 
       {/* FAQ Section */}
@@ -1175,56 +1094,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         ref={faqSectionRef}
         className="py-8 sm:py-12 md:py-20 relative overflow-hidden"
       >
-        {/* Interactive gradient background */}
-        <div className="absolute inset-0 bg-gray-900 overflow-hidden">
-          {/* Animated gradient overlay */}
-          <motion.div
-            className="absolute inset-0 opacity-20 sm:opacity-25 md:opacity-30"
-            style={{
-              background:
-                "radial-gradient(circle at center, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 70%)",
-            }}
-            animate={{
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          />
-
-          {/* Subtle floating shapes */}
-          <motion.div
-            className="absolute w-48 sm:w-64 md:w-96 h-48 sm:h-64 md:h-96 rounded-full bg-primary/5 blur-[100px]"
-            style={{ left: "10%", top: "20%" }}
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -30, 0],
-            }}
-            transition={{
-              duration: 15,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          />
-
-          <motion.div
-            className="absolute w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 rounded-full bg-purple-500/5 blur-[80px]"
-            style={{ right: "15%", bottom: "10%" }}
-            animate={{
-              x: [0, -20, 0],
-              y: [0, 20, 0],
-            }}
-            transition={{
-              duration: 12,
-              repeat: Infinity,
-              repeatType: "reverse",
-              delay: 2,
-            }}
-          />
-        </div>
-
         <div className="container mx-auto max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl px-2 relative z-10">
           <ScrollAnimationWrapper>
             <motion.div
@@ -1251,7 +1120,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             />
             <FaqItem
               question="What are the benefits of buying during presale?"
-              answer="Presale investors receive tokens at a discounted price compared to the public launch. You'll also receive bonuses based on the current phase and will have early access to platform features and exclusive VIP benefits."
+              answer="Seed Round investors receive tokens at a discounted price compared to the public launch. You'll also receive bonuses based on the current phase and will have early access to platform features and exclusive VIP benefits."
               delay={300}
             />
             <FaqItem
