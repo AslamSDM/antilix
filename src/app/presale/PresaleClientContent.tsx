@@ -24,7 +24,6 @@ import { ReferralCard } from "@/components/ReferralCard";
 import { WalletSelectorButton } from "@/components/WalletSelectorButton";
 import PresaleBuyForm from "@/components/PresaleBuyForm";
 import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
-import { FlipText } from "@/components/magicui/flip-text";
 
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
@@ -41,14 +40,14 @@ import { LMX_PRICE } from "@/lib/constants";
 
 // Tokenomics data
 const tokenomicsData = [
-  { name: "Community", percentage: 35, color: "bg-primary" },
-  { name: "Seed Round", percentage: 30, color: "bg-purple-600" },
-  { name: "Team", percentage: 10, color: "bg-amber-500" },
-  { name: "Liquidity", percentage: 10, color: "bg-green-500" },
+  { name: "Community", percentage: 30, color: "bg-primary" },
+  { name: "Seed/Presale", percentage: 25, color: "bg-purple-600" },
+  { name: "Team", percentage: 5, color: "bg-amber-500" },
+  { name: "Liquidity", percentage: 15, color: "bg-green-500" },
   { name: "Advisers", percentage: 5, color: "bg-rose-500" },
-  { name: "Marketing", percentage: 5, color: "bg-blue-500" },
-  { name: "Developments", percentage: 3, color: "bg-indigo-500" },
-  { name: "Partnerships", percentage: 2, color: "bg-pink-500" },
+  { name: "Marketing", percentage: 10, color: "bg-blue-500" },
+  { name: "Developments", percentage: 4, color: "bg-indigo-500" },
+  { name: "Partnerships", percentage: 6, color: "bg-pink-500" },
 ];
 
 // Presale phases
@@ -81,18 +80,26 @@ interface FaqItemProps {
   question: string;
   answer: string;
   delay?: number;
+  isOpen: boolean;
+  index: number;
+  onToggle: (index: number) => void;
 }
 
-const FaqItem: React.FC<FaqItemProps> = ({ question, answer, delay = 0 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+const FaqItem: React.FC<FaqItemProps> = ({
+  question,
+  answer,
+  delay = 0,
+  isOpen,
+  index,
+  onToggle,
+}) => {
   return (
     <ScrollAnimationWrapper delay={delay}>
       <div className="rounded-lg overflow-hidden">
-        <LuxuryCard className="p-0">
+        <LuxuryCard className="p-0" noDecorativeIcon={true}>
           <button
             className="w-full flex items-center justify-between p-3 sm:p-4 md:p-6 text-left"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => onToggle(index)}
           >
             <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-medium pr-2">
               {question}
@@ -123,6 +130,90 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, answer, delay = 0 }) => {
         </LuxuryCard>
       </div>
     </ScrollAnimationWrapper>
+  );
+};
+
+// FAQ accordion that ensures only one item can be open at a time
+const FaqAccordion = () => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  // Toggle function that closes any open item and opens the clicked one
+  const handleToggle = (index: number) => {
+    setActiveIndex(activeIndex === index ? null : index);
+  };
+
+  // FAQ data
+  const faqItems = [
+    {
+      question: "What is Litmex?",
+      answer:
+        "Litmex is a premium web3 gambling platform that combines the excitement of gaming with blockchain technology. The platform offers provably fair games, exclusive rewards, and luxury experiences for its users.",
+      delay: 100,
+    },
+    {
+      question: "How can I participate in the presale?",
+      answer:
+        "To participate in the presale, connect your Solana wallet, enter the amount of SOL you wish to invest, and complete the transaction. The LMX tokens will be distributed to your wallet once the presale concludes.",
+      delay: 200,
+    },
+    {
+      question: "What are the benefits of buying during presale?",
+      answer:
+        "Seed Round investors receive tokens at a discounted price compared to the public launch. You'll also receive bonuses based on the current phase and will have early access to platform features and exclusive VIP benefits.",
+      delay: 300,
+    },
+    {
+      question: "When will LMX be listed on exchanges?",
+      answer:
+        "LMX will be listed on Solana decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows.",
+      delay: 400,
+    },
+    {
+      question: "Is there a vesting period for presale tokens?",
+      answer:
+        "No, all presale tokens will be fully unlocked and transferable once the token is launched on Solana. Team tokens are subject to a 12-month vesting period with monthly unlocks to ensure long-term commitment.",
+      delay: 500,
+    },
+    {
+      question: "How will the raised funds be used?",
+      answer:
+        "30% for platform development, 25% for liquidity provision, 20% for marketing and partnerships, 15% for legal and compliance, and 10% for operations and security infrastructure.",
+      delay: 600,
+    },
+    {
+      question: "Why did you choose Solana blockchain?",
+      answer:
+        "We selected Solana for its ultra-fast transaction speeds (up to 65,000 TPS), negligible gas fees (less than $0.01 per transaction), and growing ecosystem, making it ideal for gaming applications. Solana's efficiency enables seamless in-game transactions and rewards distribution.",
+      delay: 700,
+    },
+    {
+      question: "How do I set up a Solana wallet?",
+      answer:
+        "We recommend using Phantom or Solflare wallets. Download the browser extension or mobile app, create a new wallet, securely store your recovery phrase offline, and fund your wallet with SOL from an exchange. Make sure to connect your wallet on our website before participating in the presale.",
+      delay: 800,
+    },
+    {
+      question: "What is the total supply of LMX tokens?",
+      answer:
+        "The total supply of Litmex (LMX) tokens is 1 billion (1,000,000,000). Unlike Ethereum-based tokens, Solana SPL tokens don't require a hardcap on purchases during presale, allowing unrestricted participation while maintaining our tokenomics distribution.",
+      delay: 900,
+    },
+  ];
+
+  return (
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
+      {faqItems.map((item, index) => (
+        <FaqItem
+          key={index}
+          question={item.question}
+          answer={item.answer}
+          delay={item.delay}
+          isOpen={activeIndex === index}
+          index={index}
+          onToggle={handleToggle}
+        />
+      ))}
+    </div>
   );
 };
 
@@ -240,7 +331,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Enhanced Global Background - Always Active */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         {/* Base gradient background */}
@@ -378,7 +468,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           />
         ))}
       </div>
-
       {/* Spline 3D background - with lower opacity and responsive display */}
       <div className="fixed inset-0 w-full h-full z-[1] pointer-events-none opacity-20 sm:opacity-25 md:opacity-30">
         <Suspense
@@ -390,16 +479,14 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         >
           <DynamicSpline
             scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode"
-            className="w-full h-full absolute inset-0"
+            className="w-full h-full absolute inset-0 z-0"
           />
         </Suspense>
       </div>
-
       {/* Scroll indicator at bottom - improved responsiveness */}
       <div className="fixed bottom-2 sm:bottom-4 md:bottom-6 lg:bottom-10 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none w-full max-w-[80px] sm:max-w-[100px] md:max-w-[120px]">
         <ScrollIndicator fadeAfter={0.2} />
       </div>
-
       {/* Main presale section - Direct focus on stats and buying */}
       <section
         ref={statsSectionRef}
@@ -443,22 +530,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                 </span>
               </h1>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-base sm:text-lg md:text-xl text-center max-w-2xl mx-auto text-white/80 px-2"
-            >
-              Join early for exclusive benefits, reduced fees, and priority
-              access
-            </motion.p>
           </motion.div>
-
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center ">
-            <span className="text-primary">
-              <TypingAnimation>Live Seed Round Statistics</TypingAnimation>
-            </span>
-          </h2>
 
           <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 px-2">
             <CountdownTimer
@@ -510,7 +582,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-6 sm:mt-8 md:mt-12 lg:mt-16 max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative px-2"
+              className="mt-6 lg:max-w-2xl mx-auto relative px-2"
             >
               <div className="w-full">
                 <PresaleBuyForm
@@ -630,136 +702,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           </div>
         </div>
       </section>
-
-      {/* Presale information */}
-      <section
-        ref={detailsSectionRef}
-        className="py-8 sm:py-12 md:py-16 px-4 bg-black/20 backdrop-blur-sm relative z-10"
-      >
-        {/* Section-specific grid pattern */}
-        <div className="absolute inset-0 z-0 square">
-          <InteractiveGridPattern
-            width={50}
-            height={50}
-            squares={[40, 40]}
-            squaresClassName="fill-purple-500/5  stroke-purple-500/10 hover:fill-purple-500/20 transition-all duration-700"
-            className="opacity-40 [mask-image:radial-gradient(600px_circle_at_center,white,transparent)]"
-          />
-        </div>
-
-        <div className="container mx-auto relative z-10">
-          <ScrollAnimationWrapper>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center font-display">
-              Token <span className="text-primary">Seed Round</span> Details
-            </h2>
-          </ScrollAnimationWrapper>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12 md:mb-16">
-            <ScrollAnimationWrapper delay={150}>
-              <LuxuryCard className="p-3 sm:p-4 md:p-6 lg:p-8">
-                <div className="flex items-center mb-3 sm:mb-4 md:mb-6">
-                  <Coins className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary mr-2 sm:mr-3 md:mr-4" />
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                    Token Information
-                  </h3>
-                </div>
-                <div className="space-y-2 sm:space-y-3 md:space-y-4 text-xs sm:text-sm md:text-base">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Name</span>
-                    <span className="font-medium">Litmex Token</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Symbol</span>
-                    <span className="font-medium">LMX</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Total Supply</span>
-                    <span className="font-medium">1,000,000,000 LMX</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Network</span>
-                    <span className="font-medium">Solana (SPL Token)</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">Current Price</span>
-                    <span className="font-medium">${LMX_PRICE}</span>
-                  </div>
-                </div>
-              </LuxuryCard>
-            </ScrollAnimationWrapper>
-
-            <ScrollAnimationWrapper delay={300}>
-              <LuxuryCard className="p-3 sm:p-4 md:p-6 lg:p-8">
-                <div className="flex items-center mb-3 sm:mb-4 md:mb-6">
-                  <Timer className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-primary mr-2 sm:mr-3 md:mr-4" />
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                    Presale Schedule
-                  </h3>
-                </div>
-                <div className="space-y-4 sm:space-y-5 md:space-y-6">
-                  {presalePhases.map((phase, index) => (
-                    <div
-                      key={index}
-                      className="relative pl-6 sm:pl-7 md:pl-8 border-l border-primary/30"
-                    >
-                      <div
-                        className={`absolute -left-2 top-0 w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 rounded-full ${
-                          phase.status === "Completed"
-                            ? "bg-primary"
-                            : phase.status === "Active"
-                            ? "bg-primary border-2 border-background animate-pulse"
-                            : "bg-gray-700"
-                        }`}
-                      ></div>
-                      <h4 className="font-bold text-base sm:text-lg">
-                        {phase.name}
-                      </h4>
-                      <div className="text-xs sm:text-sm text-gray-300">
-                        {phase.date}
-                      </div>
-                      <div className="flex justify-between items-center mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">
-                        <span>Price: {phase.price}</span>
-                        <span>Bonus: {phase.bonus}</span>
-                      </div>
-                      <div
-                        className={`mt-1 text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 sm:py-1 inline-block rounded-md 
-                        ${
-                          phase.status === "Completed"
-                            ? "bg-green-500/20 text-green-400"
-                            : phase.status === "Active"
-                            ? "bg-primary/20 text-primary"
-                            : "bg-gray-700/30 text-gray-400"
-                        }`}
-                      >
-                        {phase.status}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </LuxuryCard>
-            </ScrollAnimationWrapper>
-          </div>
-
-          <ScrollAnimationWrapper delay={450}>
-            <div className="p-4 max-w-3xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.8 }}
-                className="flex items-center justify-center gap-6 flex-wrap"
-              >
-                <DecorativeIcon
-                  icon="diamond"
-                  size="lg"
-                  className="opacity-20"
-                />
-                <DecorativeIcon icon="crown" size="md" className="opacity-15" />
-                <DecorativeIcon icon="spade" size="lg" className="opacity-20" />
-              </motion.div>
-            </div>
-          </ScrollAnimationWrapper>
-        </div>
-      </section>
       {/* Tokenomics section */}
       <section
         ref={tokenomicsSectionRef}
@@ -822,6 +764,106 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             </ScrollAnimationWrapper>
           </div>
         </div>
+      </section>
+
+      <section className="py-8 sm:py-12 md:py-16 px-4  relative z-10">
+        <ScrollAnimationWrapper delay={150}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 md:mb-12 text-center font-display">
+            Our <span className="text-primary">Investors</span>
+          </h2>
+          <div className="w-screen ">
+            <div className="relative w-full">
+              {/* First set of logos - will be animated */}
+              <motion.div
+                className="flex items-center gap-16 sm:gap-24 md:gap-32"
+                animate={{ x: [0, "-100%"] }}
+                transition={{
+                  x: {
+                    repeat: Infinity,
+                    repeatType: "loop",
+                    duration: 30,
+                    ease: "linear",
+                  },
+                }}
+              >
+                {" "}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/dragonfly-removebg-preview.png"
+                    alt="Dragonfly Capital"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                {/* <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/cbventures-removebg-preview.png"
+                    alt="CB Ventures"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain scale-150 filter brightness-0 invert"
+                  />
+                </div> */}
+                {/* Duplicate logos for seamless loop */}
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/a16zcrypto_Logo.svg"
+                    alt="a16z Crypto"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/paradigm-logo-removebg-preview.png"
+                    alt="Paradigm"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
+                  <Image
+                    src="/logos/animoca-removebg-preview.png"
+                    alt="Animoca Brands"
+                    width={160}
+                    height={80}
+                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </ScrollAnimationWrapper>
       </section>
 
       {/* Why invest section */}
@@ -920,109 +962,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           </div>
         </div>
       </section>
-
-      {/* Investor Logos Gallery */}
-      <div className="mt-12 sm:mt-16 md:mt-20">
-        <h3 className="text-xl text-white sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center">
-          Backed by <span className="text-primary">Top Investors</span>
-        </h3>
-
-        <ScrollAnimationWrapper delay={150}>
-          <LuxuryCard className="p-6 md:p-8 lg:p-10 overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg">
-            <div className="relative w-full">
-              {/* First set of logos - will be animated */}
-              <motion.div
-                className="flex items-center gap-16 sm:gap-24 md:gap-32"
-                animate={{ x: [0, "-100%"] }}
-                transition={{
-                  x: {
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    duration: 30,
-                    ease: "linear",
-                  },
-                }}
-              >
-                {" "}
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/a16zcrypto_Logo.svg"
-                    alt="a16z Crypto"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/paradigm-logo-removebg-preview.png"
-                    alt="Paradigm"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/animoca-removebg-preview.png"
-                    alt="Animoca Brands"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/dragonfly-removebg-preview.png"
-                    alt="Dragonfly Capital"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/cbventures-removebg-preview.png"
-                    alt="CB Ventures"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain scale-150 filter brightness-0 invert"
-                  />
-                </div>
-                {/* Duplicate logos for seamless loop */}
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/a16zcrypto_Logo.svg"
-                    alt="a16z Crypto"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/paradigm-logo-removebg-preview.png"
-                    alt="Paradigm"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] h-[60px] sm:h-[70px] md:h-[80px] flex items-center justify-center">
-                  <Image
-                    src="/logos/animoca-removebg-preview.png"
-                    alt="Animoca Brands"
-                    width={160}
-                    height={80}
-                    className="max-h-[60px] sm:max-h-[70px] md:max-h-[80px] max-w-full object-contain filter brightness-0 invert"
-                  />
-                </div>
-              </motion.div>
-            </div>
-          </LuxuryCard>
-        </ScrollAnimationWrapper>
-      </div>
-
       {/* Referral section */}
       <section
         ref={referralSectionRef}
@@ -1154,7 +1093,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                       className="object-cover opacity-25"
                       priority
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-amber-900/30 to-black/90 z-1"></div>
+                    {/* <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-amber-900/20 to-black/20 z-1"></div> */}
                   </div>
 
                   {/* Content with relative positioning to appear above the background */}
@@ -1163,13 +1102,13 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     size="xs"
                     className="text-amber-400 mr-2 mb-4"
                   />
-                  <div className="relative z-10 mt-2">
+                  <div className="relative z-10 ">
                     <h3 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center">
                       Trump Token Referral Rewards
                     </h3>
                   </div>
 
-                  <div className="flex items-center justify-center mb-6">
+                  <div className="flex items-center justify-center mb-6 mt-[150px]">
                     <div className="bg-white/5 backdrop-filter backdrop-blur-lg border border-amber-400/20 p-6 sm:p-8 rounded-xl flex flex-col items-center justify-center text-center w-64">
                       <span className="text-amber-400 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2">
                         10%
@@ -1181,18 +1120,18 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                   </div>
 
                   <div className="text-left">
-                    <p className="text-sm sm:text-base text-gray-300 mb-3">
+                    {/* <p className="text-sm sm:text-base text-gray-300 mb-3">
                       Direct referrers will receive{" "}
                       <span className="text-amber-400 font-medium">
                         10% Trump Tokens
                       </span>{" "}
                       in Solana immediately upon successful referral purchase.
                       World Liberty Finance Treasury rewards your patriotism.
-                    </p>
+                    </p> */}
 
                     <div className="flex items-center text-xs sm:text-sm bg-amber-500/10 p-3 rounded mb-3">
                       <span className="text-amber-300">
-                        ⚠️ Rewards immediately transferred to your Solana wallet
+                        💰 Rewards immediately transferred to your Solana wallet
                       </span>
                     </div>
 
@@ -1217,7 +1156,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           </ScrollAnimationWrapper>
         </div>
       </section>
-
       {/* FAQ Section */}
       <section
         ref={faqSectionRef}
@@ -1236,53 +1174,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             </motion.div>
           </ScrollAnimationWrapper>
 
-          <div className="space-y-3 sm:space-y-4 md:space-y-6">
-            <FaqItem
-              question="What is Litmex?"
-              answer="Litmex is a premium web3 gambling platform that combines the excitement of gaming with blockchain technology. The platform offers provably fair games, exclusive rewards, and luxury experiences for its users."
-              delay={100}
-            />
-            <FaqItem
-              question="How can I participate in the presale?"
-              answer="To participate in the presale, connect your Solana wallet, enter the amount of SOL you wish to invest, and complete the transaction. The LMX tokens will be distributed to your wallet once the presale concludes."
-              delay={200}
-            />
-            <FaqItem
-              question="What are the benefits of buying during presale?"
-              answer="Seed Round investors receive tokens at a discounted price compared to the public launch. You'll also receive bonuses based on the current phase and will have early access to platform features and exclusive VIP benefits."
-              delay={300}
-            />
-            <FaqItem
-              question="When will LMX be listed on exchanges?"
-              answer="LMX will be listed on Solana decentralized exchanges within 2-3 weeks after the presale ends. Major centralized exchange listings will follow in the subsequent months as the platform grows."
-              delay={400}
-            />
-            <FaqItem
-              question="Is there a vesting period for presale tokens?"
-              answer="No, all presale tokens will be fully unlocked and transferable once the token is launched on Solana. Team tokens are subject to a 12-month vesting period with monthly unlocks to ensure long-term commitment."
-              delay={500}
-            />
-            <FaqItem
-              question="How will the raised funds be used?"
-              answer="30% for platform development, 25% for liquidity provision, 20% for marketing and partnerships, 15% for legal and compliance, and 10% for operations and security infrastructure."
-              delay={600}
-            />
-            <FaqItem
-              question="Why did you choose Solana blockchain?"
-              answer="We selected Solana for its ultra-fast transaction speeds (up to 65,000 TPS), negligible gas fees (less than $0.01 per transaction), and growing ecosystem, making it ideal for gaming applications. Solana's efficiency enables seamless in-game transactions and rewards distribution."
-              delay={700}
-            />
-            <FaqItem
-              question="How do I set up a Solana wallet?"
-              answer="We recommend using Phantom or Solflare wallets. Download the browser extension or mobile app, create a new wallet, securely store your recovery phrase offline, and fund your wallet with SOL from an exchange. Make sure to connect your wallet on our website before participating in the presale."
-              delay={800}
-            />
-            <FaqItem
-              question="What is the total supply of LMX tokens?"
-              answer="The total supply of Litmex (LMX) tokens is 1 billion (1,000,000,000). Unlike Ethereum-based tokens, Solana SPL tokens don't require a hardcap on purchases during presale, allowing unrestricted participation while maintaining our tokenomics distribution."
-              delay={900}
-            />
-          </div>
+          <FaqAccordion />
         </div>
       </section>
     </div>

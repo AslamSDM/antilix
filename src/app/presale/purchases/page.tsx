@@ -31,10 +31,10 @@ export default function PurchasesPage() {
           If you have any questions about your purchases or need assistance,
           please contact our support team at{" "}
           <a
-            href="mailto:support@antilix.com"
+            href="mailto:support@Litmex.com"
             className="text-primary hover:text-primary/80"
           >
-            support@antilix.com
+            support@Litmex.com
           </a>
         </p>
       </div>

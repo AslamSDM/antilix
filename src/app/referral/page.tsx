@@ -21,7 +21,7 @@ export default function ReferralPage() {
                 <p>
                   Share your unique referral code with friends and earn{" "}
                   <span className="font-bold text-blue-400">
-                    5% bonus tokens
+                    15% bonus tokens
                   </span>{" "}
                   on their purchases!
                 </p>
@@ -31,7 +31,7 @@ export default function ReferralPage() {
                     <div className="text-xl font-bold mb-2">1. Share</div>
                     <p className="text-gray-300">
                       Share your unique referral code with friends interested in
-                      Antilix.
+                      Litmex.
                     </p>
                   </div>
 
@@ -46,7 +46,7 @@ export default function ReferralPage() {
                   <div className="bg-black/30 p-6 rounded-lg">
                     <div className="text-xl font-bold mb-2">3. Earn</div>
                     <p className="text-gray-300">
-                      You automatically receive 5% bonus tokens based on their
+                      You automatically receive 15% bonus tokens based on their
                       purchase amount.
                     </p>
                   </div>

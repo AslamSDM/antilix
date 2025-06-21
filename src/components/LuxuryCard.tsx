@@ -24,6 +24,7 @@ interface LuxuryCardProps {
   iconPosition?: "tl" | "tr" | "bl" | "br";
   decorativeText?: string;
   animate?: boolean;
+  noDecorativeIcon?: boolean;
 }
 
 export default function LuxuryCard({
@@ -35,6 +36,7 @@ export default function LuxuryCard({
   iconPosition = "tr",
   decorativeText,
   animate = false,
+  noDecorativeIcon = false,
 }: LuxuryCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +73,6 @@ export default function LuxuryCard({
     >
       <div className="luxury-shimmer"></div>
       <div className="cut-corner-border"></div>
-      <DecorativeCorner position="tl" />
       <DecorativeCorner position="br" />
       <div className="luxury-corner luxury-corner-tl"></div>
       <div className="luxury-corner luxury-corner-tr"></div>
@@ -82,17 +83,19 @@ export default function LuxuryCard({
         <DecorativeText text={decorativeText} position="left" />
       )}
 
-      <DecorativeIcon
-        icon={icon}
-        size="md"
-        className={cn(
-          "transition-all duration-300 animate-pulse-slow",
-          iconPosition === "tl" && "top-4 left-4",
-          iconPosition === "tr" && "top-4 right-4",
-          iconPosition === "bl" && "bottom-4 left-4",
-          iconPosition === "br" && "bottom-4 right-4"
-        )}
-      />
+      {!noDecorativeIcon && (
+        <DecorativeIcon
+          icon={icon}
+          size="md"
+          className={cn(
+            "transition-all duration-300 animate-pulse-slow",
+            iconPosition === "tl" && "top-4 left-4",
+            iconPosition === "tr" && "top-4 right-4",
+            iconPosition === "bl" && "bottom-4 left-4",
+            iconPosition === "br" && "bottom-4 right-4"
+          )}
+        />
+      )}
 
       {title && (
         <CardHeader>

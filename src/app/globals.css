@@ -20,9 +20,9 @@
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
   --background-end-rgb: 0, 0, 0;
-  --primary: rgba(212, 175, 55, 1);
-  --primary-light: rgba(212, 175, 55, 0.5);
-  --primary-dark: rgba(162, 125, 5, 1);
+  --primary: rgb(181, 106, 251);
+  --primary-light: rgba(184, 108, 255, 0.639);
+  --primary-dark: rgba(169, 78, 255, 0.8);
 
 }
 
@@ -46,13 +46,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(169, 78, 255, 0.8), transparent);
   transform: translateX(-100%);
   transition: transform 0.6s ease;
 }
 
 .luxury-stat-card:hover {
-  border-color: rgba(212, 175, 55, 0.8);
+  border-color: rgba(169, 78, 255, 0.8);
   box-shadow: 0 5px 25px rgba(55, 128, 212, 0.3);
   transform: translateY(-5px);
 }
@@ -81,7 +81,7 @@
   position: absolute;
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(212, 175, 55, 0.8);
+  border: 1px solid rgba(169, 78, 255, 0.8);
 }
 
 .luxury-corner-tl {
@@ -178,7 +178,7 @@
 /* Button hover style */
 .luxury-button-hover {
   transition: all 0.3s ease;
-  background: linear-gradient(45deg, rgba(212, 175, 55, 0.8), rgba(212, 175, 55, 0.4));
+  background: linear-gradient(45deg, rgba(169, 78, 255, 0.8), rgba(212, 175, 55, 0.4));
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
 }

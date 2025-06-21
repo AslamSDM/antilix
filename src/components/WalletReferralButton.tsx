@@ -124,12 +124,12 @@ export const WalletReferralButton: React.FC<WalletReferralButtonProps> = ({
     if (!userReferralCode) return;
 
     const referralLink = `${window.location.origin}?ref=${userReferralCode}`;
-    const shareText = `Join me on Antilix using my referral link: ${referralLink}`;
+    const shareText = `Join me on Litmex using my referral link: ${referralLink}`;
 
     if (navigator.share) {
       navigator
         .share({
-          title: "Antilix Referral",
+          title: "Litmex Referral",
           text: shareText,
           url: referralLink,
         })

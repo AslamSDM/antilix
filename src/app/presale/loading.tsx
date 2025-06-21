@@ -5,8 +5,8 @@ import { DecorativeIcon } from "@/components/DecorativeElements";
 export default function PresaleLoading() {
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-center bg-background relative">
-      <div className="animate-pulse text-primary text-2xl font-bold mb-4 font-display">
-        Loading Litmex Presale...
+      <div className="animate-pulse text-primary text-2xl font-bold mb-4 z">
+        Loading Presale...
       </div>
 
       <div className="mt-4 h-2 w-64 bg-gray-800 rounded-full overflow-hidden">

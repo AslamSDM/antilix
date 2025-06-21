@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Referral Program | Antilix",
-  description: "Earn bonus tokens by referring friends to Antilix",
+  title: "Referral Program | Litmex",
+  description: "Earn bonus tokens by referring friends to Litmex",
 };
 
 export default function ReferralLayout({

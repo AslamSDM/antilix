@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     // Return information about the referral code
     return NextResponse.json({
       valid: true,
-      referrerName: referrer.username || "Antilix User",
+      referrerName: referrer.username || "Litmex User",
     });
   } catch (error) {
     console.error("Error validating referral code:", error);
