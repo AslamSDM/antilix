@@ -3,10 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import "../sections/animation-utils.css";
-import { FlipText } from "../magicui/hyper-text";
-import { VelocityScroll } from "../magicui/scroll-based-velocity";
 
 interface CtaSectionProps {
   isVisible: boolean;
