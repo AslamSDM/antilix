@@ -97,11 +97,7 @@ export default function ForgotPasswordPage() {
           </form>
         ) : (
           <div className="flex justify-center">
-            <GlowButton
-              variant="outline"
-              className="mt-4"
-              onClick={() => setSubmitted(false)}
-            >
+            <GlowButton className="mt-4" onClick={() => setSubmitted(false)}>
               Back to reset password
             </GlowButton>
           </div>

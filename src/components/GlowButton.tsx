@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 interface GlowButtonProps {
   children: React.ReactNode;
+  type?: "button" | "submit" | "reset";
   onClick?: () => void;
   className?: string;
   disabled?: boolean;
@@ -12,6 +13,7 @@ interface GlowButtonProps {
 
 export const GlowButton: React.FC<GlowButtonProps> = ({
   children,
+  type,
   onClick,
   className = "",
   disabled = false,
@@ -20,6 +22,7 @@ export const GlowButton: React.FC<GlowButtonProps> = ({
 
   return (
     <motion.button
+      type={type || "button"}
       className={`
         relative inline-flex items-center justify-center px-6 py-3
         bg-primary/80 text-primary-foreground font-medium
