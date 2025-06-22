@@ -6,3 +6,4 @@ export const BSC_PRESALE_CONTRACT_ADDRESS =
   "0x573241E33F2214f75041a05476a1658601A1715c";
 
 export const LMX_PRICE = 0.012;
+export const MIN_BUY = 3;

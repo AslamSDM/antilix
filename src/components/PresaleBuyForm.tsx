@@ -36,6 +36,7 @@ import { getStoredReferralCode } from "@/lib/referral";
 import { useSession } from "next-auth/react";
 import { modal } from "@/components/providers/wallet-provider";
 import useReferralHandling from "./hooks/useReferralHandling";
+import { MIN_BUY } from "@/lib/constants";
 
 // Extended type for our session with referredBy field
 interface CustomSessionUser {
@@ -63,7 +64,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const [customReferralCode, setCustomReferralCode] = useState<string>(
     referralCode || ""
   );
-  const [usdAmount, setUsdAmount] = useState<number>(50); // Default USD amount
+  const [usdAmount, setUsdAmount] = useState<number>(50); // Default USD amount (well above $3 minimum)
   const [tokenAmount, setTokenAmount] = useState<number>(100); // Derived from USD amount
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
   const { chainId, switchNetwork } = useAppKitNetwork();
@@ -71,14 +72,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const { data: session } = useSession();
   const user = session?.user as CustomSessionUser | undefined;
   const referralInfo = useReferralHandling();
-
-  // Debug: Log session data to help understand its structure
-  useEffect(() => {
-    if (session) {
-      //console.log("Session data:", session);
-      //console.log("User data with referredBy:", user);
-    }
-  }, [session, user]);
 
   // Get referral code from multiple sources
   useEffect(() => {
@@ -317,30 +310,8 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       return;
     }
 
-    // Convert min/max to appropriate units
-    const minPurchase = parseFloat(String(min) ?? "0") / 1000000000000000000;
-    const maxPurchase = parseFloat(String(max) ?? "0") / 1000000000000000000;
-
-    // Calculate min and max in USD
-    const minPurchaseUsd = minPurchase * lmxPriceUsd;
-    const maxPurchaseUsd = maxPurchase * lmxPriceUsd;
-
-    // Validate purchase amount in USD
-    if (usdAmount < minPurchaseUsd) {
-      toast.error(
-        `Minimum purchase amount is $${minPurchaseUsd.toFixed(
-          2
-        )} (${minPurchase} LMX tokens)`
-      );
-      return;
-    }
-
-    if (usdAmount > maxPurchaseUsd) {
-      toast.error(
-        `Maximum purchase amount is $${maxPurchaseUsd.toFixed(
-          2
-        )} (${maxPurchase} LMX tokens)`
-      );
+    if (usdAmount < MIN_BUY) {
+      toast.error(`Minimum purchase amount is $${MIN_BUY.toFixed(2)} USD`);
       return;
     }
 
