@@ -252,6 +252,7 @@ export function SolanaWalletPrompt({
       }
     } finally {
       setIsSigningMessage(false);
+      setIsVisible(false);
     }
   };
 

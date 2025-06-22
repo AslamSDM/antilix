@@ -179,6 +179,7 @@ export function BSCWalletPrompt({
       });
     } finally {
       setIsSigningMessage(false);
+      setIsVisible(false);
     }
   };
 
