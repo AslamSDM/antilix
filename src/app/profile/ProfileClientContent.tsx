@@ -31,6 +31,11 @@ interface Purchase {
   transactionSignature: string;
 }
 
+interface ReferredUserPurchase extends Purchase {
+  userEmail?: string | null;
+  userName?: string | null;
+}
+
 interface UserData {
   purchases: Purchase[];
   balance: number;
@@ -38,6 +43,7 @@ interface UserData {
   referrals: {
     count: number;
     totalBonus: number;
+    purchases: ReferredUserPurchase[];
   };
 }
 
@@ -51,7 +57,11 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
     purchases: [],
     balance: 0,
     purchaseCount: 0,
-    referrals: { count: 0, totalBonus: 0 },
+    referrals: {
+      count: 0,
+      totalBonus: 0,
+      purchases: [],
+    },
   },
   initialSession,
 }) => {
@@ -679,6 +689,99 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                           </div>
                         </div>
 
+                        {/* Referred Users Purchases Section */}
+                        <div className="mt-8">
+                          <h4 className="text-lg font-medium luxury-text mb-4">
+                            Referred Users' Purchases
+                          </h4>
+
+                          {userData.referrals.purchases.length > 0 ? (
+                            <div className="bg-black/30 rounded-lg border border-primary/20">
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                  <thead className="border-b border-primary/20">
+                                    <tr>
+                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
+                                        User
+                                      </th>
+                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
+                                        Amount
+                                      </th>
+                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
+                                        Network
+                                      </th>
+                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
+                                        Date
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-800/30">
+                                    {userData.referrals.purchases.map(
+                                      (purchase) => (
+                                        <tr
+                                          key={purchase.id}
+                                          className="hover:bg-primary/5 transition-colors"
+                                        >
+                                          <td className="px-4 py-3 text-sm">
+                                            {purchase.userEmail ? (
+                                              <span className="text-white/80">
+                                                {purchase.userEmail.slice(0, 3)}
+                                                ...
+                                                {purchase.userEmail
+                                                  .split("@")[0]
+                                                  .slice(-2)}
+                                                @
+                                                {
+                                                  purchase.userEmail.split(
+                                                    "@"
+                                                  )[1]
+                                                }
+                                              </span>
+                                            ) : (
+                                              <span className="text-white/50">
+                                                Anonymous
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-3 text-sm text-primary">
+                                            {parseFloat(
+                                              purchase.lmxTokensAllocated
+                                            ).toFixed(2)}{" "}
+                                            LMX
+                                          </td>
+                                          <td className="px-4 py-3 text-sm">
+                                            <span
+                                              className={`${purchase.network.toLowerCase() === "solana" ? "bg-indigo-950/30 text-indigo-300" : "bg-amber-950/30 text-amber-300"} px-2 py-1 rounded text-xs`}
+                                            >
+                                              {purchase.network}
+                                            </span>
+                                          </td>
+                                          <td className="px-4 py-3 text-sm text-white/60">
+                                            {new Date(
+                                              purchase.createdAt
+                                            ).toLocaleDateString()}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="bg-black/30 p-6 rounded-lg border border-primary/20 text-center">
+                              <p className="text-white/70">
+                                None of your referred users have made purchases
+                                yet.
+                              </p>
+                              <p className="text-white/50 mt-2 text-sm">
+                                Share your referral link to start earning
+                                bonuses when they buy.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
                         {connected && currentWalletType === "solana" ? (
                           <div className="bg-black/20 p-6 rounded-lg mt-8">
@@ -695,20 +798,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                             </Button>
                           </div>
                         ) : connected ? (
-                          <div className="bg-black/20 p-6 rounded-lg mt-8">
-                            <p className="text-white/70">
-                              Referral signing currently requires a Solana
-                              wallet. Please connect or switch to a Solana
-                              wallet.
-                            </p>
-                            <Button
-                              onClick={handleConnect}
-                              variant="outline"
-                              className="mt-4 border-primary/50 text-primary hover:bg-primary/10"
-                            >
-                              Switch Wallet
-                            </Button>
-                          </div>
+                          <div className="bg-black/20 p-6 rounded-lg mt-8"></div>
                         ) : null}
                       </>
                     ) : (

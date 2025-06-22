@@ -16,6 +16,11 @@ interface Purchase {
   transactionSignature: string;
 }
 
+interface ReferredUserPurchase extends Purchase {
+  userEmail?: string | null;
+  userName?: string | null;
+}
+
 interface UserData {
   purchases: Purchase[];
   balance: number;
@@ -23,6 +28,7 @@ interface UserData {
   referrals: {
     count: number;
     totalBonus: number;
+    purchases: ReferredUserPurchase[];
   };
 }
 
@@ -63,27 +69,50 @@ async function getUserData(userId: string): Promise<UserData> {
     },
     select: {
       id: true,
+      email: true,
     },
   });
 
   // Get purchases made by referred users to calculate actual bonus
   let totalReferralBonus = 0;
+  let referredUsersPurchases: ReferredUserPurchase[] = [];
 
   if (referredUsers.length > 0) {
     const referredUserIds = referredUsers.map((user) => user.id);
 
-    // Get all completed purchases by referred users
+    // Get all completed purchases by referred users with detailed information
     const referralPurchases = await prisma.purchase.findMany({
       where: {
         userId: { in: referredUserIds },
         status: "COMPLETED",
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       select: {
+        id: true,
+        createdAt: true,
         lmxTokensAllocated: true,
+        status: true,
+        network: true,
+        transactionSignature: true,
+        userId: true,
       },
     });
 
-    // Calculate bonus as 5% of the referred purchases (this is an example, adjust the percentage as needed)
+    // Map purchases to their users and create the referredUsersPurchases array
+    referredUsersPurchases = referralPurchases.map((purchase) => {
+      const referredUser = referredUsers.find(
+        (user) => user.id === purchase.userId
+      );
+      return {
+        ...purchase,
+        userEmail: referredUser?.email || null,
+        userName: null, // We don't have name in the schema
+      };
+    });
+
+    // Calculate bonus as 5% of the referred purchases
     const referralBonusPercentage = 0.05;
 
     totalReferralBonus = referralPurchases.reduce((total, purchase) => {
@@ -103,6 +132,7 @@ async function getUserData(userId: string): Promise<UserData> {
     referrals: {
       count: referredUsers.length,
       totalBonus: parseFloat(totalReferralBonus.toFixed(2)),
+      purchases: referredUsersPurchases,
     },
   };
 }
@@ -116,6 +146,7 @@ export default async function ProfilePage() {
     referrals: {
       count: 0,
       totalBonus: 0,
+      purchases: [],
     },
   };
 
@@ -133,7 +164,15 @@ export default async function ProfilePage() {
     })),
     balance: userData.balance,
     purchaseCount: userData.purchaseCount,
-    referrals: userData.referrals,
+    referrals: {
+      count: userData.referrals.count,
+      totalBonus: userData.referrals.totalBonus,
+      purchases: userData.referrals.purchases.map((purchase) => ({
+        ...purchase,
+        createdAt: purchase.createdAt.toISOString(),
+        lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
+      })),
+    },
   };
 
   return (
