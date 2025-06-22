@@ -534,19 +534,21 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   <GlowButton
                     onClick={handleBuy}
                     disabled={isLoading || !presaleStatus || usdAmount <= 0}
-                    className="w-full py-3"
+                    className="w-full py-3 bg-gradient-to-br from-indigo-600/90 to-violet-700 hover:from-indigo-600 hover:to-violet-600 border-indigo-400/30 text-white font-medium transition-all duration-200"
                   >
                     {isLoading ? (
-                      <>
+                      <div className="flex items-center justify-center">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing Transaction...
-                      </>
+                        <span>Processing Transaction...</span>
+                      </div>
                     ) : (
-                      <>
-                        Buy ${usdAmount.toFixed(2)} worth of LMX (
-                        {tokenAmount.toFixed(2)} LMX)
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
+                      <div className="flex items-center justify-center">
+                        <span>
+                          Buy ${usdAmount.toFixed(2)} worth of LMX (
+                          {tokenAmount.toFixed(2)} LMX)
+                        </span>
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </div>
                     )}
                   </GlowButton>
                 )}
@@ -656,51 +658,23 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
         network={network}
       />
       {/* Solana Wallet Verification Modal */}
-      <Dialog
-        open={showSolanaVerificationModal}
-        onOpenChange={setShowSolanaVerificationModal}
-      >
-        <DialogContent className="bg-black border border-white/10 text-white p-0 overflow-hidden">
-          <DialogHeader className="p-4 border-b border-white/10">
-            <DialogTitle className="text-lg font-medium">
-              Verify Your Solana Wallet
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-0">
-            <SolanaWalletPrompt
-              isModal={true}
-              onVerificationComplete={() => {
-                setShowSolanaVerificationModal(false);
-                // Small delay to allow session to update before refreshing
-                setTimeout(() => window.location.reload(), 500);
-              }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SolanaWalletPrompt
+        isModal={!session?.user?.solanaAddress}
+        onVerificationComplete={() => {
+          setShowSolanaVerificationModal(false);
+          // Small delay to allow session to update before refreshing
+          setTimeout(() => window.location.reload(), 500);
+        }}
+      />
       {/* BSC Wallet Verification Modal */}
-      <Dialog
-        open={showBSCVerificationModal}
-        onOpenChange={setShowBSCVerificationModal}
-      >
-        <DialogContent className="bg-black border border-white/10 text-white p-0 overflow-hidden">
-          <DialogHeader className="p-4 border-b border-white/10">
-            <DialogTitle className="text-lg font-medium">
-              Verify Your BSC Wallet
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-0">
-            <BSCWalletPrompt
-              isModal={true}
-              onVerificationComplete={() => {
-                setShowBSCVerificationModal(false);
-                // Small delay to allow session to update before refreshing
-                setTimeout(() => window.location.reload(), 500);
-              }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* <BSCWalletPrompt
+        isModal={!session?.user?.evmAddress}
+        onVerificationComplete={() => {
+          setShowBSCVerificationModal(false);
+          // Small delay to allow session to update before refreshing
+          setTimeout(() => window.location.reload(), 500);
+        }}
+      /> */}
     </div>
   );
 };
