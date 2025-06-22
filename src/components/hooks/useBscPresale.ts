@@ -140,7 +140,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
     if (!hash) return;
     if (currentStep?.id !== "verify-transaction") return;
     if (isPending) return;
-
     if (hash) {
       setTransactionSignature(hash);
     } else {
@@ -277,6 +276,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
         setIsLoading(false);
         return false;
       }
+
       nextStep(); // Move to next step
       setCurrentStep("verify-transaction");
 
