@@ -541,12 +541,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     <div className="flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
                       {network.toUpperCase()} Wallet Connected
-                      {(network === "solana" && !user?.solanaAddress) ||
-                      (network === "bsc" && !user?.evmAddress) ? (
-                        <span className="text-amber-400 ml-1">
-                          (Needs Verification)
-                        </span>
-                      ) : null}
                     </div>
                   ) : (
                     <div className="flex items-center justify-center">
