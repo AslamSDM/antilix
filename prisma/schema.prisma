@@ -1,3 +1,5 @@
+// This is the updated schema.prisma that you'll need to migrate later
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,26 +11,28 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  email              String?             @unique
-  username           String?             @unique
+  id                 String               @id @default(cuid())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  email              String?              @unique
+  username           String?              @unique
   password           String?
+  emailVerified      DateTime? // Added this field for email verification
   walletAddress      String?
   walletType         String?
-  walletVerified     Boolean             @default(false)
-  evmAddress         String?             @unique
-  solanaAddress      String?             @unique
-  referralCode       String              @unique
+  walletVerified     Boolean              @default(false)
+  evmAddress         String?              @unique
+  solanaAddress      String?              @unique
+  referralCode       String               @unique
   referrerId         String?
-  verified           Boolean             @default(false)
-  evmVerified        Boolean             @default(false)
-  solanaVerified     Boolean             @default(false)
+  verified           Boolean              @default(false)
+  evmVerified        Boolean              @default(false)
+  solanaVerified     Boolean              @default(false)
   purchases          Purchase[]
-  referrer           User?               @relation("UserReferrals", fields: [referrerId], references: [id])
-  referrals          User[]              @relation("UserReferrals")
+  referrer           User?                @relation("UserReferrals", fields: [referrerId], references: [id])
+  referrals          User[]               @relation("UserReferrals")
   verificationTokens VerificationToken[]
+  passwordResets     PasswordResetToken[] // Added for password reset relation
 }
 
 model VerificationToken {
@@ -40,6 +44,19 @@ model VerificationToken {
   userId    String
   type      TokenType
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Added this model for password reset
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  token     String   @unique
+  expires   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -81,12 +98,4 @@ enum PurchaseStatus {
   COMPLETED
   FAILED
   REFUNDED
-}
-
-model ErrorLog {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  type      String
-  message   String
-  data      Json
 }

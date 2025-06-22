@@ -42,6 +42,7 @@ export function SolanaWalletPrompt({
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSigningMessage, setIsSigningMessage] = useState(false);
   const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
+  const [hasInitiatedSignRequest, setHasInitiatedSignRequest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const router = useRouter();
@@ -76,26 +77,28 @@ export function SolanaWalletPrompt({
     }
   }, [session, isModal]);
 
-  // Effect to handle wallet connection status changes
+  // Effect to handle wallet connection status changes - completely disable automatic signature requests
   useEffect(() => {
     if (isConnected && address) {
-      // Check if on correct network first
+      // Only check network status - no automatic signature requests
       if (isOnBscNetwork) {
         setError(ERROR_TYPES.WRONG_NETWORK);
         setErrorCode("WRONG_NETWORK");
-        return;
-      }
-
-      // If we already have a session but not a Solana address, update the session
-      if (session?.user && !session.user.solanaAddress) {
-        handleSignatureRequest();
+      } else {
+        // Clear any network-related errors
+        setError(null);
+        setErrorCode(null);
       }
     }
-  }, [isConnected, address, session, isOnBscNetwork]);
+  }, [isConnected, address, isOnBscNetwork]);
 
   // Function to request signature to verify wallet ownership
   const handleSignatureRequest = async () => {
+    // Don't proceed if wallet isn't connected, address is missing, or signing is already in progress
     if (!isConnected || !address || isSigningMessage) return;
+
+    // Prevent multiple signature requests
+    setHasInitiatedSignRequest(true);
 
     try {
       setIsSigningMessage(true);
@@ -142,56 +145,6 @@ export function SolanaWalletPrompt({
               return typeof signature === "string"
                 ? signature
                 : bs58.encode(signature);
-            }
-            // Some wallets use request method with signMessage param
-            else if (typeof provider.request === "function") {
-              console.log("fn");
-
-              const signature = await provider.request({
-                method: "signMessage",
-                params: {
-                  message: new TextEncoder().encode(signatureMessage),
-                  display: "utf8",
-                },
-              });
-              return typeof signature === "string"
-                ? signature
-                : bs58.encode(signature);
-            }
-            // If we still don't have a way to sign, use a transaction
-            else if (address) {
-              console.log("address");
-              // Create a direct PublicKey from the address
-              const publicKey = new PublicKey(address);
-
-              const { Transaction } = await import("@solana/web3.js");
-              const transaction = new Transaction();
-
-              // Set wallet as fee payer
-              transaction.feePayer = publicKey;
-              transaction.recentBlockhash = "simulated";
-
-              // Add memo with verification data
-              transaction.add({
-                keys: [],
-                programId: new PublicKey("11111111111111111111111111111111"),
-                data: Buffer.from(`verify:${signatureMessage}`, "utf-8"),
-              });
-
-              // Use sendTransaction to get a signature
-              const sendTxFn =
-                provider.sendTransaction || provider.send || provider.request;
-              if (!sendTxFn) {
-                throw new Error(ERROR_TYPES.WALLET_INCOMPATIBLE);
-              }
-
-              // Attempt to sign the transaction
-              const signedTx = await sendTxFn(transaction, null, {
-                skipPreflight: true,
-              });
-              return typeof signedTx === "string"
-                ? signedTx
-                : signedTx.signature || bs58.encode(signedTx);
             } else {
               throw new Error(ERROR_TYPES.WALLET_INCOMPATIBLE);
             }
@@ -350,7 +303,9 @@ export function SolanaWalletPrompt({
 
   // Modified Verify Wallet button handler to explicitly trigger signature request
   const handleVerifyWallet = () => {
-    if (isConnected && address) {
+    if (isConnected && address && !isSigningMessage) {
+      // Reset the flag if the user explicitly clicks to verify again
+      setHasInitiatedSignRequest(false);
       handleSignatureRequest();
     }
   };

@@ -21,6 +21,7 @@ declare module "next-auth" {
       solanaAddress?: string | null;
       evmAddress?: string | null;
       referralCode?: string | null;
+      verified?: boolean;
     };
   }
 
@@ -36,6 +37,20 @@ declare module "next-auth" {
     referralCode?: string | null;
     referrerId?: string | null;
     walletType?: string | null;
+    verified?: boolean;
+  }
+}
+
+// Add verified status to JWT
+declare module "next-auth/jwt" {
+  interface JWT {
+    userId?: string;
+    walletAddress?: string | null;
+    walletType?: string | null;
+    solanaAddress?: string | null;
+    evmAddress?: string | null;
+    referralCode?: string | null;
+    verified?: boolean;
   }
 }
 
@@ -82,11 +97,8 @@ export const authOptions: NextAuthOptions = {
               evmAddress: true,
               walletAddress: true,
               walletType: true,
-              referrer: {
-                select: {
-                  id: true,
-                },
-              },
+              verified: true,
+              referrerId: true,
             },
           });
 
@@ -103,6 +115,11 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // Check if email is verified using the verified field
+          if (!user.verified) {
+            throw new Error("EMAIL_NOT_VERIFIED");
+          }
+
           return {
             id: user.id,
             email: user.email,
@@ -112,8 +129,9 @@ export const authOptions: NextAuthOptions = {
             evmAddress: user.evmAddress,
             walletAddress: user.walletAddress,
             walletType: user.walletType,
-            referrerId: user.referrer?.id || null,
-            referrer: user.referrer || null,
+            verified: user.verified,
+            referrerId: user.referrerId || null,
+            referrer: user.referrerId ? { id: user.referrerId } : null,
           };
         } catch (error) {
           console.error("Email/Password authorization error:", error);
@@ -139,6 +157,8 @@ export const authOptions: NextAuthOptions = {
           session.user.evmAddress = token.evmAddress as string;
         if (token.referralCode)
           session.user.referralCode = token.referralCode as string;
+        if (typeof token.verified !== "undefined")
+          session.user.verified = token.verified;
 
         // If we don't have complete wallet data in the token, fetch it from the database
         if (!token.walletAddress || !token.walletType) {
@@ -156,6 +176,7 @@ export const authOptions: NextAuthOptions = {
                   solanaAddress: true,
                   evmAddress: true,
                   referralCode: true,
+                  verified: true,
                 },
               });
 
@@ -170,6 +191,8 @@ export const authOptions: NextAuthOptions = {
                   session.user.evmAddress = userData.evmAddress;
                 if (userData.referralCode)
                   session.user.referralCode = userData.referralCode;
+                if (typeof userData.verified !== "undefined")
+                  session.user.verified = userData.verified;
 
                 console.log("Session updated with database user data");
               }
@@ -194,6 +217,7 @@ export const authOptions: NextAuthOptions = {
         token.solanaAddress = user.solanaAddress;
         token.evmAddress = user.evmAddress;
         token.referralCode = user.referralCode;
+        token.verified = user.verified;
       }
       return token;
     },

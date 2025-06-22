@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import prisma from "@/lib/prisma";
 import { nanoid } from "nanoid";
+import { generateToken, hashToken } from "@/lib/token";
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,7 +42,30 @@ export async function POST(req: NextRequest) {
         username: username || email.split("@")[0],
         password: hashedPassword,
         referralCode,
+        verified: false, // Make sure the user starts as unverified
       },
+    });
+
+    // Generate verification token
+    const verificationToken = generateToken();
+    const hashedToken = hashToken(verificationToken);
+    const expires = new Date(Date.now() + 24 * 3600 * 1000); // 24 hours
+
+    // Store token in database
+    await prisma.verificationToken.create({
+      data: {
+        token: hashedToken,
+        expires,
+        userId: user.id,
+        type: "EMAIL_VERIFICATION",
+      },
+    });
+
+    // Send verification email
+    await sendVerificationEmail({
+      email: user.email || "",
+      name: user.username || "",
+      token: verificationToken,
     });
 
     // Omit password from the response

@@ -1,9 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { z } from "zod";
+
+// Create a Zod schema for signup form validation
+const signupSchema = z
+  .object({
+    email: z.string().email("Please enter a valid email address"),
+    username: z.string().optional(),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignUp() {
   const router = useRouter();
@@ -15,31 +35,52 @@ export default function SignUp() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const { status } = useSession();
 
+  useEffect(() => {
+    if (status === "authenticated") {
+      console.log("User is authenticated, redirecting to presale");
+      router.push("/presale");
+    }
+  }, [status, router]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    // Clear validation error for this field when user types
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setValidationErrors({});
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
+    // Validate with Zod
+    const validationResult = signupSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const errors = validationResult.error.flatten().fieldErrors;
+      const formattedErrors: Record<string, string> = {};
 
-    // Validate password strength
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
+      Object.entries(errors).forEach(([key, value]) => {
+        if (value && value.length > 0) {
+          formattedErrors[key] = value[0];
+        }
+      });
+
+      setValidationErrors(formattedErrors);
       setIsLoading(false);
       return;
     }
@@ -53,7 +94,7 @@ export default function SignUp() {
         },
         body: JSON.stringify({
           email: formData.email,
-          username: formData.username,
+          username: formData.username || undefined, // Don't send empty string
           password: formData.password,
         }),
       });
@@ -66,17 +107,8 @@ export default function SignUp() {
 
       setSignupSuccess(true);
 
-      // Automatically sign in the user
-      await signIn("email-password", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      });
-
-      // Redirect to presale page after short delay to show success message
-      setTimeout(() => {
-        router.push("/presale");
-      }, 1500);
+      // Instead of auto-signing in, show verification instructions
+      // We won't redirect automatically so user can see the verification message
     } catch (error: any) {
       setError(error.message || "An error occurred during signup");
     } finally {
@@ -103,8 +135,24 @@ export default function SignUp() {
         )}
 
         {signupSuccess && (
-          <div className="mb-4 rounded-md bg-green-900/30 p-3 text-center text-sm text-green-400">
-            Account created successfully! Signing you in...
+          <div className="mb-4 rounded-md bg-green-900/30 p-4 text-center text-sm space-y-2">
+            <p className="text-green-400 font-medium">
+              Account created successfully!
+            </p>
+            <div className="text-green-300/80">
+              <p>Please check your email for a verification link.</p>
+              <p className="mt-1">
+                You need to verify your email before you can sign in.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/auth/signin"
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                Go to sign in
+              </Link>
+            </div>
           </div>
         )}
 
@@ -123,9 +171,16 @@ export default function SignUp() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-700 bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md border ${
+                validationErrors.email ? "border-red-500" : "border-gray-700"
+              } bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               placeholder="your@email.com"
             />
+            {validationErrors.email && (
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.email}
+              </p>
+            )}
           </div>
 
           <div>
@@ -141,9 +196,16 @@ export default function SignUp() {
               type="text"
               value={formData.username}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-700 bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md border ${
+                validationErrors.username ? "border-red-500" : "border-gray-700"
+              } bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               placeholder="username"
             />
+            {validationErrors.username && (
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.username}
+              </p>
+            )}
           </div>
 
           <div>
@@ -160,9 +222,16 @@ export default function SignUp() {
               required
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-700 bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md border ${
+                validationErrors.password ? "border-red-500" : "border-gray-700"
+              } bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               placeholder="••••••••"
             />
+            {validationErrors.password && (
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.password}
+              </p>
+            )}
           </div>
 
           <div>
@@ -179,9 +248,18 @@ export default function SignUp() {
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-700 bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={`mt-1 block w-full rounded-md border ${
+                validationErrors.confirmPassword
+                  ? "border-red-500"
+                  : "border-gray-700"
+              } bg-black/50 px-3 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               placeholder="••••••••"
             />
+            {validationErrors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-500">
+                {validationErrors.confirmPassword}
+              </p>
+            )}
           </div>
 
           <div>

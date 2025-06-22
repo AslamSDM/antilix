@@ -20,25 +20,34 @@ export default function SignIn() {
     }
   }, [status, router]);
 
+  const [needsVerification, setNeedsVerification] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setNeedsVerification(false);
 
     try {
       const result = await signIn("email-password", {
         email,
         password,
-        redirect: true,
+        redirect: false,
       });
 
-      if (result?.error) {
+      if (result?.error === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true);
+      } else if (result?.error) {
         setError("Invalid email or password");
       } else if (result?.url) {
         router.push("/presale");
       }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
+    } catch (error: any) {
+      if (error.message === "EMAIL_NOT_VERIFIED") {
+        setNeedsVerification(true);
+      } else {
+        setError("An error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +64,44 @@ export default function SignIn() {
         {error && (
           <div className="mb-4 rounded-md bg-red-900/30 p-3 text-center text-sm text-red-400">
             {error}
+          </div>
+        )}
+
+        {needsVerification && (
+          <div className="mb-6 rounded-md bg-yellow-900/30 p-4 text-sm text-yellow-400 border border-yellow-900/30">
+            <h3 className="font-medium mb-1">Email Verification Required</h3>
+            <p>Your email needs to be verified before you can sign in.</p>
+            <p className="mt-2">
+              Please check your inbox for a verification link or click below to
+              resend it.
+            </p>
+            <button
+              onClick={() => {
+                fetch("/api/auth/send-verification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email }),
+                })
+                  .then((res) => {
+                    if (res.ok) {
+                      return res.json();
+                    }
+                    throw new Error("Failed to send verification email");
+                  })
+                  .then(() => {
+                    alert("Verification email sent! Please check your inbox.");
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    alert(
+                      "Failed to send verification email. Please try again."
+                    );
+                  });
+              }}
+              className="mt-3 text-blue-400 hover:text-blue-300 underline transition-colors"
+            >
+              Resend verification email
+            </button>
           </div>
         )}
 
@@ -152,6 +199,14 @@ export default function SignIn() {
           >
             Sign up
           </Link>
+          <div className="mt-2">
+            <Link
+              href="/auth/forgot-password"
+              className="text-blue-400 hover:text-blue-300"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
       </div>
     </div>

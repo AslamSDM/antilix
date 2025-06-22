@@ -97,7 +97,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
   const handleDisconnect = () => {
     modal.disconnect();
   };
-
+  console.log(session);
   // Update URL when tab changes
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
