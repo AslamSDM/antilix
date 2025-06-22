@@ -508,28 +508,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               <div className="mb-4">
                 {!hasWalletConnected ? (
                   <WalletConnectButton className="w-full py-3" />
-                ) : network === "solana" && !user?.solanaAddress ? (
-                  // If Solana network selected but no verified Solana address in session
-                  <GlowButton
-                    onClick={handleVerifyWallet}
-                    className="w-full py-3 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
-                  >
-                    <>
-                      Verify Solana Wallet
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  </GlowButton>
-                ) : network === "bsc" && !user?.evmAddress ? (
-                  // If BSC network selected but no verified EVM address in session
-                  <GlowButton
-                    onClick={handleVerifyWallet}
-                    className="w-full py-3 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
-                  >
-                    <>
-                      Verify BSC Wallet
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  </GlowButton>
                 ) : (
                   <GlowButton
                     onClick={handleBuy}

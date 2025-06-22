@@ -131,12 +131,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (senderAddress !== session.user.solanaAddress) {
-      return NextResponse.json(
-        { error: "Failed to verify transaction" },
-        { status: 500 }
-      );
-    }
+    // if (senderAddress !== session.user.solanaAddress) {
+    //   return NextResponse.json(
+    //     { error: "Failed to verify transaction" },
+    //     { status: 500 }
+    //   );
+    // }
 
     // Extract transaction amount
     let transferAmount = 0;
