@@ -52,12 +52,13 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
   }, [session, status]);
 
   // If no referral code is provided or fetched, generate a placeholder
-  const displayReferralCode =
-    session?.user?.referralCode ||
-    "LMX" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const handleCopyReferralLink = () => {
-    const referralLink = generateReferralUrl(displayReferralCode);
+    if (!session?.user.referralCode) {
+      console.error("No referral code available to copy");
+      return;
+    }
+    const referralLink = generateReferralUrl(session?.user.referralCode);
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
 
@@ -67,8 +68,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     }, 2000);
   };
 
-  const referralLink = generateReferralUrl(displayReferralCode);
-
+  if (!session?.user?.referralCode) return null;
   return (
     <LuxuryCard className={`p-6 ${className}`}>
       <div className="flex items-center mb-4">
@@ -87,7 +87,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
           <input
             type="text"
             readOnly
-            value={referralLink}
+            value={generateReferralUrl(session?.user.referralCode)}
             className="flex-grow bg-black/50 border border-primary/30 rounded-l-md p-3 text-white/90 focus:outline-none"
           />
           <button

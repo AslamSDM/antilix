@@ -673,13 +673,13 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                           <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex-grow overflow-hidden">
                               <p className="text-primary truncate">
-                                {`${window?.location?.origin}/referral?ref=${session?.user?.referralCode}`}
+                                {`${window?.location?.origin}?ref=${session?.user?.referralCode}`}
                               </p>
                             </div>
                             <Button
                               onClick={() => {
                                 navigator.clipboard.writeText(
-                                  `${window?.location?.origin}/referral?ref=${session?.user?.referralCode}`
+                                  `${window?.location?.origin}?ref=${session?.user?.referralCode}`
                                 );
                               }}
                               className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black"
