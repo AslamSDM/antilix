@@ -121,56 +121,6 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
-
-    // Wallet Credentials provider
-    CredentialsProvider({
-      id: "credentials",
-      name: "Wallet",
-      credentials: {
-        userId: { label: "User ID", type: "text" },
-        email: { label: "Email", type: "email" },
-        wallet: { label: "Wallet Address", type: "text" },
-        walletType: { label: "Wallet Type", type: "text" },
-      },
-      async authorize(credentials, req) {
-        if (!credentials?.userId) {
-          console.error("No userId provided in credentials");
-          return null;
-        }
-
-        try {
-          console.log(`Authorizing user with userId: ${credentials.userId}`);
-
-          // Find the user based on userId from credentials
-          const user = await prisma.user.findUnique({
-            where: { id: credentials.userId },
-          });
-
-          if (!user) {
-            console.error(`User not found with ID: ${credentials.userId}`);
-            return null;
-          }
-
-          // Return the user object which will be added to the token and session
-          return {
-            id: user.id,
-            name: user.username || undefined,
-            email: credentials.email || user.email,
-            walletAddress: credentials.wallet || user.walletAddress,
-            walletType: credentials.walletType || user.walletType,
-            solanaAddress: user.solanaAddress,
-            evmAddress: user.evmAddress,
-            referralCode: user.referralCode || null,
-            referrerId: user.referrerId || null,
-            referrer: user.referrerId ? { id: user.referrerId } : null,
-            // Add any other fields needed for the User type
-          };
-        } catch (error) {
-          console.error("Error in authorize callback:", error);
-          return null;
-        }
-      },
-    }),
   ],
   callbacks: {
     async session({ session, token }) {
