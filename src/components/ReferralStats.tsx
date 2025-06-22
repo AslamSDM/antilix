@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
 
 type ReferralStats = {
   totalBonus: string;
@@ -15,6 +16,7 @@ export default function ReferralStats() {
   const { address } = useAccount();
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const { data: session } = useSession();
 
   // Get the current wallet address from either Solana or EVM wallet
   const currentWalletAddress = publicKey?.toBase58() || address || "";
@@ -70,7 +72,7 @@ export default function ReferralStats() {
           Copy
         </button>
       </div>
-      <div className="font-mono text-lg">{stats.referralCode}</div>
+      <div className="font-mono text-lg">{session?.user.referralCode}</div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="bg-black/20 rounded p-2">

@@ -73,7 +73,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     <LuxuryCard className={`p-6 ${className}`}>
       <div className="flex items-center mb-4">
         <Share2 className="w-6 h-6 text-primary mr-3" />
-        <h3 className="text-xl font-bold">Refer Friends & Earn 15% Bonus</h3>
+        <h3 className="text-xl font-bold">Refer Friends & Earn 10% Bonus</h3>
       </div>
 
       <p className="text-gray-300 mb-6">
@@ -116,7 +116,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
 
       {/* Referral Stats */}
       <div className="mt-6 grid grid-cols-3 gap-4">
-        <div className="bg-black/40 rounded-lg p-3 text-center">
+        {/* <div className="bg-black/40 rounded-lg p-3 text-center">
           <div className="text-xs text-gray-400 mb-1">Total Bonus</div>
           <div className="text-lg font-bold">
             {parseFloat(bonusStats.totalBonus).toLocaleString(undefined, {
@@ -124,7 +124,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
             })}{" "}
             LMX
           </div>
-        </div>
+        </div> */}
 
         <div className="bg-black/40 rounded-lg p-3 text-center">
           <div className="text-xs text-gray-400 mb-1">Referrals</div>

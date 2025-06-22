@@ -20,7 +20,6 @@ import { UserBalanceDisplay } from "@/components/UserBalanceDisplay";
 import { RecentActivitySummary } from "@/components/RecentActivitySummary";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 interface Purchase {
   id: string;
@@ -666,28 +665,30 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                           </div>
                         </div>
 
-                        <div className="mt-8">
-                          <h4 className="text-lg font-medium luxury-text mb-4">
-                            Your Referral Link
-                          </h4>
-                          <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex-grow overflow-hidden">
-                              <p className="text-primary truncate">
-                                {`${window?.location?.origin}?ref=${session?.user?.referralCode}`}
-                              </p>
+                        {session?.user?.referralCode && (
+                          <div className="mt-8">
+                            <h4 className="text-lg font-medium luxury-text mb-4">
+                              Your Referral Link
+                            </h4>
+                            <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
+                              <div className="flex-grow overflow-hidden">
+                                <p className="text-primary truncate">
+                                  {`${window?.location?.origin}?ref=${session?.user?.referralCode}`}
+                                </p>
+                              </div>
+                              <Button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    `${window?.location?.origin}?ref=${session?.user?.referralCode}`
+                                  );
+                                }}
+                                className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black"
+                              >
+                                Copy Link
+                              </Button>
                             </div>
-                            <Button
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  `${window?.location?.origin}?ref=${session?.user?.referralCode}`
-                                );
-                              }}
-                              className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black"
-                            >
-                              Copy Link
-                            </Button>
                           </div>
-                        </div>
+                        )}
 
                         {/* Referred Users Purchases Section */}
                         <div className="mt-8">
