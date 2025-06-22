@@ -54,7 +54,7 @@ export default function useReferralHandling(): ReferralInfo {
         console.log("Referral code from URL:", code);
         // Fetch referrer details from API
         try {
-          const response = await fetch(`/api/referrals/info?code=${code}`);
+          const response = await fetch(`/api/referral/info?code=${code}`);
           const data = await response.json();
           console.log("Referral info response:", data);
           if (data.success) {

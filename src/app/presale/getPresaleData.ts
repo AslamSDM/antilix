@@ -2,6 +2,7 @@
 import prisma from "@/lib/prisma";
 import { presaleCache } from "@/lib/createCache";
 import { fetchCryptoPrices } from "@/lib/price-utils";
+import { LMX_PRICE } from "@/lib/constants";
 
 export default async function getPresaleData() {
   // Check if we have cached data
@@ -24,11 +25,11 @@ export default async function getPresaleData() {
     // Get total raised in SOL
     const totalRaised = await prisma.purchase.aggregate({
       _sum: {
-        paymentAmount: true,
+        lmxTokensAllocated: true,
       },
       where: {
         status: "COMPLETED",
-        network: "SOLANA",
+        network: { in: ["SOLANA", "BSC"] },
       },
     });
 
@@ -36,8 +37,10 @@ export default async function getPresaleData() {
     // Assuming 1 SOL = $170 USD (example value, would need real-time price feed)
     const prices = await fetchCryptoPrices();
     const solPrice = prices.sol || 150;
-    const solRaised = totalRaised._sum.paymentAmount || 0;
-    const usdRaised = parseFloat(solRaised.toString()) * solPrice;
+    const lmxRaised = totalRaised._sum.lmxTokensAllocated || 0;
+    const usdRaised = parseFloat(lmxRaised.toString()) * LMX_PRICE;
+    console.log("Total LMX raised:", lmxRaised, usdRaised);
+    const solRaised = parseFloat(lmxRaised.toString()) / solPrice;
 
     const result = {
       contributorCount: contributorCount || 0,

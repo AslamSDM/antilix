@@ -302,7 +302,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 min-h-screen"
+      className="relative w-full px-2 sm:px-4 md:px-6 lg:px-16 xl:px-24 min-h-screen overflow-hidden"
     >
       {/* Loading overlay - similar to homepage */}
       <AnimatePresence>
@@ -399,9 +399,9 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         />
 
         {/* Animated connection lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-10">
+        <svg className="absolute inset-0 w-full h-full opacity-10 overflow-hidden">
           <motion.path
-            d="M0,200 Q400,100 800,200 T1600,200"
+            d="M0,200 Q30%,100 60%,200 T100%,200"
             stroke="url(#gradient1)"
             strokeWidth="1"
             fill="transparent"
@@ -410,7 +410,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             transition={{ duration: 8, repeat: Infinity, repeatType: "loop" }}
           />
           <motion.path
-            d="M0,400 Q300,300 600,400 T1200,400"
+            d="M0,400 Q25%,300 50%,400 T100%,400"
             stroke="url(#gradient2)"
             strokeWidth="1"
             fill="transparent"
@@ -461,7 +461,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         ))}
       </div>
       {/* Spline 3D background - with lower opacity and responsive display */}
-      <div className="fixed inset-0 w-full h-full z-[1] pointer-events-none opacity-20 sm:opacity-25 md:opacity-30">
+      <div className="fixed inset-0 w-full h-full z-[1] pointer-events-none opacity-20 sm:opacity-25 md:opacity-30 overflow-hidden">
         <Suspense
           fallback={
             <div className="w-full h-full flex items-center justify-center">
@@ -471,7 +471,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         >
           <DynamicSpline
             scene="https://prod.spline.design/PF2KyDFuGz-3ZjKz/scene.splinecode"
-            className="w-full h-full absolute inset-0 z-0"
+            className="w-full h-full absolute inset-0 z-0 object-cover"
           />
         </Suspense>
       </div>
@@ -482,7 +482,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
       {/* Main presale section - Direct focus on stats and buying */}
       <section
         ref={statsSectionRef}
-        className="min-h-screen relative z-10 py-8 sm:py-12 md:py-16 lg:py-20 px-3 sm:px-4 overflow-hidden flex flex-col justify-center"
+        className="min-h-screen relative z-10 py-8 sm:py-12 md:py-16 lg:py-20 px-1 sm:px-3 md:px-4 overflow-hidden flex flex-col justify-center"
       >
         {/* Section-specific background enhancement */}
         <div className="absolute inset-0 z-0">
@@ -524,7 +524,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             </motion.div>
           </motion.div>
 
-          <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 px-2">
+          <div className="w-full max-w-[95%] sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 px-0 sm:px-2">
             <CountdownTimer
               targetDate={new Date("2025-06-30T23:59:59")}
               className="mb-4 sm:mb-6 md:mb-8"
@@ -568,18 +568,17 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               )}
               referralBonus="10%"
             />
-
-            {/* Direct Buy Section */}
+            {/* Direct Buy Section */}{" "}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-6 lg:max-w-2xl mx-auto relative px-2"
+              className="mt-6 lg:max-w-2xl mx-auto relative px-0"
             >
               <div className="w-full">
                 <PresaleBuyForm
                   referralCode={searchParams?.get("ref") || ""}
-                  className="backdrop-blur-xl border-primary/20 shadow-[0_0_15px_sm:shadow-[0_0_20px_md:shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                  className="backdrop-blur-xl border-primary/20 shadow-[0_0_10px] sm:shadow-[0_0_15px] md:shadow-[0_0_20px] rgba(212,175,55,0.2)"
                 />
               </div>
 
@@ -597,15 +596,14 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                 />
               </div>
             </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-col sm:flex-row justify-center items-stretch gap-4 sm:gap-6 mt-6 sm:mt-8 md:mt-10"
+              className="flex flex-col sm:flex-row justify-center items-stretch gap-4 sm:gap-6 mt-6 sm:mt-8 md:mt-10 flex-wrap"
             >
               <LuxuryCard
-                className="min-w-[120px] sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
+                className="w-full sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.02] sm:hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
                 animate={true}
               >
                 <div className="text-center p-1 sm:p-2">
@@ -634,7 +632,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               </LuxuryCard>
 
               <LuxuryCard
-                className="min-w-[120px] sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
+                className="w-full sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.02] sm:hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
                 animate={true}
               >
                 <div className="text-center p-1 sm:p-2">
@@ -663,7 +661,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               </LuxuryCard>
 
               <LuxuryCard
-                className="min-w-[120px] sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
+                className="w-full sm:min-w-[180px] md:min-w-[220px] transform hover:scale-[1.02] sm:hover:scale-[1.08] transition-all duration-300 p-3 sm:p-4"
                 animate={true}
               >
                 <div className="text-center p-1 sm:p-2">
@@ -1299,7 +1297,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
         ref={faqSectionRef}
         className="py-8 sm:py-12 md:py-20 relative overflow-hidden"
       >
-        <div className="container mx-auto max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl px-2 relative z-10">
+        <div className="container mx-auto max-w-[95%] sm:max-w-md md:max-w-2xl lg:max-w-4xl px-1 sm:px-2 relative z-10">
           <ScrollAnimationWrapper>
             <motion.div
               initial={{ opacity: 0, y: -10 }}

@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export function Footer() {
   return (
-    <footer className="w-full bg-black/50 border-t border-white/10 backdrop-blur-lg">
+    <footer className="w-full bg-black/50 border-t border-white/10 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and tagline */}

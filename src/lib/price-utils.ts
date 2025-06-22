@@ -71,7 +71,7 @@ export async function fetchCryptoPrices(
 }
 
 export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
-  // Check cache first
+  // Check memory cache first
   const now = Date.now();
   if (priceCache && now - lastFetchTime < CACHE_DURATION) {
     return priceCache;
@@ -139,12 +139,14 @@ export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
       }
     }
 
-    // Update cache
+    // Update memory cache
     priceCache = prices;
     lastFetchTime = now;
 
-    // Also save to localStorage for persistence across page reloads
-    savePricesToStorage(prices);
+    // Only save to localStorage if we're in a browser environment
+    if (typeof window !== "undefined") {
+      savePricesToStorage(prices);
+    }
 
     return prices;
   } catch (error) {
@@ -225,13 +227,16 @@ export function formatCryptoAmount(
  */
 export function savePricesToStorage(prices: CryptoPrices): void {
   try {
-    localStorage.setItem(
-      "lmx-crypto-prices",
-      JSON.stringify({
-        prices,
-        timestamp: Date.now(),
-      })
-    );
+    // Check if window is defined (client-side) before accessing localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "lmx-crypto-prices",
+        JSON.stringify({
+          prices,
+          timestamp: Date.now(),
+        })
+      );
+    }
   } catch (error) {
     console.warn("Failed to save prices to localStorage:", error);
   }
@@ -242,6 +247,9 @@ export function savePricesToStorage(prices: CryptoPrices): void {
  */
 export function getCachedPrices(): CryptoPrices | null {
   try {
+    // Check if window is defined (client-side) before accessing localStorage
+    if (typeof window === "undefined") return null;
+
     const cached = localStorage.getItem("lmx-crypto-prices");
     if (!cached) return null;
 
@@ -283,6 +291,9 @@ export function formatUsdValue(
  */
 export function getLastPriceUpdateTime(): Date | null {
   try {
+    // Check if window is defined (client-side) before accessing localStorage
+    if (typeof window === "undefined") return null;
+
     const cached = localStorage.getItem("lmx-crypto-prices");
     if (!cached) return null;
 

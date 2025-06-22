@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/next-auth";
+import { ERROR_TYPES } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   try {
-    // Get wallet address from query param only
-    const address = req.nextUrl.searchParams.get("walletAddress");
-    const walletAddress = address?.startsWith("0x")
-      ? address.toLowerCase()
-      : address;
+    const session = await getServerSession(authOptions);
 
-    console.log("Fetching purchase history for wallet:", walletAddress);
-    if (!walletAddress) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "No wallet address provided in query parameters" },
-        { status: 400 }
+        {
+          error: ERROR_TYPES.AUTH_REQUIRED.message,
+          code: ERROR_TYPES.AUTH_REQUIRED.code,
+        },
+        { status: 401 }
       );
     }
+    // Get wallet address from query param only
 
     // Find user by their wallet address
     const user = await prisma.user.findFirstOrThrow({
       where: {
-        OR: [
-          { walletAddress },
-          { solanaAddress: walletAddress },
-          { evmAddress: walletAddress },
-        ],
+        id: session.user.id,
       },
     });
 
