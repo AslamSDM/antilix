@@ -19,6 +19,7 @@ import { headers } from "next/headers"; // Import cookies
 
 import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
 import { SolanaWalletPrompt } from "@/components/SolanaWalletPrompt";
+import { Toaster } from "sonner";
 
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
@@ -102,6 +103,7 @@ export default async function RootLayout({
               <AuthProvider>
                 <ContextProviderAsWalletProviders cookies={cookies}>
                   {/* Global loading screen */}
+                  <Toaster />
                   <LoadingScreen />
 
                   {/* Handle loading on navigation */}
