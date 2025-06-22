@@ -22,7 +22,8 @@ export default function useReferralHandling(): ReferralInfo {
   const [referrerUsername, setReferrerUsername] = useState<string | null>(null);
   const [isValid, setIsValid] = useState<boolean>(false);
   const { status, data: session } = useSession();
-  const cookieRefCode = getCookie("referralCode");
+  const cookieRefCode =
+    getCookie("referralCode") || extractReferralCodeFromUrl();
 
   // Check for referral code in URL and process it
   useEffect(() => {
@@ -30,28 +31,16 @@ export default function useReferralHandling(): ReferralInfo {
     const processReferralCode = async (code: string) => {
       try {
         console.log(status);
-        if (status !== "authenticated") return;
         // Extract referral code from URL
         console.log("Processing referral code:", code);
         // If no code in URL, check if we already have one in cookies
-        if (!code) {
-          const savedCode = getCookie("referralCode");
-          const savedReferrerId = getCookie("referrerId");
-          const savedReferrerAddress = getCookie("referrerAddress");
-          const savedReferrerUsername = getCookie("referrerUsername");
-          const savedIsValid = getCookie("referralIsValid");
-
-          if (savedCode) {
-            setReferralCode(savedCode);
-            if (savedReferrerId) setReferrerId(savedReferrerId);
-            if (savedReferrerAddress) setReferrerAddress(savedReferrerAddress);
-            if (savedReferrerUsername)
-              setReferrerUsername(savedReferrerUsername);
-            setIsValid(savedIsValid === "true");
-          }
-          return;
+        const savedCode = getCookie("referralCode");
+        console.log("Saved referral code from cookies:", savedCode);
+        if (!savedCode) {
+          setCookie("referralCode", code);
         }
         console.log("Referral code from URL:", code);
+        if (status !== "authenticated") return;
         // Fetch referrer details from API
         try {
           const response = await fetch(`/api/referral/info?code=${code}`);
