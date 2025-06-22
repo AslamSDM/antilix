@@ -11,7 +11,6 @@ import { MASTER_WALLET_ADDRESS } from "@/lib/constants";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth";
 import { ERROR_TYPES } from "@/lib/errors";
-import ReferralBonuses from "@/components/ReferralBonuses";
 
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     console.log("Processing signature:", signature);
     // Fetch transaction details with commitment level and additional details
-    const transaction = await connection.getTransaction(signature, {
+    let transaction = await connection.getTransaction(signature, {
       maxSupportedTransactionVersion: 0,
       commitment: "confirmed",
     });
@@ -70,7 +69,8 @@ export async function POST(req: NextRequest) {
       });
       if (retryTransaction) {
         console.log("Transaction found on retry");
-        return retryTransaction;
+        // Assign to transaction instead of returning directly
+        transaction = retryTransaction;
       }
     }
 
