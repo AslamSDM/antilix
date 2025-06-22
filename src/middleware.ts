@@ -1,43 +1,76 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
+// Create a middleware for auth pages to redirect authenticated users
+async function authPagesMiddleware(req: NextRequest) {
+  const token = await getToken({ req });
 
-    // Path to verification needed page
-    const verificationNeededPath = "/auth/verification-needed";
-
-    // If user is logged in but not verified, redirect to verification page
-    if (
-      token &&
-      !token.verified &&
-      !req.nextUrl.pathname.startsWith(verificationNeededPath) &&
-      !req.nextUrl.pathname.startsWith("/auth/verify-email") &&
-      !req.nextUrl.pathname.startsWith("/auth/verify")
-    ) {
-      // Create the verification needed URL
-      const verificationUrl = new URL(verificationNeededPath, req.url);
-      verificationUrl.searchParams.set("email", token.email || "");
-
-      // Redirect to verification page
-      return NextResponse.redirect(verificationUrl);
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token, // Only allows authenticated users
-    },
-    pages: {
-      signIn: "/auth/signin", // Redirect to signin page if not authenticated
-    },
+  // If user is authenticated and trying to access sign-in or sign-up page,
+  // automatically redirect to presale page
+  if (token) {
+    return NextResponse.redirect(new URL("/presale", req.url));
   }
-);
+
+  return NextResponse.next();
+}
+
+// Main middleware function that handles both auth pages and protected routes
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // For auth pages (signin/signup), use authPagesMiddleware to redirect to presale if logged in
+  if (pathname === "/auth/signin" || pathname === "/auth/signup") {
+    return authPagesMiddleware(req);
+  }
+
+  // For protected routes, let the default NextAuth middleware handle it
+  return NextResponse.next();
+}
+
+// Protected routes middleware using withAuth
+export const { auth } = {
+  auth: withAuth(
+    function middleware(req) {
+      const token = req.nextauth.token;
+
+      // Path to verification needed page
+      const verificationNeededPath = "/auth/verification-needed";
+
+      // If user is logged in but not verified, redirect to verification page
+      if (
+        token &&
+        !token.verified &&
+        !req.nextUrl.pathname.startsWith(verificationNeededPath) &&
+        !req.nextUrl.pathname.startsWith("/auth/verify-email") &&
+        !req.nextUrl.pathname.startsWith("/auth/verify")
+      ) {
+        // Create the verification needed URL
+        const verificationUrl = new URL(verificationNeededPath, req.url);
+        verificationUrl.searchParams.set("email", token.email || "");
+
+        // Redirect to verification page
+        return NextResponse.redirect(verificationUrl);
+      }
+
+      return NextResponse.next();
+    },
+    {
+      callbacks: {
+        authorized: ({ token }) => !!token, // Only allows authenticated users
+      },
+      pages: {
+        signIn: "/auth/signin", // Redirect to signin page if not authenticated
+      },
+    }
+  ),
+};
 
 export const config = {
   matcher: [
+    "/auth/signin",
+    "/auth/signup",
     "/presale/:path*",
     "/profile/:path*",
     "/referral/:path*",

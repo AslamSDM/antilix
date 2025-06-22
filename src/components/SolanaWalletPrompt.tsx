@@ -37,7 +37,7 @@ export function SolanaWalletPrompt({
   isModal = false,
   onVerificationComplete,
 }: SolanaWalletPromptProps) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [isVisible, setIsVisible] = useState(isModal || false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSigningMessage, setIsSigningMessage] = useState(false);
@@ -203,6 +203,12 @@ export function SolanaWalletPrompt({
             // Call the onVerificationComplete callback if it exists
             if (onVerificationComplete) {
               // Give a moment for the UI to show success state
+              update({
+                user: {
+                  ...session.user,
+                  solanaAddress: address,
+                },
+              });
               setTimeout(() => {
                 onVerificationComplete();
               }, 1500);

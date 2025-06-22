@@ -112,7 +112,7 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       }
 
       const wallet = walletProvider;
-
+      nextStep(); // Move to next step
       // Step 2: Prepare transaction
       setCurrentStep("prepare-transaction");
 

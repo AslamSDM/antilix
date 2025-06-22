@@ -12,13 +12,13 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { status } = useSession();
+  const { status, data: session } = useSession();
 
   useEffect(() => {
     if (status === "authenticated") {
       router.push("/presale");
     }
-  }, [status, router]);
+  }, [status, router, session]);
 
   const [needsVerification, setNeedsVerification] = useState(false);
 
@@ -32,7 +32,8 @@ export default function SignIn() {
       const result = await signIn("email-password", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: "/presale",
       });
 
       if (result?.error === "EMAIL_NOT_VERIFIED") {

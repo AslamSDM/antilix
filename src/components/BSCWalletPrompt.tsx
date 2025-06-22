@@ -33,7 +33,7 @@ export function BSCWalletPrompt({
   isModal = false,
   onVerificationComplete,
 }: BSCWalletPromptProps) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [isVisible, setIsVisible] = useState(isModal || false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSigningMessage, setIsSigningMessage] = useState(false);
@@ -143,14 +143,20 @@ export function BSCWalletPrompt({
       if (response.ok) {
         // Create a NextAuth session with the wallet info
         if (data.userId) {
-          await createWalletSession(data.userId, address, "bsc");
+          // await createWalletSession(data.userId, address, "bsc");
 
           // Display success message
           toast.success("BSC wallet verified successfully!", {
             description:
               "You can now participate in the presale and earn referral rewards.",
           });
-
+          update({
+            user: {
+              ...session.user,
+              evmAddress: address,
+              evmVerified: true,
+            },
+          });
           // Handle success either via callback or by reload
           if (onVerificationComplete) {
             setTimeout(() => onVerificationComplete(), 1500);

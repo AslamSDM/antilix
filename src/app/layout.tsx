@@ -122,7 +122,9 @@ export default async function RootLayout({
 
                     <main className="flex-grow relative z-20 pt-0">
                       <ScrollProgress />
-                      <PageTransition>{children}</PageTransition>
+                      {/* <PageTransition> */}
+                      {children}
+                      {/* </PageTransition> */}
                       <FluxDock />
                     </main>
 
