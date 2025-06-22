@@ -22,7 +22,7 @@ export default function SignIn() {
       const result = await signIn("email-password", {
         email,
         password,
-        redirect: false,
+        redirect: true,
       });
 
       if (result?.error) {

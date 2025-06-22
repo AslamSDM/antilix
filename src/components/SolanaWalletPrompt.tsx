@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { LitmexLogo } from "./AntilixhLogo";
 import { modal } from "@/components/providers/wallet-provider";
 import {
   useAppKitAccount,
@@ -386,9 +385,6 @@ export function SolanaWalletPrompt({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-full border border-gray-700 bg-blue-900/20 p-2">
-            <LitmexLogo className="h-6 w-6" />
-          </div>
           <h3 className="text-lg font-medium text-white">
             Connect your Solana Wallet
           </h3>
