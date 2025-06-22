@@ -111,7 +111,7 @@ export default function SignIn() {
           <div className="flex-1 border-t border-gray-700"></div>
         </div>
 
-        <button
+        {/* <button
           onClick={handleGoogleSignIn}
           className="flex w-full items-center justify-center rounded-md border border-gray-700 bg-black/30 px-4 py-2 text-white hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
@@ -139,7 +139,7 @@ export default function SignIn() {
             />
           </svg>
           Sign in with Google
-        </button>
+        </button> */}
 
         <div className="mt-6 text-center text-sm text-gray-400">
           Don't have an account?{" "}

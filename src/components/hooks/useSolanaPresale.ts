@@ -131,16 +131,16 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       setCurrentStep("send-transaction");
 
       // Send transaction using solanaPresale helper
-      // const success = await solanaPresale.buyTokens(
-      //   connection,
-      //   wallet,
-      //   solAmount,
-      //   referralCode
-      // );
-      const success = {
-        signature:
-          "GJTbiMRPGsunY4ANNPwEEfJxYFG9FLsjDpPNFX8qreQG5y7NZ3qTLr3tCn5vH9vSykR6vFgmkHQjjGJeNLDbZ94",
-      };
+      const success = await solanaPresale.buyTokens(
+        connection,
+        wallet,
+        solAmount,
+        referralCode
+      );
+      // const success = {
+      //   signature:
+      //     "GJTbiMRPGsunY4ANNPwEEfJxYFG9FLsjDpPNFX8qreQG5y7NZ3qTLr3tCn5vH9vSykR6vFgmkHQjjGJeNLDbZ94",
+      // };
 
       if (!success) {
         setError("send-transaction", "Transaction failed or was rejected");
