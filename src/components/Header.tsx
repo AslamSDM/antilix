@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, User, LogIn } from "lucide-react";
 import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn } from "next-auth/react";
 import { toast } from "sonner";
 import {
   Select,
@@ -22,7 +22,7 @@ import { UnifiedWalletButton } from "./UnifiedWalletButton";
 
 const navLinks = [
   { href: "/presale", label: "Presale" },
-  { href: "/profile", label: "Profile" },
+  // Removed profile link since we'll add it as an avatar
 ];
 
 // Network Selector Component
@@ -132,18 +132,55 @@ export function Header() {
           <div className="flex items-center gap-3">
             {/* <NetworkSelector /> */}
 
-            <UnifiedWalletButton size="sm" />
+            {session?.user ? (
+              <>
+                {/* Only show wallet button when logged in */}
+                <UnifiedWalletButton size="sm" />
 
-            {session?.user && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                onClick={handleLogout}
-              >
-                <LogOut size={16} />
-                <span className="sr-only sm:not-sr-only sm:ml-1.5">Logout</span>
-              </Button>
+                {/* Profile avatar */}
+                <Link
+                  href="/profile"
+                  className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 border border-primary/30 hover:border-primary transition-all"
+                >
+                  {session.user.image ? (
+                    <Image
+                      src={session.user.image || "/lit_logo.png"}
+                      alt="Profile"
+                      width={30}
+                      height={30}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <User size={16} className="text-primary" />
+                  )}
+                </Link>
+
+                {/* Logout button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={16} />
+                  <span className="sr-only sm:not-sr-only sm:ml-1.5">
+                    Logout
+                  </span>
+                </Button>
+              </>
+            ) : (
+              <>
+                {/* Login button when not logged in */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-primary/40 text-primary hover:bg-primary/10"
+                  onClick={() => signIn()}
+                >
+                  <LogIn size={16} className="mr-1.5" />
+                  Sign In
+                </Button>
+              </>
             )}
 
             <Link href="/presale" className="hidden lg:block">
@@ -166,18 +203,52 @@ export function Header() {
 
         {/* Mobile Navigation Button */}
         <div className="md:hidden flex items-center space-x-2">
-          {session?.user && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-1.5 h-auto text-red-400 hover:bg-red-500/10"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} />
-            </Button>
-          )}
+          {session?.user ? (
+            <>
+              {/* Profile link for mobile */}
+              <Link
+                href="/profile"
+                className="relative flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 border border-primary/30"
+              >
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image || "/lit_logo.png"}
+                    alt="Profile"
+                    width={24}
+                    height={24}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User size={14} className="text-primary" />
+                )}
+              </Link>
 
-          <UnifiedWalletButton size="sm" variant="minimal" />
+              {/* Logout button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1.5 h-auto text-red-400 hover:bg-red-500/10"
+                onClick={handleLogout}
+              >
+                <LogOut size={16} />
+              </Button>
+
+              {/* Only show wallet button when logged in */}
+              <UnifiedWalletButton size="sm" variant="minimal" />
+            </>
+          ) : (
+            <>
+              {/* Login button when not logged in */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1.5 h-auto text-primary hover:bg-primary/10"
+                onClick={() => signIn()}
+              >
+                <LogIn size={16} />
+              </Button>
+            </>
+          )}
 
           <button
             className="text-white focus:outline-none p-1.5"
@@ -223,11 +294,44 @@ export function Header() {
               </Link>
             ))}
 
+            {/* Always show profile link in mobile menu */}
+            <Link
+              href="/profile"
+              className={`text-sm font-medium px-3 py-1.5 transition-colors hover:bg-white/10 rounded flex items-center ${
+                pathname === "/profile"
+                  ? "text-primary border-l-2 border-primary pl-2.5"
+                  : "text-white/80"
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <User size={14} className="mr-2" />
+              Profile
+            </Link>
+
             <div className="pt-2 border-t border-primary/10">
-              <div className="flex items-center justify-between mb-3 mt-2">
-                <span className="text-xs text-white/70">Network:</span>
-                <NetworkSelector />
-              </div>
+              {session?.user ? (
+                <>
+                  {/* Only show network selector when logged in */}
+                  <div className="flex items-center justify-between mb-3 mt-2">
+                    <span className="text-xs text-white/70">Network:</span>
+                    <NetworkSelector />
+                  </div>
+                </>
+              ) : (
+                <div className="mb-3 mt-2">
+                  <Button
+                    className="w-full bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary"
+                    onClick={() => {
+                      signIn();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogIn size={16} className="mr-2" />
+                    Sign In
+                  </Button>
+                </div>
+              )}
+
               <Link href="/presale" className="block mb-3">
                 <Button
                   className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none group relative overflow-hidden"

@@ -24,18 +24,26 @@ declare module "next-auth" {
     };
   }
 
+  // Create a User type that matches what our app needs
   interface User {
     id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
     walletAddress?: string | null;
     solanaAddress?: string | null;
     evmAddress?: string | null;
     referralCode?: string | null;
-    [key: string]: any;
+    referrerId?: string | null;
+    walletType?: string | null;
   }
 }
 
+// Use type assertion to avoid adapter compatibility issues
+const adapter = PrismaAdapter(prisma) as any;
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: adapter,
   session: {
     strategy: "jwt",
   },
@@ -44,21 +52,6 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/signup",
   },
   providers: [
-    // Google Provider
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-          referralCode: nanoid(10),
-        };
-      },
-    }),
-
     // Email/Password Authentication
     CredentialsProvider({
       id: "email-password",
@@ -71,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -114,12 +107,13 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.username || user.email?.split("@")[0],
-            referralCode: user.referralCode,
+            referralCode: user.referralCode || null,
             solanaAddress: user.solanaAddress,
             evmAddress: user.evmAddress,
             walletAddress: user.walletAddress,
             walletType: user.walletType,
             referrerId: user.referrer?.id || null,
+            referrer: user.referrer || null,
           };
         } catch (error) {
           console.error("Email/Password authorization error:", error);
@@ -129,17 +123,16 @@ export const authOptions: NextAuthOptions = {
     }),
 
     // Wallet Credentials provider
-    {
+    CredentialsProvider({
       id: "credentials",
       name: "Wallet",
-      type: "credentials",
       credentials: {
         userId: { label: "User ID", type: "text" },
         email: { label: "Email", type: "email" },
         wallet: { label: "Wallet Address", type: "text" },
         walletType: { label: "Wallet Type", type: "text" },
       },
-      authorize: async (credentials, req) => {
+      async authorize(credentials, req) {
         if (!credentials?.userId) {
           console.error("No userId provided in credentials");
           return null;
@@ -167,15 +160,17 @@ export const authOptions: NextAuthOptions = {
             walletType: credentials.walletType || user.walletType,
             solanaAddress: user.solanaAddress,
             evmAddress: user.evmAddress,
-            referralCode: user.referralCode,
+            referralCode: user.referralCode || null,
             referrerId: user.referrerId || null,
+            referrer: user.referrerId ? { id: user.referrerId } : null,
+            // Add any other fields needed for the User type
           };
         } catch (error) {
           console.error("Error in authorize callback:", error);
           return null;
         }
       },
-    },
+    }),
   ],
   callbacks: {
     async session({ session, token }) {
