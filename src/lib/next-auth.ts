@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/auth/signin",
-    signUp: "/auth/signup",
+    newUser: "/auth/signup",
   },
   providers: [
     // Google Provider
@@ -89,6 +89,11 @@ export const authOptions: NextAuthOptions = {
               evmAddress: true,
               walletAddress: true,
               walletType: true,
+              referrer: {
+                select: {
+                  id: true,
+                },
+              },
             },
           });
 
@@ -114,6 +119,7 @@ export const authOptions: NextAuthOptions = {
             evmAddress: user.evmAddress,
             walletAddress: user.walletAddress,
             walletType: user.walletType,
+            referrerId: user.referrer?.id || null,
           };
         } catch (error) {
           console.error("Email/Password authorization error:", error);
@@ -133,7 +139,7 @@ export const authOptions: NextAuthOptions = {
         wallet: { label: "Wallet Address", type: "text" },
         walletType: { label: "Wallet Type", type: "text" },
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, req) => {
         if (!credentials?.userId) {
           console.error("No userId provided in credentials");
           return null;
@@ -162,6 +168,7 @@ export const authOptions: NextAuthOptions = {
             solanaAddress: user.solanaAddress,
             evmAddress: user.evmAddress,
             referralCode: user.referralCode,
+            referrerId: user.referrerId || null,
           };
         } catch (error) {
           console.error("Error in authorize callback:", error);

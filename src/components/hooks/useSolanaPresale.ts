@@ -131,16 +131,16 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       setCurrentStep("send-transaction");
 
       // Send transaction using solanaPresale helper
-      const success = await solanaPresale.buyTokens(
-        connection,
-        wallet,
-        solAmount,
-        referralCode
-      );
-      // const success = {
-      //   signature:
-      //     "21op59ggNVcEbZfdt2qubarXvPgqhW9DQF6KknVze8WJWoHWQSbZH9eRTvQRZWmygkWUDvEBwEEAtUQqFq1UbRWW",
-      // };
+      // const success = await solanaPresale.buyTokens(
+      //   connection,
+      //   wallet,
+      //   solAmount,
+      //   referralCode
+      // );
+      const success = {
+        signature:
+          "GJTbiMRPGsunY4ANNPwEEfJxYFG9FLsjDpPNFX8qreQG5y7NZ3qTLr3tCn5vH9vSykR6vFgmkHQjjGJeNLDbZ94",
+      };
 
       if (!success) {
         setError("send-transaction", "Transaction failed or was rejected");
@@ -153,6 +153,9 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       // Store the transaction signature for use in the UI
       const signature = success.signature;
       console.log("Transaction signature:", signature);
+
+      // Wait for 2 seconds before continuing
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setTransactionSignature(signature);
 
       nextStep(); // Move to next step

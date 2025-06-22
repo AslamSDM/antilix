@@ -3,20 +3,36 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import prisma from "@/lib/prisma";
 import {
   calculateTokenAmount,
-  fetchCryptoPrices,
+  fetchCryptoPricesServer,
   LMX_PRICE_USD,
 } from "@/lib/price-utils";
 import { sendReferralTokens } from "@/lib/send-referral";
 import { MASTER_WALLET_ADDRESS } from "@/lib/constants";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/next-auth";
+import { ERROR_TYPES } from "@/lib/errors";
 
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
   process.env.SECOND_TIER_WALLET || MASTER_WALLET_ADDRESS;
+const DISTRIBUTION_WALLET_PRIVATE_KEY =
+  process.env.DISTRIBUTION_WALLET_PRIVATE_KEY ?? "";
 
 // Validation schema
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          error: ERROR_TYPES.AUTH_REQUIRED.message,
+          code: ERROR_TYPES.AUTH_REQUIRED.code,
+        },
+        { status: 401 }
+      );
+    }
     const body = await req.json();
     // const { signature } = verificationSchema.parse(body);
     const { signature } = body;
@@ -36,10 +52,26 @@ export async function POST(req: NextRequest) {
     );
 
     console.log("Processing signature:", signature);
-    // Fetch transaction details
+    // Fetch transaction details with commitment level and additional details
     const transaction = await connection.getTransaction(signature, {
       maxSupportedTransactionVersion: 0,
+      commitment: "confirmed",
     });
+
+    // Add retry logic if transaction is null
+    if (!transaction) {
+      // Wait a bit and try again - transaction might not be finalized yet
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Retrying transaction fetch for:", signature);
+      const retryTransaction = await connection.getTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: "finalized",
+      });
+      if (retryTransaction) {
+        console.log("Transaction found on retry");
+        return retryTransaction;
+      }
+    }
 
     if (!transaction) {
       return NextResponse.json(
@@ -98,6 +130,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (senderAddress !== session.user.solanaAddress) {
+      return NextResponse.json(
+        { error: "Failed to verify transaction" },
+        { status: 500 }
+      );
+    }
+
     // Extract transaction amount
     let transferAmount = 0;
 
@@ -128,29 +167,12 @@ export async function POST(req: NextRequest) {
     const existingTransaction = undefined;
 
     // Extract referral code if present (from memo instruction)
-    let referralCode = "";
-
-    try {
-      // Basic check for memo data in the transaction
-      const txData = JSON.stringify(transaction);
-      if (txData.includes("Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo")) {
-        // There's likely a memo, but extraction is complex
-        // We handle extraction in a more robust way in production
-        // This is a simplified approach
-        const memoMatch = txData.match(/ref:([a-zA-Z0-9]+)/);
-        if (memoMatch && memoMatch[1]) {
-          referralCode = memoMatch[1];
-        }
-      }
-    } catch (e) {
-      console.error("Error extracting referral code:", e);
-    }
 
     // If we have a referral code, and this is a new transaction (not existing),
     // save the purchase so we can process referral bonus
     let newPurchase = null;
 
-    let sender = await prisma.user.findFirst({
+    let sender = await prisma.user.findFirstOrThrow({
       where: {
         OR: [
           { walletAddress: senderAddress },
@@ -158,7 +180,7 @@ export async function POST(req: NextRequest) {
         ],
       },
     });
-    if (!sender && !referralCode) {
+    if (!sender) {
       // Create new user for this sender
       const newReferralCode = `LMX${Math.random()
         .toString(36)
@@ -178,107 +200,18 @@ export async function POST(req: NextRequest) {
       `Sender found: ${sender ? sender.id : "No existing user found"}`
     );
 
-    if (referralCode) {
-      try {
-        // Find the referrer by their referral code
-        const referrer = await prisma.user.findUnique({
-          where: { referralCode },
-          select: { id: true, solanaAddress: true },
-        });
+    try {
+      // Save the purchase
+      if (sender) {
+        const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
 
-        // Find or create the sender user
-
-        if (referrer && !sender?.referrerId) {
-          // If sender exists but doesn't have a referrer, update it
-          await prisma.user.update({
-            where: { id: sender?.id },
-            data: { referrerId: referrer.id },
+        // If we have a referrer, process the bonus distribution
+        if (sender.referrerId) {
+          const referrer = await prisma.user.findUnique({
+            where: { id: sender.referrerId },
+            select: { id: true, solanaAddress: true },
           });
-        }
-
-        // Save the purchase
-        if (sender) {
-          const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
-
-          newPurchase = await prisma.purchase.create({
-            data: {
-              userId: sender.id,
-              network: "SOLANA",
-              paymentAmount: solAmount.toString(),
-              paymentCurrency: "SOL",
-              lmxTokensAllocated: (solAmount * 100).toString(), // Example: 1 SOL = 100 LMX tokens
-              pricePerLmxInUsdt: "0.10", // Example: $0.10 per LMX token
-              transactionSignature: signature,
-              status: "COMPLETED",
-            },
-          });
-          // If we have a referrer, process the bonus distribution
-          if (referrer && referrer?.solanaAddress && newPurchase) {
-            //   // Calculate bonus amount (10% of purchase amount in USD)
-            //   const purchaseAmountInSol = parseFloat(
-            //     newPurchase.paymentAmount.toString()
-            //   );
-            //   const purchaseAmountInUsd =
-            //     purchaseAmountInSol *
-            //     parseFloat(newPurchase.pricePerLmxInUsdt.toString());
-            //   const bonusPercentage = 10; // 10%
-            //   const bonusAmountInUsd =
-            //     (purchaseAmountInUsd * bonusPercentage) / 100;
-
-            //   // Get current SOL price to convert USD to SOL
-            //   // In a real implementation, fetch this from a reliable price oracle or API
-            //   const solPriceInUsd =
-            //     parseFloat(newPurchase.pricePerLmxInUsdt.toString()) /
-            //     LMX_PRICE_USD; // Using the ratio from the purchase
-            //   const bonusAmountInSol = bonusAmountInUsd / solPriceInUsd;
-
-            //   // Calculate second-tier amount (10% of the bonus)
-            //   const secondTierPercentage = 10; // 10%
-            //   const secondTierAmountInSol =
-            //     (bonusAmountInSol * secondTierPercentage) / 100;
-            //   const referrerAmountInSol =
-            //     bonusAmountInSol - secondTierAmountInSol;
-            //   // Load the distribution wallet from private key
-            //   // Convert to lamports
-            //   const referrerLamports = Math.floor(
-            //     referrerAmountInSol * LAMPORTS_PER_SOL
-            //   );
-            //   const secondTierLamports = Math.floor(
-            //     secondTierAmountInSol * LAMPORTS_PER_SOL
-            //   );
-
-            //   const distributionWallet = Keypair.fromSecretKey(
-            //     Buffer.from(DISTRIBUTION_WALLET_PRIVATE_KEY, "hex")
-            //   );
-
-            //   // Create transaction to send SOL to referrer
-            //   const transaction = new Transaction().add(
-            //     SystemProgram.transfer({
-            //       fromPubkey: distributionWallet.publicKey,
-            //       toPubkey: new PublicKey(referrer.solanaAddress),
-            //       lamports: referrerLamports,
-            //     })
-            //   );
-
-            //   // Add second transfer to second-tier wallet
-            //   transaction.add(
-            //     SystemProgram.transfer({
-            //       fromPubkey: distributionWallet.publicKey,
-            //       toPubkey: new PublicKey(SECOND_TIER_WALLET),
-            //       lamports: secondTierLamports,
-            //     })
-            //   );
-
-            //   // Sign and send
-            //   transaction.recentBlockhash = (
-            //     await connection.getLatestBlockhash()
-            //   ).blockhash;
-            //   transaction.feePayer = distributionWallet.publicKey;
-            //   const signature = await sendAndConfirmTransaction(
-            //     connection,
-            //     transaction,
-            //     [distributionWallet]
-            //   );
+          if (referrer && referrer.solanaAddress) {
             try {
               await sendReferralTokens(
                 referrer.solanaAddress,
@@ -291,15 +224,15 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-      } catch (purchaseError) {
-        console.error(
-          "Error recording purchase or processing referral:",
-          purchaseError
-        );
-        // Don't block the verification response if saving the purchase fails
       }
+    } catch (purchaseError) {
+      console.error(
+        "Error recording purchase or processing referral:",
+        purchaseError
+      );
+      // Don't block the verification response if saving the purchase fails
     }
-    const prices = await fetchCryptoPrices();
+    const prices = await fetchCryptoPricesServer();
     const purchase = await (prisma as any).purchase.create({
       data: {
         userId: sender?.id ?? 0,
@@ -323,7 +256,6 @@ export async function POST(req: NextRequest) {
         signature,
         sender: senderAddress,
         amount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
-        referralCode,
       },
       // Include purchase data if we found it earlier or just created it
       purchase: existingTransaction || newPurchase || purchase,

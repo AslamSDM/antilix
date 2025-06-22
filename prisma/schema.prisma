@@ -82,3 +82,11 @@ enum PurchaseStatus {
   FAILED
   REFUNDED
 }
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  type      String
+  message   String
+  data      Json
+}

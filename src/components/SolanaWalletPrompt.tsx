@@ -96,7 +96,7 @@ export function SolanaWalletPrompt({
 
   // Function to request signature to verify wallet ownership
   const handleSignatureRequest = async () => {
-    if (!isConnected || !address) return;
+    if (!isConnected || !address || isSigningMessage) return;
 
     try {
       setIsSigningMessage(true);
@@ -107,7 +107,7 @@ export function SolanaWalletPrompt({
       const signatureMessage = createSignMessage(address);
 
       // Get the provider from AppKit state
-      let signatureBase58: string;
+      let signatureBase58: string | undefined;
 
       if (!walletProvider) {
         // Fallback for testing/development
@@ -118,6 +118,7 @@ export function SolanaWalletPrompt({
         // } else {
         //   throw new Error(ERROR_TYPES.WALLET_INCOMPATIBLE);
         // }
+        throw new Error(ERROR_TYPES.WALLET_INCOMPATIBLE);
       } else {
         try {
           // Implement signing with timeout

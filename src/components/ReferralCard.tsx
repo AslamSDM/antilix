@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Share2, Copy, Check, Users } from "lucide-react";
 import LuxuryCard from "./LuxuryCard";
 import { generateReferralUrl } from "@/lib/referral";
-import useReferralSystem from "./hooks/useReferralSystem";
+import { useSession } from "next-auth/react";
 
 interface ReferralCardProps {
   className?: string;
@@ -14,14 +14,6 @@ interface ReferralCardProps {
 export const ReferralCard: React.FC<ReferralCardProps> = ({
   className = "",
 }) => {
-  const {
-    userReferralCode,
-    referralStats,
-    isLoading: referralLoading,
-    generateReferralCode,
-    fetchUserReferralInfo,
-  } = useReferralSystem();
-
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [bonusStats, setBonusStats] = useState({
@@ -29,18 +21,19 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     count: 0,
     referralCount: 0,
   });
-
+  const { data: session, status } = useSession();
   // Ensure we have fresh data
   useEffect(() => {
     // fetchUserReferralInfo();
 
     // Fetch referral bonus data if we have a wallet connected
     const fetchBonusData = async () => {
-      if (!userReferralCode) return;
+      if (status !== "authenticated") return;
+      if (!session?.user.referralCode) return;
 
       try {
         const response = await fetch(
-          `/api/referral/bonuses?referralCode=${userReferralCode}`
+          `/api/referral/bonuses?referralCode=${session.user.referralCode}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -56,11 +49,11 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     };
 
     fetchBonusData();
-  }, [fetchUserReferralInfo, userReferralCode]);
+  }, [session, status]);
 
   // If no referral code is provided or fetched, generate a placeholder
   const displayReferralCode =
-    userReferralCode ||
+    session?.user?.referralCode ||
     "LMX" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
   const handleCopyReferralLink = () => {

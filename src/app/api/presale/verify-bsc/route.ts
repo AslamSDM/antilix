@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     const valueInWei = transaction.value.toString();
     const valueInBnb = ethers.formatEther(valueInWei);
 
-    let user = await prisma.user.findFirst({
+    let user = await prisma.user.findFirstOrThrow({
       where: {
         evmAddress: transaction.from.toLowerCase(),
       },

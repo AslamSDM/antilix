@@ -31,12 +31,6 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
   const { isConnected, address, allAccounts } = useAppKitAccount();
   const { data: session, status } = useSession();
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Session status:", status);
-    console.log("Session data:", session);
-  }, [session, status]);
-
   // Check if there are connected accounts
   const hasConnectedAccounts = allAccounts && allAccounts.length > 0;
   const isWalletConnected = isConnected && hasConnectedAccounts;

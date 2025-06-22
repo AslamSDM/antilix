@@ -29,7 +29,7 @@ export const modal = createAppKit({
   projectId,
   networks,
   metadata,
-  themeMode: "dark",
+  themeMode: "solana",
   defaultNetwork: networks[0], // Default to first network (Solana)
   features: {
     analytics: true,

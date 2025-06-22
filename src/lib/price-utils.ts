@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { LMX_PRICE } from "./constants";
+import { ethers } from "ethers";
 
 /**
  * Fixed USD price for 1 LMX token
@@ -36,39 +37,17 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 export async function fetchCryptoPrices(
   forceRefresh: boolean = false
 ): Promise<CryptoPrices> {
-  const now = Date.now();
-
-  // Return in-memory cached prices if they're still valid
-  if (!forceRefresh && priceCache && now - lastFetchTime < CACHE_DURATION) {
-    return priceCache;
-  }
-
-  // Try to get from localStorage if available and not forcing refresh
-  if (!forceRefresh) {
-    const storedPrices = getCachedPrices();
-    if (storedPrices) {
-      // Update the in-memory cache as well
-      priceCache = storedPrices;
-      lastFetchTime = now;
-      return storedPrices;
-    }
-  }
-
   try {
     // Add a cache-busting parameter to prevent caching by the browser or CDN
-    const cacheBuster = `cacheBust=${Date.now()}`;
-    const response = await fetch(
-      `/api/coingecko-proxy?ids=binancecoin,solana&vs_currencies=usd&${cacheBuster}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-        // Include credentials for potential API rate limiting identification
-        credentials: "omit",
-      }
-    );
+    const response = await fetch(`/api/coingecko-proxy`, {
+      headers: {
+        Accept: "application/json",
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      },
+      // Include credentials for potential API rate limiting identification
+      credentials: "omit",
+    });
 
     if (!response.ok) {
       throw new Error(`Error fetching prices: ${response.status}`);
@@ -81,18 +60,81 @@ export async function fetchCryptoPrices(
       sol: data.solana.usd,
     };
 
-    // Update in-memory cache
-    priceCache = prices;
-    lastFetchTime = now;
-
-    // Also persist to localStorage
-    savePricesToStorage(prices);
-
     return prices;
   } catch (error) {
     console.error("Failed to fetch crypto prices:", error);
 
     // Return fallback prices on error
+    return FALLBACK_PRICES;
+  }
+}
+
+export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
+  try {
+    // ABI for price oracle contracts (simplified version for price fetching)
+    const oracleABI = [
+      "function latestAnswer() view returns (int256)",
+      "function decimals() view returns (uint8)",
+    ];
+
+    // Oracle contract addresses
+    const oracles: Record<string, string> = {
+      sol: "0x4ffC43a60e009B551865A93d232E33Fce9f01507",
+      bnb: "0x14e613AC84a31f709eadbdF89C6CC390fDc9540A",
+    };
+
+    // If oracle data is requested and ids are supported by our oracles
+    const provider = new ethers.JsonRpcProvider(
+      process.env.ETHEREUM_RPC_URL || "https://eth.llamarpc.com"
+    );
+
+    // Fetch oracle data in parallel for better performance
+    const oraclePromises = Object.entries(oracles).map(
+      async ([id, address]) => {
+        try {
+          const oracleContract = new ethers.Contract(
+            address,
+            oracleABI,
+            provider
+          );
+          const [price, decimals] = await Promise.all([
+            oracleContract.latestAnswer(),
+            oracleContract.decimals(),
+          ]);
+
+          // Calculate price in USD
+          return {
+            id,
+            price: parseFloat(ethers.formatUnits(price, decimals)),
+          };
+        } catch (error) {
+          console.error(`Error fetching ${id} price:`, error);
+          return { id, price: null };
+        }
+      }
+    );
+
+    // Wait for all oracle requests to complete
+    const results = await Promise.all(oraclePromises);
+
+    const prices: CryptoPrices = {
+      bnb: FALLBACK_PRICES.bnb,
+      sol: FALLBACK_PRICES.sol,
+    };
+
+    // Process results
+    for (const result of results) {
+      if (
+        result.price !== null &&
+        (result.id === "bnb" || result.id === "sol")
+      ) {
+        prices[result.id] = result.price;
+      }
+    }
+
+    return prices;
+  } catch (error) {
+    console.error("Error fetching from oracle:", error);
     return FALLBACK_PRICES;
   }
 }

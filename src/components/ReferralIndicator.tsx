@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccount } from "wagmi";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface ReferralIndicatorProps {
   referralCode?: string;
@@ -22,6 +23,7 @@ export default function ReferralIndicator({
   const [referrerUsername, setReferrerUsername] = useState<string | null>(
     propReferrerUsername || null
   );
+  const { status, data: session } = useSession();
 
   const { connected: solanaConnected } = useWallet();
   const { isConnected: evmConnected } = useAccount();
@@ -31,6 +33,9 @@ export default function ReferralIndicator({
 
   // Check for referral codes in URL or localStorage
   useEffect(() => {
+    console.log("ReferralIndicator mounted", status, session);
+    if (status !== "authenticated") return;
+    if (session?.user?.referralCode) return;
     // Check URL parameters first
     const urlRefCode = searchParams.get("ref") || searchParams.get("referral");
 
@@ -38,20 +43,47 @@ export default function ReferralIndicator({
       setReferralCode(urlRefCode);
       setVisible(true);
 
+      // Store the referral code in both localStorage and cookie
+      localStorage.setItem("pendingReferralCode", urlRefCode);
+
+      // Set cookie with 30 days expiration
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30);
+      document.cookie = `pendingReferralCode=${urlRefCode}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+
       // Fetch referrer info if available
       fetchReferrerInfo(urlRefCode);
     }
-    // Otherwise check localStorage
+    // Otherwise check localStorage and cookies
     else {
       const savedRefCode = localStorage.getItem("pendingReferralCode");
-      if (savedRefCode) {
-        setReferralCode(savedRefCode);
-        setVisible(true);
 
-        fetchReferrerInfo(savedRefCode);
+      // Function to get cookie value
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+        return null;
+      };
+
+      const cookieRefCode = getCookie("pendingReferralCode");
+
+      const refCode = savedRefCode || cookieRefCode;
+
+      if (refCode) {
+        setReferralCode(refCode);
+        setVisible(true);
+        fetchReferrerInfo(refCode);
       }
     }
   }, [searchParams]);
+
+  // Fetch referrer info on component mount if there's a referral code but no username yet
+  useEffect(() => {
+    if (referralCode && !referrerUsername) {
+      fetchReferrerInfo(referralCode);
+    }
+  }, [referralCode, referrerUsername]);
 
   // Fetch info about the referrer
   const fetchReferrerInfo = async (code: string) => {

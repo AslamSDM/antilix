@@ -15,10 +15,18 @@ import {
   createTransferInstruction,
   getAccount,
 } from "@solana/spl-token";
-import { fetchCryptoPrices } from "./price-utils";
+import bs58 from "bs58";
+import { fetchCryptoPricesServer } from "./price-utils";
 import { MASTER_WALLET_ADDRESS } from "./constants";
 const DISTRIBUTION_WALLET_PRIVATE_KEY =
   process.env.DISTRIBUTION_WALLET_PRIVATE_KEY ?? "";
+
+// Validate that we have a private key
+if (!DISTRIBUTION_WALLET_PRIVATE_KEY) {
+  console.error(
+    "DISTRIBUTION_WALLET_PRIVATE_KEY is not set in environment variables"
+  );
+}
 
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
@@ -41,7 +49,7 @@ export async function sendReferralTokens(
     const TOKEN_DECIMALS = 9; // Adjust based on your token's decimals
 
     // Calculate bonus amount (10% of purchase amount in USD)
-    const prices = await fetchCryptoPrices();
+    const prices = await fetchCryptoPricesServer();
     let purchaseAmountInUsd = 0;
 
     if (chain === "bsc") {
@@ -49,12 +57,12 @@ export async function sendReferralTokens(
     } else {
       purchaseAmountInUsd = parseFloat((value * prices.sol).toString());
     }
+    console.log(purchaseAmountInUsd, "purchaseAmountInUsd");
 
     const bonusPercentage = 10; // 10%
     const bonusAmountInUsd = (purchaseAmountInUsd * bonusPercentage) / 100;
 
     // Get current token price to convert USD to token amount
-    //
     const tokenPriceInUsd = parseFloat(prices.bnb.toString()); // Replace with your token price
     const bonusAmountInTokens = bonusAmountInUsd / tokenPriceInUsd;
 
@@ -73,9 +81,32 @@ export async function sendReferralTokens(
       secondTierAmountInTokens * Math.pow(10, TOKEN_DECIMALS)
     );
 
-    const distributionWallet = Keypair.fromSecretKey(
-      Buffer.from(DISTRIBUTION_WALLET_PRIVATE_KEY, "hex")
-    );
+    // Handle private key properly - try different formats if needed
+    let distributionWallet: Keypair;
+    try {
+      // Try base58 format first (standard for Solana private keys)
+      distributionWallet = Keypair.fromSecretKey(
+        Buffer.from(bs58.decode(DISTRIBUTION_WALLET_PRIVATE_KEY))
+      );
+    } catch (error) {
+      // Fallback to hex format if base58 fails
+      try {
+        // Make sure the key is the correct length for hex format (64 bytes = 128 hex chars)
+        const privateKeyBuffer = Buffer.from(
+          DISTRIBUTION_WALLET_PRIVATE_KEY,
+          "hex"
+        );
+        if (privateKeyBuffer.length !== 64) {
+          throw new Error(
+            `Invalid private key length: ${privateKeyBuffer.length} bytes. Expected 64 bytes.`
+          );
+        }
+        distributionWallet = Keypair.fromSecretKey(privateKeyBuffer);
+      } catch (secondError) {
+        console.error("Failed to decode private key:", secondError);
+        throw new Error("Could not decode distribution wallet private key");
+      }
+    }
 
     // Helper function to create ATA if it doesn't exist
     async function createATAIfNeeded(

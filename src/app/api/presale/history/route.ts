@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find user by their wallet address
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirstOrThrow({
       where: {
         OR: [
           { walletAddress },

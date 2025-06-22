@@ -12,6 +12,9 @@ declare module "next-auth" {
     solanaAddress?: string | null;
     evmAddress?: string | null;
     referralCode?: string | null;
+    referrer: null | {
+      id: string | null;
+    };
   }
 
   /**

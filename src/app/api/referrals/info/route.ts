@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Look up the referral code in the database to get user details
-    const referrer = await prisma.user.findFirst({
+    const referrer = await prisma.user.findFirstOrThrow({
       where: { referralCode: code },
       select: {
         id: true,

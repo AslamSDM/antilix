@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       walletType === "solana" ? "solanaAddress" : "evmAddress";
 
     // Find the user
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirstOrThrow({
       where: {
         [walletField]: address,
       },

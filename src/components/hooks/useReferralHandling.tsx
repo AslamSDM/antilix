@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { extractReferralCodeFromUrl } from "@/lib/referral";
 import { setCookie, getCookie } from "@/lib/cookies";
+import { useSession } from "next-auth/react";
 
 interface ReferralInfo {
   code: string | null;
@@ -20,14 +21,18 @@ export default function useReferralHandling(): ReferralInfo {
   const [referrerAddress, setReferrerAddress] = useState<string | null>(null);
   const [referrerUsername, setReferrerUsername] = useState<string | null>(null);
   const [isValid, setIsValid] = useState<boolean>(false);
+  const { status, data: session } = useSession();
+  const cookieRefCode = getCookie("referralCode");
 
   // Check for referral code in URL and process it
   useEffect(() => {
-    const processReferralCode = async () => {
+    console.log("useReferralHandling mounted", status, session);
+    const processReferralCode = async (code: string) => {
       try {
+        console.log(status);
+        if (status !== "authenticated") return;
         // Extract referral code from URL
-        const code = extractReferralCodeFromUrl();
-
+        console.log("Processing referral code:", code);
         // If no code in URL, check if we already have one in cookies
         if (!code) {
           const savedCode = getCookie("referralCode");
@@ -46,16 +51,12 @@ export default function useReferralHandling(): ReferralInfo {
           }
           return;
         }
-
-        // If we found a code in the URL, store it in cookies and state
-        setReferralCode(code);
-        setCookie("referralCode", code, 30); // Store for 30 days
-
+        console.log("Referral code from URL:", code);
         // Fetch referrer details from API
         try {
           const response = await fetch(`/api/referrals/info?code=${code}`);
           const data = await response.json();
-
+          console.log("Referral info response:", data);
           if (data.success) {
             setReferrerId(data.referrerId);
             setReferrerAddress(data.walletAddress);
@@ -88,12 +89,12 @@ export default function useReferralHandling(): ReferralInfo {
         console.error("Error handling referral code:", error);
       }
     };
-
-    // Only process referral in browser environment
-    if (typeof window !== "undefined") {
-      processReferralCode();
+    console.log("Cookie referral code:", cookieRefCode);
+    if (cookieRefCode) {
+      processReferralCode(cookieRefCode);
     }
-  }, []);
+    // Only process referral in browser environment
+  }, [cookieRefCode]);
 
   return {
     code: referralCode,

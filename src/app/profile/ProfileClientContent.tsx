@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Share2,
 } from "lucide-react";
-import { WalletReferralButton } from "@/components/WalletReferralButton";
 import { useAppKitState, useAppKitAccount } from "@reown/appkit/react";
 import { modal } from "@/components/providers/wallet-provider";
 import { AppKitStateShape, getWalletType } from "@/components/hooks/usePresale";
@@ -523,7 +522,6 @@ const ProfileClientContent: React.FC = () => {
                         <h4 className="text-primary mb-4 font-medium">
                           Wallet Verified Referrals (Solana)
                         </h4>
-                        <WalletReferralButton />
                       </div>
                     ) : (
                       <div className="text-center py-10">

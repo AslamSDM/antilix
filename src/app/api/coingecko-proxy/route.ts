@@ -33,23 +33,41 @@ export async function GET(request: Request) {
     );
     const oracleData: Record<string, number> = {};
 
-    const idList = ids.split(",");
+    // Get ids as array
 
-    for (const id of idList) {
-      if (oracles[id.toLowerCase()]) {
-        const oracleContract = new ethers.Contract(
-          oracles[id.toLowerCase()],
-          oracleABI,
-          provider
-        );
-        const price = await oracleContract.latestAnswer();
-        const decimals = await oracleContract.decimals();
+    // Fetch oracle data in parallel for better performance
+    const oraclePromises = Object.entries(oracles).map(
+      async ([id, address]) => {
+        try {
+          const oracleContract = new ethers.Contract(
+            address,
+            oracleABI,
+            provider
+          );
+          const [price, decimals] = await Promise.all([
+            oracleContract.latestAnswer(),
+            oracleContract.decimals(),
+          ]);
 
-        // Calculate price in USD (assuming the oracle returns price with decimals)
-        const priceInUsd = parseFloat(ethers.formatUnits(price, decimals));
+          // Calculate price in USD
+          return {
+            id,
+            price: parseFloat(ethers.formatUnits(price, decimals)),
+          };
+        } catch (error) {
+          console.error(`Error fetching ${id} price:`, error);
+          return { id, price: null };
+        }
+      }
+    );
 
-        // Format response similar to CoinGecko
-        oracleData[id] = priceInUsd;
+    // Wait for all oracle requests to complete
+    const results = await Promise.all(oraclePromises);
+
+    // Process results
+    for (const result of results) {
+      if (result.price !== null) {
+        oracleData[result.id] = result.price;
       }
     }
 
@@ -59,40 +77,45 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("Error fetching from oracle:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch from oracle", details: error },
+      { status: 500 }
+    );
+
     // Fall through to CoinGecko if oracle fails
   }
 
-  // Default to CoinGecko API
-  const coingeckoUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vs_currencies}${
-    cacheBust ? `&cacheBust=${cacheBust}` : ""
-  }`;
+  // // Default to CoinGecko API
+  // const coingeckoUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vs_currencies}${
+  //   cacheBust ? `&cacheBust=${cacheBust}` : ""
+  // }`;
 
-  try {
-    const response = await fetch(coingeckoUrl, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  // try {
+  //   const response = await fetch(coingeckoUrl, {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Coingecko API error:", errorData);
-      return NextResponse.json(
-        {
-          error: `Failed to fetch from Coingecko API: ${response.statusText}`,
-          details: errorData,
-        },
-        { status: response.status }
-      );
-    }
+  //   if (!response.ok) {
+  //     const errorData = await response.text();
+  //     console.error("Coingecko API error:", errorData);
+  //     return NextResponse.json(
+  //       {
+  //         error: `Failed to fetch from Coingecko API: ${response.statusText}`,
+  //         details: errorData,
+  //       },
+  //       { status: response.status }
+  //     );
+  //   }
 
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error("Error proxying Coingecko request:", error);
-    return NextResponse.json(
-      { error: "Internal server error while fetching from Coingecko" },
-      { status: 500 }
-    );
-  }
+  //   const data = await response.json();
+  //   return NextResponse.json(data);
+  // } catch (error) {
+  //   console.error("Error proxying Coingecko request:", error);
+  //   return NextResponse.json(
+  //     { error: "Internal server error while fetching from Coingecko" },
+  //     { status: 500 }
+  //   );
+  // }
 }

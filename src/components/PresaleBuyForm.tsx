@@ -35,6 +35,7 @@ import { getCookie } from "@/lib/cookies";
 import { getStoredReferralCode } from "@/lib/referral";
 import { useSession } from "next-auth/react";
 import { modal } from "@/components/providers/wallet-provider";
+import useReferralHandling from "./hooks/useReferralHandling";
 
 // Extended type for our session with referredBy field
 interface CustomSessionUser {
@@ -69,12 +70,13 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const { isConnected, address } = useAppKitAccount();
   const { data: session } = useSession();
   const user = session?.user as CustomSessionUser | undefined;
+  const referralInfo = useReferralHandling();
 
   // Debug: Log session data to help understand its structure
   useEffect(() => {
     if (session) {
-      console.log("Session data:", session);
-      console.log("User data with referredBy:", user);
+      //console.log("Session data:", session);
+      //console.log("User data with referredBy:", user);
     }
   }, [session, user]);
 
@@ -82,13 +84,13 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   useEffect(() => {
     // Skip if referral code is already set via props
     if (referralCode) {
-      console.log("Using referral code from props:", referralCode);
+      //console.log("Using referral code from props:", referralCode);
       return;
     }
 
     // Check for referral code in session data first
     if (user?.referredBy) {
-      console.log("Using referral code from session:", user.referredBy);
+      //console.log("Using referral code from session:", user.referredBy);
       setCustomReferralCode(user.referredBy);
       return;
     }
@@ -96,15 +98,16 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     // Try to get referral code from cookies
     const cookieRefCode = getCookie("referralCode");
     if (cookieRefCode) {
-      console.log("Using referral code from cookie:", cookieRefCode);
+      //console.log("Using referral code from cookie:", cookieRefCode);
       setCustomReferralCode(cookieRefCode);
+
       return;
     }
 
     // Try to get referral code from localStorage
     const storedRefCode = getStoredReferralCode();
     if (storedRefCode) {
-      console.log("Using referral code from localStorage:", storedRefCode);
+      //console.log("Using referral code from localStorage:", storedRefCode);
       setCustomReferralCode(storedRefCode);
       return;
     }
@@ -113,10 +116,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     const urlParams = new URLSearchParams(window.location.search);
     const urlRefCode = urlParams.get("ref") || urlParams.get("referral");
     if (urlRefCode) {
-      console.log("Using referral code from URL:", urlRefCode);
+      //console.log("Using referral code from URL:", urlRefCode);
       setCustomReferralCode(urlRefCode);
     } else {
-      console.log("No referral code found in any source");
+      //console.log("No referral code found in any source");
     }
   }, [referralCode, user]);
 

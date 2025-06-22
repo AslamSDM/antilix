@@ -116,9 +116,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
 
         // Calculate cost in BNB based on token amount and fixed LMX price
         const bnbCost = calculateCryptoCost(tokenAmount, "bnb", prices);
-        console.log(
-          `Calculated BNB cost for ${tokenAmount} tokens: ${bnbCost} BNB`
-        );
 
         // Convert to Wei/Gwei format for contract
         setDynamicCost(parseEther(bnbCost.toString()));
@@ -143,8 +140,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
     if (!hash) return;
     if (currentStep?.id !== "verify-transaction") return;
     if (isPending) return;
-
-    console.log(isPending, isConfirming, isConfirmed, currentStep);
 
     if (hash) {
       setTransactionSignature(hash);
@@ -200,13 +195,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   }, [currentStep, hash]);
 
   // Function to set referrer - simplified implementation
-  const setReferrer = async () => {
-    if (!referrer) return;
-
-    // In a real implementation, we would call a contract method to set the referrer
-    console.log(`Setting referrer: ${referrer} (implementation needed)`);
-    return true;
-  };
 
   // Function to buy tokens
   const buyTokens = async (retryWithExplicitGas = false) => {
@@ -240,9 +228,6 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
       setCurrentStep("prepare-transaction");
 
       // Set referrer if provided
-      if (referrer) {
-        await setReferrer();
-      }
 
       // Validate dynamic cost
       if (dynamicCost <= BigInt(0)) {
