@@ -390,45 +390,29 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       ) : (
         <>
           {/* Current Price Information */}
-          <div className="mb-6 p-3 bg-black/40 rounded-lg border border-primary/10">
-            <div className="text-sm font-medium text-white/80 mb-2">
-              Token Price Information:
+          <div className="mb-6 p-3 bg-black/40 rounded-lg border border-primary/10 flex justify-between items-center">
+            <div className="mr-1">
+              <div className="text-sm font-medium text-white/80 mb-2 text-cente">
+                Token Price Information:
+              </div>
+              <div className="flex justify-between items-center mb-3 text-cente">
+                <div className="flex items-center">
+                  <DollarSign className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-green-400 font-bold">
+                    ${lmxPriceUsd.toFixed(4)} per LMX
+                  </span>
+                </div>
+              </div>
+              {/* <span className="text-xs text-white/60">Fixed USD Price</span> */}
             </div>
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center">
-                <DollarSign className="h-4 w-4 text-green-500 mr-1" />
-                <span className="text-green-400 font-bold">
-                  ${lmxPriceUsd.toFixed(4)} per LMX
+            <div className="ml-1 text-left">
+              <div className="text-sm font-medium text-white/80 mb-2 text-cente">
+                For $1 USD you get
+              </div>
+              <div className="text-sm">
+                <span className="text-amber-400 font-medium">
+                  {lmxPriceUsd > 0 ? (1 / lmxPriceUsd).toFixed(4) : "..."} LMX
                 </span>
-              </div>
-              <span className="text-xs text-white/60">Fixed USD Price</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">
-                  For $1 USD you get
-                </div>
-                <div className="text-sm">
-                  <span className="text-amber-400 font-medium">
-                    {lmxPriceUsd > 0 ? (1 / lmxPriceUsd).toFixed(4) : "..."} LMX
-                  </span>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-white/60 mb-1">
-                  1 {network === "bsc" ? "BNB" : "SOL"} =
-                </div>
-                <div className="text-sm">
-                  <span className="text-amber-400">
-                    {cryptoPrices
-                      ? (
-                          cryptoPrices[network === "bsc" ? "bnb" : "sol"] /
-                          lmxPriceUsd
-                        ).toFixed(2)
-                      : "..."}{" "}
-                    LMX
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -608,14 +592,14 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               </div>
 
               {/* Link to purchase history */}
-              <div className="mt-4 text-center">
+              {/* <div className="mt-4 text-center">
                 <Link
                   href="/presale/purchases"
                   className="text-sm text-primary hover:text-primary/80 transition-colors underline underline-offset-2"
                 >
                   View your purchase history
                 </Link>
-              </div>
+              </div> */}
             </>
           )}
         </>

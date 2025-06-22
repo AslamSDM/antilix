@@ -273,7 +273,7 @@ export function UnifiedWalletButton({
       </Dialog>
 
       {/* BSC Wallet Verification Modal */}
-      <Dialog
+      {/* <Dialog
         open={showBSCVerificationModal}
         onOpenChange={handleBSCVerificationModalChange}
       >
@@ -290,7 +290,7 @@ export function UnifiedWalletButton({
             />
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 }

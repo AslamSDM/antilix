@@ -184,6 +184,9 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
               <h2 className="text-xl font-bold mt-4 luxury-text">
                 {session?.user?.name || "Guest User"}
               </h2>
+              <p className="text-sm text-white/70">
+                {session?.user?.email || "Not connected"}
+              </p>
 
               <div className="w-full">
                 {!connected ? (
@@ -269,8 +272,8 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                       </motion.span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-primary/20">
-                      <span className="text-white/70">Referral Bonus</span>
-                      <motion.span
+                      {/* <span className="text-white/70">Referral Bonus</span> */}
+                      {/* <motion.span
                         className="text-primary"
                         animate={{
                           textShadow: [
@@ -286,7 +289,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                         }}
                       >
                         {userData.referrals.totalBonus} LMX
-                      </motion.span>
+                      </motion.span> */}
                     </div>
                     <Button
                       onClick={handleDisconnect}
@@ -300,14 +303,6 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                 )}
               </div>
             </div>
-          </Card>
-
-          {/* Spline Logo Card */}
-          <Card className="p-1 border border-primary/30 bg-black/60 backdrop-blur-sm relative overflow-hidden aspect-square shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card animate-float">
-            <div className="luxury-shimmer"></div>
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
-            <div className="luxury-corner luxury-corner-tl"></div>
-            <div className="luxury-corner luxury-corner-br"></div>
           </Card>
         </motion.div>
 
@@ -643,7 +638,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                               </p>
                             </motion.div>
 
-                            <motion.div
+                            {/* <motion.div
                               className="bg-black/30 p-4 rounded-lg border border-primary/20"
                               whileHover={{ scale: 1.02 }}
                               transition={{
@@ -651,17 +646,17 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                                 stiffness: 400,
                                 damping: 10,
                               }}
-                            >
-                              <h5 className="text-white/80 text-sm">
+                            > */}
+                            {/* <h5 className="text-white/80 text-sm">
                                 Total Bonus Earned
                               </h5>
                               <p className="text-primary text-3xl font-bold mt-2">
                                 {userData.referrals.totalBonus} LMX
-                              </p>
-                              <p className="text-white/60 text-xs mt-1">
+                              </p> */}
+                            {/* <p className="text-white/60 text-xs mt-1">
                                 Tokens earned from referrals
-                              </p>
-                            </motion.div>
+                              </p> */}
+                            {/* </motion.div> */}
                           </div>
                         </div>
 

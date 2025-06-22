@@ -533,11 +533,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           </div>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:gap-5 md:gap-6 mb-8 sm:mb-10 md:mb-12">
-            <WalletSelectorButton
-              variant="fancy"
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md"
-              onConnect={handleWalletConnect}
-            />
             {connected && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

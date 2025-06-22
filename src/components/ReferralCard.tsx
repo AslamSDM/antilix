@@ -115,7 +115,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
       </div>
 
       {/* Referral Stats */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-2 gap-4">
         {/* <div className="bg-black/40 rounded-lg p-3 text-center">
           <div className="text-xs text-gray-400 mb-1">Total Bonus</div>
           <div className="text-lg font-bold">
@@ -136,7 +136,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
           <div className="text-lg font-bold">{bonusStats.count}</div>
         </div>
       </div>
-
+      {/* 
       <div className="mt-4 flex justify-center">
         <a
           href="/referral"
@@ -145,7 +145,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
           <Users className="w-4 h-4 mr-1" />
           View Detailed Referral Analytics
         </a>
-      </div>
+      </div> */}
 
       {/* Social sharing options */}
       <div className="flex justify-center mt-6 space-x-4">
@@ -171,10 +171,10 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
           <div className="text-sm text-gray-400">Total Referred</div>
           <div className="font-medium">0 Users</div>
         </div>
-        <div className="flex justify-between items-center mt-2">
+        {/* <div className="flex justify-between items-center mt-2">
           <div className="text-sm text-gray-400">Bonus Earned</div>
           <div className="font-medium text-primary">0 LMX</div>
-        </div>
+        </div> */}
       </div>
     </LuxuryCard>
   );

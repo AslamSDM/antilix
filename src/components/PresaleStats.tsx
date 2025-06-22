@@ -40,12 +40,7 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
       label: "USD Value",
       formatter: (val: number) => `$${val.toLocaleString()}`,
     },
-    {
-      icon: <Clock className="w-6 h-6 text-amber-400" />,
-      value: daysLeft,
-      label: "Days Left",
-      formatter: (val: number) => val.toString(),
-    },
+
     {
       icon: <Gift className="w-6 h-6 text-rose-400" />,
       value: referralBonus,
@@ -56,7 +51,7 @@ export const PresaleStats: React.FC<PresaleStatsProps> = ({
   ];
 
   return (
-    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-4 ${className}`}>
+    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
       {statsItems.map((item, index) => (
         <motion.div
           key={index}

@@ -40,7 +40,7 @@ export default async function getPresaleData() {
     const lmxRaised = totalRaised._sum.lmxTokensAllocated || 0;
     const usdRaised = parseFloat(lmxRaised.toString()) * LMX_PRICE;
     console.log("Total LMX raised:", lmxRaised, usdRaised);
-    const solRaised = parseFloat(lmxRaised.toString()) / solPrice;
+    const solRaised = usdRaised / solPrice;
 
     const result = {
       contributorCount: contributorCount || 0,

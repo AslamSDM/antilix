@@ -136,10 +136,10 @@ export default function ReferralBonuses() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-black/20 p-4 rounded-lg">
-            <p className="text-sm text-gray-300">Total Bonus Earned</p>
+            {/* <p className="text-sm text-gray-300">Total Bonus Earned</p>
             <p className="text-xl font-bold">
               {parseFloat(referralStats.totalBonus).toLocaleString()} LMX
-            </p>
+            </p> */}
           </div>
 
           <div className="bg-black/20 p-4 rounded-lg">
