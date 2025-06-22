@@ -243,6 +243,7 @@ export function BSCWalletPrompt({
   // Function to dismiss the wallet prompt
   const handleDismiss = () => {
     setIsVisible(false);
+    onVerificationComplete?.();
     // Save preference in localStorage to not show again in this session
     localStorage.setItem("skipBSCWalletPrompt", "true");
 

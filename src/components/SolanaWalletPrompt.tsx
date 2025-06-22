@@ -320,6 +320,7 @@ export function SolanaWalletPrompt({
   // Function to dismiss the wallet prompt
   const handleDismiss = () => {
     setIsVisible(false);
+    onVerificationComplete?.();
     // Save preference in localStorage to not show again in this session
     localStorage.setItem("skipWalletPrompt", "true");
 

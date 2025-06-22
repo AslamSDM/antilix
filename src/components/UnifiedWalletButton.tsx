@@ -250,10 +250,27 @@ export function UnifiedWalletButton({
         )}
       </Button>
 
-      <SolanaWalletPrompt
-        isModal={true}
-        onVerificationComplete={() => setShowSolanaVerificationModal(false)}
-      />
+      {/* Solana Wallet Verification Modal */}
+      <Dialog
+        open={showSolanaVerificationModal}
+        onOpenChange={handleSolanaVerificationModalChange}
+      >
+        <DialogContent className="bg-black border border-white/10 text-white p-0 overflow-hidden">
+          <DialogHeader className="p-4 border-b border-white/10">
+            <DialogTitle className="text-lg font-medium">
+              Verify Your Solana Wallet
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-0">
+            <SolanaWalletPrompt
+              isModal={showSolanaVerificationModal}
+              onVerificationComplete={() =>
+                setShowSolanaVerificationModal(false)
+              }
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* BSC Wallet Verification Modal */}
       <Dialog
@@ -268,7 +285,7 @@ export function UnifiedWalletButton({
           </DialogHeader>
           <div className="p-0">
             <BSCWalletPrompt
-              isModal={true}
+              isModal={showSolanaVerificationModal}
               onVerificationComplete={() => setShowBSCVerificationModal(false)}
             />
           </div>
