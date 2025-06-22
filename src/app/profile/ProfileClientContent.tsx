@@ -618,7 +618,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                       <>
                         <div className="mb-6">
                           <p className="text-white/80">
-                            Invite friends to join Antilix and earn bonus LMX
+                            Invite friends to join Litmex and earn bonus LMX
                             tokens when they make a purchase using your referral
                             link.
                           </p>

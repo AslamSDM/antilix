@@ -655,7 +655,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                     }}
                     transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
                   >
-                    15% LMX
+                    10% TRUMP
                   </motion.p>
                 </div>
               </LuxuryCard>

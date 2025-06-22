@@ -71,7 +71,7 @@ export async function sendPasswordResetEmail({
       process.env.RESEND_FROM_EMAIL ||
       "Reset Password<support@litmexpresale.com>",
     to: email,
-    subject: "Reset your Antilix password",
+    subject: "Reset your Litmex password",
     html: `
       <div>
         <h1>Password Reset</h1>
