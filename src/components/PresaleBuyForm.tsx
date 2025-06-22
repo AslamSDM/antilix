@@ -292,7 +292,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const handleUsdAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
 
-    if (isNaN(value) || value < 0) {
+    if (value < 0) {
       setUsdAmount(0);
       setTokenAmount(0);
       setCryptoAmount(0);
