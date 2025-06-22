@@ -11,6 +11,7 @@ import { MASTER_WALLET_ADDRESS } from "@/lib/constants";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth";
 import { ERROR_TYPES } from "@/lib/errors";
+import ReferralBonuses from "@/components/ReferralBonuses";
 
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
@@ -150,21 +151,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // // Check if we already have this transaction recorded
-    // const existingTransaction = await prisma.purchase.findUnique({
-    //   where: { transactionSignature: signature },
-    // });
+    // Check if we already have this transaction recorded
+    const existingTransaction = await prisma.purchase.findUnique({
+      where: { transactionSignature: signature },
+    });
 
-    // if (existingTransaction) {
-    //   return NextResponse.json(
-    //     {
-    //       error: "Transaction already recorded",
-    //       purchase: existingTransaction,
-    //     },
-    //     { status: 200 }
-    //   );
-    // }
-    const existingTransaction = undefined;
+    if (existingTransaction) {
+      return NextResponse.json(
+        {
+          error: "Transaction already recorded",
+          purchase: existingTransaction,
+        },
+        { status: 200 }
+      );
+    }
 
     // Extract referral code if present (from memo instruction)
 
@@ -174,10 +174,7 @@ export async function POST(req: NextRequest) {
 
     let sender = await prisma.user.findFirstOrThrow({
       where: {
-        OR: [
-          { walletAddress: senderAddress },
-          { solanaAddress: senderAddress },
-        ],
+        id: session.user.id,
       },
     });
     if (!sender) {
@@ -199,6 +196,7 @@ export async function POST(req: NextRequest) {
     console.log(
       `Sender found: ${sender ? sender.id : "No existing user found"}`
     );
+    let referralPaid = false;
 
     try {
       // Save the purchase
@@ -213,7 +211,7 @@ export async function POST(req: NextRequest) {
           });
           if (referrer && referrer.solanaAddress) {
             try {
-              await sendReferralTokens(
+              referralPaid = await sendReferralTokens(
                 referrer.solanaAddress,
                 transferAmount / 1_000_000_000, // Convert from lamports to SOL
                 "sol"
@@ -246,6 +244,7 @@ export async function POST(req: NextRequest) {
         ), // Example: 1 SOL = 100 LMX tokens,
         pricePerLmxInUsdt: LMX_PRICE_USD,
         transactionSignature: signature,
+        referralBonusPaid: referralPaid,
         status: "COMPLETED", // Mark as completed since we already verified it
       },
     });

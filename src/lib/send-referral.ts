@@ -16,7 +16,7 @@ import {
   getAccount,
 } from "@solana/spl-token";
 import bs58 from "bs58";
-import { fetchCryptoPricesServer } from "./price-utils";
+import { fetchCryptoPricesServer, getTokenDetails } from "./price-utils";
 import { MASTER_WALLET_ADDRESS } from "./constants";
 const DISTRIBUTION_WALLET_PRIVATE_KEY =
   process.env.DISTRIBUTION_WALLET_PRIVATE_KEY ?? "";
@@ -46,7 +46,7 @@ export async function sendReferralTokens(
     const TOKEN_MINT = new PublicKey(
       "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
     );
-    const TOKEN_DECIMALS = 9; // Adjust based on your token's decimals
+    const TOKEN_DECIMALS = 6; // Adjust based on your token's decimals
 
     // Calculate bonus amount (10% of purchase amount in USD)
     const prices = await fetchCryptoPricesServer();
@@ -61,11 +61,11 @@ export async function sendReferralTokens(
 
     const bonusPercentage = 10; // 10%
     const bonusAmountInUsd = (purchaseAmountInUsd * bonusPercentage) / 100;
-
+    const trump = await getTokenDetails(TOKEN_MINT.toString());
+    const trumpPrice = Number(trump?.priceUsd) || 8;
     // Get current token price to convert USD to token amount
-    const tokenPriceInUsd = parseFloat(prices.bnb.toString()); // Replace with your token price
-    const bonusAmountInTokens = bonusAmountInUsd / tokenPriceInUsd;
-
+    // const tokenPriceInUsd = parseFloat(prices.bnb.toString()); // Replace with your token price
+    const bonusAmountInTokens = bonusAmountInUsd / trumpPrice;
     // Calculate second-tier amount (10% of the bonus)
     const secondTierPercentage = 10; // 10%
     const secondTierAmountInTokens =
@@ -195,10 +195,13 @@ export async function sendReferralTokens(
       );
 
       console.log("Transaction signature:", signature);
+      return true;
     } catch (error) {
       console.error("Error sending SPL tokens:", error);
+      return false;
     }
   } catch (error) {
     console.error("Error processing referral bonus:", error);
+    return false;
   }
 }

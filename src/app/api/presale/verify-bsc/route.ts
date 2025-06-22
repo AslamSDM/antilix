@@ -8,6 +8,9 @@ import { formatEther } from "viem";
 
 import { sendReferralTokens } from "@/lib/send-referral";
 import { BSC_PRESALE_CONTRACT_ADDRESS } from "@/lib/constants";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/next-auth";
+import { ERROR_TYPES } from "@/lib/errors";
 
 // Validation schema
 const verificationSchema = z.object({
@@ -16,6 +19,18 @@ const verificationSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          error: ERROR_TYPES.AUTH_REQUIRED.message,
+          code: ERROR_TYPES.AUTH_REQUIRED.code,
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { hash } = verificationSchema.parse(body);
 
@@ -48,10 +63,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify this is a transaction to our presale contract
-    console.log(
-      receipt.to?.toLowerCase(),
-      BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
-    );
+
     if (
       receipt.to?.toLowerCase() !== BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
     ) {
@@ -118,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     let user = await prisma.user.findFirstOrThrow({
       where: {
-        evmAddress: transaction.from.toLowerCase(),
+        id: session.user.id,
       },
     });
     if (!user) {
@@ -133,12 +145,17 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+    let referralPaid = false;
     if (user.referrerId) {
       const referrer = await prisma.user.findUnique({
         where: { id: user.referrerId },
       });
       if (referrer?.solanaAddress) {
-        await sendReferralTokens(referrer.solanaAddress, tokenAmount, "bsc");
+        referralPaid = await sendReferralTokens(
+          referrer.solanaAddress,
+          parseFloat(valueInBnb),
+          "bsc"
+        );
       }
     }
     // Create a new purchase record
@@ -152,6 +169,7 @@ export async function POST(req: NextRequest) {
         network: "BSC",
         status: "COMPLETED",
         paymentCurrency: "BNB", // Adding the required paymentCurrency field
+        referralBonusPaid: referralPaid,
       },
     });
 

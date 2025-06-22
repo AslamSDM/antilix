@@ -37,39 +37,46 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 export async function fetchCryptoPrices(
   forceRefresh: boolean = false
 ): Promise<CryptoPrices> {
-  try {
-    // Add a cache-busting parameter to prevent caching by the browser or CDN
-    const response = await fetch(`/api/coingecko-proxy`, {
-      headers: {
-        Accept: "application/json",
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-      },
-      // Include credentials for potential API rate limiting identification
-      credentials: "omit",
-    });
+  return await fetchCryptoPricesServer();
+  // try {
+  //   // Add a cache-busting parameter to prevent caching by the browser or CDN
+  //   const response = await fetch(`/api/coingecko-proxy`, {
+  //     headers: {
+  //       Accept: "application/json",
+  //       "Cache-Control": "no-cache",
+  //       Pragma: "no-cache",
+  //     },
+  //     // Include credentials for potential API rate limiting identification
+  //     credentials: "omit",
+  //   });
 
-    if (!response.ok) {
-      throw new Error(`Error fetching prices: ${response.status}`);
-    }
+  //   if (!response.ok) {
+  //     throw new Error(`Error fetching prices: ${response.status}`);
+  //   }
 
-    const data = await response.json();
+  //   const data = await response.json();
 
-    const prices: CryptoPrices = {
-      bnb: data.binancecoin.usd,
-      sol: data.solana.usd,
-    };
+  //   const prices: CryptoPrices = {
+  //     bnb: data.binancecoin.usd,
+  //     sol: data.solana.usd,
+  //   };
 
-    return prices;
-  } catch (error) {
-    console.error("Failed to fetch crypto prices:", error);
+  //   return prices;
+  // } catch (error) {
+  //   console.error("Failed to fetch crypto prices:", error);
 
-    // Return fallback prices on error
-    return FALLBACK_PRICES;
-  }
+  //   // Return fallback prices on error
+  //   return FALLBACK_PRICES;
+  // }
 }
 
 export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
+  // Check cache first
+  const now = Date.now();
+  if (priceCache && now - lastFetchTime < CACHE_DURATION) {
+    return priceCache;
+  }
+
   try {
     // ABI for price oracle contracts (simplified version for price fetching)
     const oracleABI = [
@@ -131,6 +138,13 @@ export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
         prices[result.id] = result.price;
       }
     }
+
+    // Update cache
+    priceCache = prices;
+    lastFetchTime = now;
+
+    // Also save to localStorage for persistence across page reloads
+    savePricesToStorage(prices);
 
     return prices;
   } catch (error) {
