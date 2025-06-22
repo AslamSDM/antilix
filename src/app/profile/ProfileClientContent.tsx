@@ -18,12 +18,47 @@ import { Button } from "@/components/ui/button";
 import { UserActivityHistory } from "@/components/UserActivityHistory";
 import { UserBalanceDisplay } from "@/components/UserBalanceDisplay";
 import { RecentActivitySummary } from "@/components/RecentActivitySummary";
+import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
-const ProfileClientContent: React.FC = () => {
+interface Purchase {
+  id: string;
+  createdAt: string;
+  lmxTokensAllocated: string;
+  status: string;
+  network: string;
+  transactionSignature: string;
+}
+
+interface UserData {
+  purchases: Purchase[];
+  balance: number;
+  purchaseCount: number;
+  referrals: {
+    count: number;
+    totalBonus: number;
+  };
+}
+
+interface ProfileClientContentProps {
+  userData?: UserData;
+  initialSession?: Session | null;
+}
+
+const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
+  userData = {
+    purchases: [],
+    balance: 0,
+    purchaseCount: 0,
+    referrals: { count: 0, totalBonus: 0 },
+  },
+  initialSession,
+}) => {
   const appKitState = useAppKitState() as AppKitStateShape;
   const appkitAccountData = useAppKitAccount();
   const { loading } = appKitState;
+  const { data: session, status: sessionStatus } = useSession();
 
   // Get the tab from URL query parameter if available
   const [activeTab, setActiveTab] = useState<string>(() => {
@@ -41,27 +76,19 @@ const ProfileClientContent: React.FC = () => {
     return "overview";
   });
 
+  // Consider a user authenticated either via wallet connection or session
   const connected = appkitAccountData?.isConnected ?? false;
-  const walletAddress = appkitAccountData?.address;
+  const isAuthenticated = sessionStatus === "authenticated" || connected;
+  const walletAddress =
+    appkitAccountData?.address ||
+    session?.user?.walletAddress ||
+    session?.user?.solanaAddress ||
+    session?.user?.evmAddress;
 
   const currentWalletType = getWalletType(appKitState, {
     isConnected: connected,
     caipAddress: appkitAccountData?.caipAddress,
   });
-
-  // Mocked data, replace with actual data fetching as needed
-  const userData = {
-    username: walletAddress
-      ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-      : "Guest User",
-    joinDate: "May 2025", // Placeholder
-    transactions: 0, // Placeholder
-    rewards: 0, // Placeholder
-    preferences: {
-      notifications: true,
-      theme: "dark",
-    },
-  };
 
   const handleConnect = () => {
     modal.open();
@@ -130,7 +157,7 @@ const ProfileClientContent: React.FC = () => {
           animate="visible"
           className="lg:col-span-1 space-y-8"
         >
-          <Card className="p-6 border border-primary/30 bg-black/60 backdrop-blur-sm relative overflow-hidden shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card">
+          <Card className="p-6 border border-primary/30 bg-black/60 backdrop-blur-sm relative overflow-hidden shadow-[0_0_15px_rgba(212,175,55,0.1)] luxury-card min-h-[500px]">
             <div className="luxury-shimmer"></div>
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
             <div className="luxury-corner luxury-corner-tl"></div>
@@ -146,7 +173,7 @@ const ProfileClientContent: React.FC = () => {
               </motion.div>
 
               <h2 className="text-xl font-bold mt-4 luxury-text">
-                {userData.username}
+                {session?.user?.name || "Guest User"}
               </h2>
 
               <div className="w-full">
@@ -175,10 +202,7 @@ const ProfileClientContent: React.FC = () => {
                       <span className="text-white/70">Status</span>
                       <span className="text-green-400">Connected</span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
-                      <span className="text-white/70">Member since</span>
-                      <span className="text-primary">{userData.joinDate}</span>
-                    </div>
+
                     <div className="flex justify-between items-center py-2 border-b border-primary/20">
                       <span className="text-white/70">Transactions</span>
                       <motion.span
@@ -192,11 +216,11 @@ const ProfileClientContent: React.FC = () => {
                         }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
-                        {userData.transactions}
+                        {userData.purchaseCount}
                       </motion.span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-primary/20">
-                      <span className="text-white/70">Rewards</span>
+                      <span className="text-white/70">Balance</span>
                       <motion.span
                         className="text-primary"
                         animate={{
@@ -212,7 +236,47 @@ const ProfileClientContent: React.FC = () => {
                           delay: 0.5,
                         }}
                       >
-                        {userData.rewards}
+                        {userData.balance}
+                      </motion.span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Referrals</span>
+                      <motion.span
+                        className="text-primary"
+                        animate={{
+                          textShadow: [
+                            "0 0 0px rgba(212,175,55,0)",
+                            "0 0 5px rgba(212,175,55,0.5)",
+                            "0 0 0px rgba(212,175,55,0)",
+                          ],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: 1,
+                        }}
+                      >
+                        {userData.referrals.count}
+                      </motion.span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-primary/20">
+                      <span className="text-white/70">Referral Bonus</span>
+                      <motion.span
+                        className="text-primary"
+                        animate={{
+                          textShadow: [
+                            "0 0 0px rgba(212,175,55,0)",
+                            "0 0 5px rgba(212,175,55,0.5)",
+                            "0 0 0px rgba(212,175,55,0)",
+                          ],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: 1.5,
+                        }}
+                      >
+                        {userData.referrals.totalBonus} LMX
                       </motion.span>
                     </div>
                     <Button
@@ -357,11 +421,41 @@ const ProfileClientContent: React.FC = () => {
                         </h3>
                       </div>
 
-                      {connected ? (
-                        <RecentActivitySummary walletAddress={walletAddress} />
+                      {isAuthenticated ? (
+                        <div className="space-y-4">
+                          {userData.purchases.length > 0 ? (
+                            userData.purchases.slice(0, 3).map((purchase) => (
+                              <div
+                                key={purchase.id}
+                                className="border-b border-primary/10 pb-2 last:border-0"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="text-white font-medium">
+                                    LMX Purchase
+                                  </span>
+                                  <span className="text-primary">
+                                    {purchase.lmxTokensAllocated} LMX
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs text-white/60">
+                                  <span>
+                                    {new Date(
+                                      purchase.createdAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                  <span className="capitalize">
+                                    {purchase.network.toLowerCase()}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-white/70">No transactions yet</p>
+                          )}
+                        </div>
                       ) : (
                         <p className="text-white/70">
-                          Connect wallet to view your activity.
+                          Sign in or connect wallet to view your activity.
                         </p>
                       )}
                     </div>
@@ -375,7 +469,7 @@ const ProfileClientContent: React.FC = () => {
                       </div>
 
                       {/* Add the UserBalanceDisplay component */}
-                      <UserBalanceDisplay />
+                      <UserBalanceDisplay balance={userData.balance} />
                     </div>
                   </motion.div>
                 </div>
@@ -467,9 +561,8 @@ const ProfileClientContent: React.FC = () => {
                     variants={itemVariants}
                     className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                   >
-                    {/* Import and use the UserActivityHistory component */}
-                    {connected ? (
-                      <UserActivityHistory />
+                    {isAuthenticated ? (
+                      <UserActivityHistory purchases={userData.purchases} />
                     ) : (
                       <div className="text-center py-10">
                         <motion.p
@@ -477,7 +570,8 @@ const ProfileClientContent: React.FC = () => {
                           animate={{ opacity: [0.7, 1, 0.7] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
-                          Connect your wallet to view transaction history
+                          Sign in or connect your wallet to view transaction
+                          history
                         </motion.p>
                         <motion.div
                           whileHover={{ scale: 1.05 }}
@@ -510,19 +604,113 @@ const ProfileClientContent: React.FC = () => {
                       </h3>
                     </div>
 
-                    <div className="mb-6">
-                      <p className="text-white/80">
-                        Sign with your wallet to verify ownership and generate a
-                        unique referral code that you can share with friends.
-                      </p>
-                    </div>
+                    {isAuthenticated ? (
+                      <>
+                        <div className="mb-6">
+                          <p className="text-white/80">
+                            Invite friends to join Antilix and earn bonus LMX
+                            tokens when they make a purchase using your referral
+                            link.
+                          </p>
 
-                    {connected && currentWalletType === "solana" ? (
-                      <div className="bg-black/20 p-6 rounded-lg">
-                        <h4 className="text-primary mb-4 font-medium">
-                          Wallet Verified Referrals (Solana)
-                        </h4>
-                      </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <motion.div
+                              className="bg-black/30 p-4 rounded-lg border border-primary/20"
+                              whileHover={{ scale: 1.02 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 10,
+                              }}
+                            >
+                              <h5 className="text-white/80 text-sm">
+                                Total Referred Users
+                              </h5>
+                              <p className="text-primary text-3xl font-bold mt-2">
+                                {userData.referrals.count}
+                              </p>
+                              <p className="text-white/60 text-xs mt-1">
+                                Users who joined with your referral
+                              </p>
+                            </motion.div>
+
+                            <motion.div
+                              className="bg-black/30 p-4 rounded-lg border border-primary/20"
+                              whileHover={{ scale: 1.02 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 10,
+                              }}
+                            >
+                              <h5 className="text-white/80 text-sm">
+                                Total Bonus Earned
+                              </h5>
+                              <p className="text-primary text-3xl font-bold mt-2">
+                                {userData.referrals.totalBonus} LMX
+                              </p>
+                              <p className="text-white/60 text-xs mt-1">
+                                Tokens earned from referrals
+                              </p>
+                            </motion.div>
+                          </div>
+                        </div>
+
+                        <div className="mt-8">
+                          <h4 className="text-lg font-medium luxury-text mb-4">
+                            Your Referral Link
+                          </h4>
+                          <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex-grow overflow-hidden">
+                              <p className="text-primary truncate">
+                                {`${window?.location?.origin}/referral?ref=${session?.user?.referralCode}`}
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  `${window?.location?.origin}/referral?ref=${session?.user?.referralCode}`
+                                );
+                              }}
+                              className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black"
+                            >
+                              Copy Link
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
+                        {connected && currentWalletType === "solana" ? (
+                          <div className="bg-black/20 p-6 rounded-lg mt-8">
+                            <h4 className="text-primary mb-4 font-medium">
+                              Wallet Verified Referrals (Solana)
+                            </h4>
+                            <p className="text-white/70 text-sm mb-4">
+                              Sign with your Solana wallet to create
+                              cryptographically-verified referral links that
+                              provide additional bonuses.
+                            </p>
+                            <Button className="bg-primary hover:bg-primary/90 text-black">
+                              Generate Verified Link
+                            </Button>
+                          </div>
+                        ) : connected ? (
+                          <div className="bg-black/20 p-6 rounded-lg mt-8">
+                            <p className="text-white/70">
+                              Referral signing currently requires a Solana
+                              wallet. Please connect or switch to a Solana
+                              wallet.
+                            </p>
+                            <Button
+                              onClick={handleConnect}
+                              variant="outline"
+                              className="mt-4 border-primary/50 text-primary hover:bg-primary/10"
+                            >
+                              Switch Wallet
+                            </Button>
+                          </div>
+                        ) : null}
+                      </>
                     ) : (
                       <div className="text-center py-10">
                         <motion.p
@@ -530,24 +718,19 @@ const ProfileClientContent: React.FC = () => {
                           animate={{ opacity: [0.7, 1, 0.7] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
-                          {connected && currentWalletType !== "solana"
-                            ? "Referral signing currently requires a Solana wallet. Please connect or switch to a Solana wallet."
-                            : "Connect your Solana wallet to generate verified referral links"}
+                          Sign in or connect your wallet to access the referral
+                          program
                         </motion.p>
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           <Button
-                            onClick={handleConnect} // This will open the modal for user to choose/switch
+                            onClick={handleConnect}
                             className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
                             disabled={loading}
                           >
-                            {loading
-                              ? "Connecting..."
-                              : connected
-                              ? "Switch Wallet"
-                              : "Connect Wallet"}
+                            {loading ? "Connecting..." : "Connect Wallet"}
                           </Button>
                         </motion.div>
                       </div>

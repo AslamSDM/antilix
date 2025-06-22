@@ -10,16 +10,22 @@ interface Purchase {
   id: string;
   createdAt: string;
   network: string;
-  paymentAmount: string;
-  paymentCurrency: string;
+  paymentAmount?: string;
+  paymentCurrency?: string;
   lmxTokensAllocated: string;
-  pricePerLmxInUsdt: string;
+  pricePerLmxInUsdt?: string;
   transactionSignature: string;
   status: string;
-  hasReferralBonus: boolean;
+  hasReferralBonus?: boolean;
 }
 
-export const UserActivityHistory = () => {
+interface UserActivityHistoryProps {
+  purchases?: Purchase[];
+}
+
+export const UserActivityHistory: React.FC<UserActivityHistoryProps> = ({
+  purchases = [],
+}) => {
   const [activities, setActivities] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +35,14 @@ export const UserActivityHistory = () => {
   const walletAddress = appkitAccountData?.address;
 
   useEffect(() => {
+    // If purchases are provided via props, use them directly
+    if (purchases && purchases.length > 0) {
+      setActivities(purchases);
+      setIsLoading(false);
+      return;
+    }
+
+    // Otherwise fetch from API (fallback behavior)
     async function fetchUserActivity() {
       if (!walletAddress) return;
 
@@ -54,9 +68,10 @@ export const UserActivityHistory = () => {
     if (connected && walletAddress) {
       fetchUserActivity();
     }
-  }, [walletAddress, connected]);
+  }, [walletAddress, connected, purchases]);
 
-  if (!connected) {
+  // No need to check connection status if we have purchases from props
+  if (!connected && purchases.length === 0) {
     return (
       <div className="text-center py-6">
         <p className="text-white/70">
@@ -92,10 +107,13 @@ export const UserActivityHistory = () => {
     }
   };
 
-  const calculateCurrentValue = (lmxAmount: string, pricePerLmx: string) => {
+  const calculateCurrentValue = (
+    lmxAmount: string,
+    pricePerLmx: string | undefined
+  ) => {
     // Calculate value based on tokens and purchase price
     const tokens = parseFloat(lmxAmount);
-    const purchasePrice = parseFloat(pricePerLmx);
+    const purchasePrice = parseFloat(pricePerLmx || "0.01");
     const purchaseValue = tokens * purchasePrice;
 
     // Calculate current value based on current LMX price
@@ -173,45 +191,53 @@ export const UserActivityHistory = () => {
                   </div>
                 </div>
 
-                <div className="text-white/70 text-sm mt-2 flex flex-wrap justify-between">
-                  <span className="mr-4">
-                    Paid: {parseFloat(activity.paymentAmount).toFixed(6)}{" "}
-                    {activity.paymentCurrency}(
-                    {(
-                      parseFloat(activity.paymentAmount) *
-                      parseFloat(activity.pricePerLmxInUsdt)
-                    ).toFixed(2)}{" "}
-                    USD)
-                  </span>
+                {activity.paymentAmount &&
+                  activity.paymentCurrency &&
+                  activity.pricePerLmxInUsdt && (
+                    <div className="text-white/70 text-sm mt-2 flex flex-wrap justify-between">
+                      <span className="mr-4">
+                        Paid:{" "}
+                        {parseFloat(activity.paymentAmount || "0").toFixed(6)}{" "}
+                        {activity.paymentCurrency}(
+                        {(
+                          parseFloat(activity.paymentAmount) *
+                          parseFloat(activity.pricePerLmxInUsdt || "0")
+                        ).toFixed(2)}{" "}
+                        USD)
+                      </span>
 
-                  <span className="flex items-center">
-                    Network:
-                    <span className="ml-1 capitalize text-primary">
-                      {activity.network.toLowerCase()}
+                      <span className="flex items-center">
+                        Network:
+                        <span className="ml-1 capitalize text-primary">
+                          {activity.network.toLowerCase()}
+                        </span>
+                      </span>
+                    </div>
+                  )}
+
+                {activity.pricePerLmxInUsdt && (
+                  <div className="text-white/70 text-sm mt-1 flex flex-wrap justify-between">
+                    <span>
+                      Price: $
+                      {parseFloat(activity.pricePerLmxInUsdt || "0").toFixed(4)}{" "}
+                      per LMX
                     </span>
-                  </span>
-                </div>
 
-                <div className="text-white/70 text-sm mt-1 flex flex-wrap justify-between">
-                  <span>
-                    Price: ${parseFloat(activity.pricePerLmxInUsdt).toFixed(4)}{" "}
-                    per LMX
-                  </span>
-
-                  <div
-                    className={`flex items-center ${
-                      parseFloat(profitLossPercent) >= 0
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    Current value: ${currentValue}
-                    <span className="ml-1">
-                      ({parseFloat(profitLossPercent) >= 0 ? "+" : ""}
-                      {profitLossPercent}%)
-                    </span>
+                    <div
+                      className={`flex items-center ${
+                        parseFloat(profitLossPercent) >= 0
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      Current value: ${currentValue}
+                      <span className="ml-1">
+                        ({parseFloat(profitLossPercent) >= 0 ? "+" : ""}
+                        {profitLossPercent}%)
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {activity.hasReferralBonus && (
                   <div className="mt-2 text-xs bg-primary/10 text-primary p-1 px-2 rounded-full inline-block">

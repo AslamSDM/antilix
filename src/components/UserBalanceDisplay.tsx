@@ -4,49 +4,20 @@ import { motion } from "framer-motion";
 import { Coins } from "lucide-react";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Skeleton } from "./ui/skeleton";
+import { useSession } from "next-auth/react";
 
-export const UserBalanceDisplay = () => {
-  const [balance, setBalance] = useState<number | null>(null);
+export const UserBalanceDisplay = ({ balance }: { balance: number | null }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const appkitAccountData = useAppKitAccount();
-  const { isConnected: connected } = appkitAccountData || { connected: false };
+  const { status } = useSession();
   const walletAddress = appkitAccountData?.address;
 
-  // Fetch balance from database
-  useEffect(() => {
-    async function fetchBalance() {
-      if (!walletAddress) return;
-
-      try {
-        setIsLoading(true);
-        const response = await fetch(
-          `/api/user/balance?walletAddress=${walletAddress}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch balance");
-        }
-
-        const data = await response.json();
-        setBalance(data.dbBalance || 0);
-      } catch (err) {
-        console.error("Error fetching balance:", err);
-        setError("Failed to load balance");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchBalance();
-  }, [walletAddress]);
-
-  if (!connected) {
+  if (status !== "authenticated") {
     return (
       <div className="text-center py-6">
-        <p className="text-white/70">
-          Connect your wallet to view your balance
-        </p>
+        <p className="text-white/70">Sign In to view the Balance</p>
       </div>
     );
   }

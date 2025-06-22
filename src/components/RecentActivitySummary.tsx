@@ -10,27 +10,36 @@ interface Purchase {
   createdAt: string;
   lmxTokensAllocated: string;
   status: string;
+  network: string;
+  transactionSignature: string;
 }
 
+import { Session } from "next-auth";
+
 interface RecentActivitySummaryProps {
-  walletAddress: string | undefined;
+  activity?: Purchase | null;
+  session?: Session | null;
 }
 
 export const RecentActivitySummary: React.FC<RecentActivitySummaryProps> = ({
-  walletAddress,
+  activity,
+  session,
 }) => {
   const [recentActivities, setRecentActivities] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Extract user identifier from session or wallet
+  const userId = session?.user?.id;
+
   useEffect(() => {
     async function fetchRecentActivity() {
-      if (!walletAddress) return;
-
       try {
         setIsLoading(true);
-        const response = await fetch(
-          `/api/presale/history?walletAddress=${walletAddress}`
-        );
+
+        // Build the query parameters based on available data
+
+        const response = await fetch(`/api/presale/history`);
+
         if (!response.ok) {
           throw new Error("Failed to fetch activity");
         }
@@ -44,9 +53,9 @@ export const RecentActivitySummary: React.FC<RecentActivitySummaryProps> = ({
         setIsLoading(false);
       }
     }
-
+    if (activity) return;
     fetchRecentActivity();
-  }, [walletAddress]);
+  }, [userId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
