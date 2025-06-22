@@ -397,15 +397,14 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               </div>
               <div className="flex justify-between items-center mb-3 text-cente">
                 <div className="flex items-center">
-                  <DollarSign className="h-4 w-4 text-green-500 mr-1" />
                   <span className="text-green-400 font-bold">
-                    ${lmxPriceUsd.toFixed(4)} per LMX
+                    $ {lmxPriceUsd.toFixed(3)} per LMX
                   </span>
                 </div>
               </div>
               {/* <span className="text-xs text-white/60">Fixed USD Price</span> */}
             </div>
-            <div className="ml-1 text-left">
+            {/* <div className="ml-1 text-left">
               <div className="text-sm font-medium text-white/80 mb-2 text-cente">
                 For $1 USD you get
               </div>
@@ -414,7 +413,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   {lmxPriceUsd > 0 ? (1 / lmxPriceUsd).toFixed(4) : "..."} LMX
                 </span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Purchase Form */}

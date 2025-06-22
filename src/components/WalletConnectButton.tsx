@@ -23,7 +23,7 @@ interface WalletConnectProps {
 
 export const WalletConnectButton: React.FC<WalletConnectProps> = ({
   className,
-  variant = "default",
+  variant = "fancy",
   onConnect,
 }) => {
   const appKitState = useAppKitState();
@@ -345,8 +345,8 @@ export const WalletConnectButton: React.FC<WalletConnectProps> = ({
             variant === "fancy"
               ? "default"
               : variant === "minimal"
-              ? "ghost"
-              : "outline"
+                ? "ghost"
+                : "outline"
           }
           className={cn(
             "flex items-center gap-2 px-3 py-1.5 rounded-lg",

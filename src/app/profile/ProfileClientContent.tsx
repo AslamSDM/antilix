@@ -137,7 +137,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
   };
 
   return (
-    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen relative mt-24">
+    <div className="container mx-auto py-24 px-4 md:px-8 min-h-screen relative mt-24 overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl"></div>
         <div className="absolute -bottom-20 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl"></div>
@@ -248,7 +248,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                           delay: 0.5,
                         }}
                       >
-                        {userData.balance}
+                        {userData.balance.toFixed(2)}
                       </motion.span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-primary/20">
@@ -438,7 +438,10 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                                     LMX Purchase
                                   </span>
                                   <span className="text-primary">
-                                    {purchase.lmxTokensAllocated} LMX
+                                    {Number(
+                                      purchase.lmxTokensAllocated
+                                    ).toFixed(2)}{" "}
+                                    LMX
                                   </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-white/60">
@@ -666,18 +669,25 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                               Your Referral Link
                             </h4>
                             <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
-                              <div className="flex-grow overflow-hidden">
-                                <p className="text-primary truncate">
-                                  {`${window?.location?.origin}?ref=${session?.user?.referralCode}`}
-                                </p>
+                              <div className="w-full md:flex-grow overflow-hidden">
+                                <div className="relative w-full overflow-hidden">
+                                  <p className="text-primary truncate text-sm md:text-base pr-4">
+                                    {typeof window !== "undefined"
+                                      ? `${window.location.origin}?ref=${session?.user?.referralCode}`
+                                      : `Loading...`}
+                                  </p>
+                                  <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-black/20 to-transparent"></div>
+                                </div>
                               </div>
                               <Button
                                 onClick={() => {
-                                  navigator.clipboard.writeText(
-                                    `${window?.location?.origin}?ref=${session?.user?.referralCode}`
-                                  );
+                                  if (typeof navigator !== "undefined") {
+                                    navigator.clipboard.writeText(
+                                      `${window?.location?.origin}?ref=${session?.user?.referralCode}`
+                                    );
+                                  }
                                 }}
-                                className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black"
+                                className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black w-full md:w-auto shrink-0"
                               >
                                 Copy Link
                               </Button>

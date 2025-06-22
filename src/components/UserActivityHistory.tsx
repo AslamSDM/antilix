@@ -197,7 +197,7 @@ export const UserActivityHistory: React.FC<UserActivityHistoryProps> = ({
                     <div className="text-white/70 text-sm mt-2 flex flex-wrap justify-between">
                       <span className="mr-4">
                         Paid:{" "}
-                        {parseFloat(activity.paymentAmount || "0").toFixed(6)}{" "}
+                        {parseFloat(activity.paymentAmount || "0").toFixed(2)}{" "}
                         {activity.paymentCurrency}(
                         {(
                           parseFloat(activity.paymentAmount) *
@@ -219,7 +219,7 @@ export const UserActivityHistory: React.FC<UserActivityHistoryProps> = ({
                   <div className="text-white/70 text-sm mt-1 flex flex-wrap justify-between">
                     <span>
                       Price: $
-                      {parseFloat(activity.pricePerLmxInUsdt || "0").toFixed(4)}{" "}
+                      {parseFloat(activity.pricePerLmxInUsdt || "0").toFixed(2)}{" "}
                       per LMX
                     </span>
 
