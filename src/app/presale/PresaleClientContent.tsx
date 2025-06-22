@@ -526,7 +526,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
 
           <div className="w-full max-w-[95%] sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 md:mb-12 px-0 sm:px-2">
             <CountdownTimer
-              targetDate={new Date("2025-06-30T23:59:59")}
+              targetDate={new Date("2025-07-10T23:59:59")}
               className="mb-4 sm:mb-6 md:mb-8"
             />
             <TokenProgressBar raised={totalRaised} goal={10000} />

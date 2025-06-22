@@ -34,9 +34,12 @@ export const { auth } = {
   auth: withAuth(
     function middleware(req) {
       const token = req.nextauth.token;
-
+      console.log("Token in middleware:", token);
       // Path to verification needed page
       const verificationNeededPath = "/auth/verification-needed";
+      if (token && !token.verified) {
+        return NextResponse.redirect(new URL(verificationNeededPath, req.url));
+      }
 
       // If user is logged in but not verified, redirect to verification page
       if (

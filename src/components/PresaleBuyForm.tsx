@@ -452,7 +452,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     onChange={handleUsdAmountChange}
                     className="bg-black/30 border border-primary/20 text-white"
                     step="1"
-                    placeholder="50"
+                    placeholder="500"
                   />
                   <div className="bg-black/40 px-3 py-2 rounded-md text-white/80">
                     USD
