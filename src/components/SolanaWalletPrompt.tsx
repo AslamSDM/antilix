@@ -135,6 +135,8 @@ export function SolanaWalletPrompt({
           const signingPromise = (async () => {
             // Try standard signMessage first
             if (typeof provider.signMessage === "function") {
+              console.log("fn1");
+
               const messageBytes = new TextEncoder().encode(signatureMessage);
               const signature = await provider.signMessage(messageBytes);
               return typeof signature === "string"
@@ -143,6 +145,8 @@ export function SolanaWalletPrompt({
             }
             // Some wallets use request method with signMessage param
             else if (typeof provider.request === "function") {
+              console.log("fn");
+
               const signature = await provider.request({
                 method: "signMessage",
                 params: {
@@ -156,6 +160,7 @@ export function SolanaWalletPrompt({
             }
             // If we still don't have a way to sign, use a transaction
             else if (address) {
+              console.log("address");
               // Create a direct PublicKey from the address
               const publicKey = new PublicKey(address);
 
@@ -234,7 +239,7 @@ export function SolanaWalletPrompt({
         if (response.ok) {
           // Create a NextAuth session with the wallet info
           if (data.userId) {
-            await createWalletSession(data.userId, address as string, "solana");
+            // await createWalletSession(data.userId, address as string, "solana");
 
             // Display success message
             toast.success("Wallet verified successfully!", {
