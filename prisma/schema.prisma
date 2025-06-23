@@ -15,14 +15,14 @@ model User {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   email              String?              @unique
-  username           String?              @unique
+  username           String?
   password           String?
   emailVerified      DateTime? // Added this field for email verification
   walletAddress      String?
   walletType         String?
   walletVerified     Boolean              @default(false)
-  evmAddress         String?              @unique
-  solanaAddress      String?              @unique
+  evmAddress         String?
+  solanaAddress      String?
   referralCode       String               @unique
   referrerId         String?
   verified           Boolean              @default(false)
@@ -78,7 +78,7 @@ model Purchase {
   roundId              String         @default("seed")
   transactionId        String?        @unique
   user                 User           @relation(fields: [userId], references: [id])
-  transaction          Transaction?   @relation(fields: [transactionId], references: [id])
+  Transaction          Transaction[]
 
   @@index([userId])
   @@index([transactionSignature])
@@ -104,20 +104,21 @@ enum PurchaseStatus {
 }
 
 model Transaction {
-  id                String            @id @default(cuid())
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  userId            String
-  network           NetworkType
-  hash              String            @unique
-  status            TransactionStatus @default(PENDING)
-  lastChecked       DateTime          @default(now())
-  checkCount        Int               @default(0)
-  tokenAmount       Decimal
-  paymentAmount     Decimal
-  paymentCurrency   String
-  completedPurchase Purchase?
-  user              User              @relation(fields: [userId], references: [id])
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userId          String
+  network         NetworkType
+  hash            String            @unique
+  status          TransactionStatus @default(PENDING)
+  lastChecked     DateTime          @default(now())
+  checkCount      Int               @default(0)
+  tokenAmount     Decimal
+  paymentAmount   Decimal
+  paymentCurrency String
+  user            User              @relation(fields: [userId], references: [id])
+  Purchase        Purchase?         @relation(fields: [purchaseId], references: [id])
+  purchaseId      String?
 
   @@index([userId])
   @@index([hash])
