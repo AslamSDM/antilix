@@ -78,18 +78,18 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   // Get token price from contract - keeping this for backward compatibility
   const { data: tokenPrice } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "tokenPrice",
   });
 
   const { data: presaleStatus } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "presaleActive",
   });
   const { data: userBalance } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "balanceOf",
     args: [address as `0x${string}`],
   });
@@ -291,7 +291,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
       // Prepare transaction parameters
       const txParams = {
         address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-        abi: presaleAbi,
+        abi: presaleAbi.abi,
         functionName: "buyTokens",
         args: [parseEther(tokenAmount.toString())],
         value: dynamicCost,

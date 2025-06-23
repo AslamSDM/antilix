@@ -179,43 +179,43 @@ export default function usePresale() {
   });
   const { data: userBalance, error } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "balanceOf",
     args: [walletAddress],
   });
   //   const { data: presaleStatus } = useReadContract({
   //     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-  //     abi: presaleAbi,
+  //     abi: presaleAbi.abi,
   //     functionName: "presaleActive",
   //     args: [],
   //   });
   const { data: min } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "minPurchase",
     args: [],
   });
   const { data: max } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "maxPurchase",
     args: [],
   });
   const { data: soldTokens } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "soldTokens",
     args: [],
   });
   const { data: totalRaised } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "totalRaised",
     args: [],
   });
   const { data: hardcap } = useReadContract({
     address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: presaleAbi,
+    abi: presaleAbi.abi,
     functionName: "hardCap",
     args: [],
   });

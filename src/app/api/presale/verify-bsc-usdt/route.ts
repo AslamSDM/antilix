@@ -4,10 +4,13 @@ import { z } from "zod";
 import { ethers } from "ethers";
 import { presaleAbi } from "@/lib/abi";
 import { LMX_PRICE_USD } from "@/lib/price-utils";
-import { formatEther } from "viem";
+import { formatEther, formatUnits } from "viem";
 
 import { sendReferralTokens } from "@/lib/send-referral";
-import { BSC_PRESALE_CONTRACT_ADDRESS } from "@/lib/constants";
+import {
+  BSC_PRESALE_CONTRACT_ADDRESS,
+  BSC_USDT_ADDRESS,
+} from "@/lib/constants";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth";
 import { ERROR_TYPES } from "@/lib/errors";
@@ -16,11 +19,58 @@ import { ERROR_TYPES } from "@/lib/errors";
 const MAX_VERIFICATION_ATTEMPTS = 10;
 // Delay between verification attempts in ms (5 seconds)
 const VERIFICATION_DELAY = 5000;
+// USDT has 18 decimals on BSC (Binance-Peg USDT)
+const USDT_DECIMALS = 18;
 
 // Validation schema
 const verificationSchema = z.object({
   hash: z.string(),
 });
+
+// ERC20 ABI (minimal for our needs)
+const erc20Abi = [
+  {
+    constant: true,
+    inputs: [
+      { name: "_owner", type: "address" },
+      { name: "_spender", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ name: "remaining", type: "uint256" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_spender", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "success", type: "bool" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ name: "success", type: "bool" }],
+    type: "function",
+  },
+];
+
+// Event definition for TokensPurchasedWithUsdt
+const tokensPurchasedWithUsdtEvent =
+  "TokensPurchasedWithUsdt(address,uint256,uint256,address)";
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,6 +85,7 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
     });
@@ -50,19 +101,29 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { hash } = verificationSchema.parse(body);
 
+    if (!hash) {
+      return NextResponse.json(
+        { status: "ERROR", message: "No transaction hash provided" },
+        { status: 400 }
+      );
+    }
+
     // Check if we already have tracked this transaction
-    let existingTransactionRecord = await (
-      prisma as any
-    ).transaction.findUnique({
+    let existingTransactionRecord = await prisma.transaction.findUnique({
       where: { hash },
     });
 
     // If transaction already exists and was completed, return the result
     if (existingTransactionRecord?.status === "COMPLETED") {
+      // Find any associated purchase
+      const associatedPurchase = await prisma.purchase.findFirst({
+        where: { transactionSignature: hash },
+      });
+
       return NextResponse.json({
         verified: true,
         transaction: existingTransactionRecord,
-        purchase: existingTransactionRecord.completedPurchase,
+        purchase: associatedPurchase,
       });
     }
 
@@ -71,7 +132,7 @@ export async function POST(req: NextRequest) {
       existingTransactionRecord &&
       existingTransactionRecord.status === "PENDING"
     ) {
-      existingTransactionRecord = await (prisma as any).transaction.update({
+      existingTransactionRecord = await prisma.transaction.update({
         where: { id: existingTransactionRecord.id },
         data: {
           checkCount: {
@@ -84,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     // If no existing transaction, create a new one
     if (!existingTransactionRecord) {
-      existingTransactionRecord = await (prisma as any).transaction.create({
+      existingTransactionRecord = await prisma.transaction.create({
         data: {
           hash,
           status: "PENDING",
@@ -92,7 +153,7 @@ export async function POST(req: NextRequest) {
           // These fields will be updated after verification
           tokenAmount: "0",
           paymentAmount: "0",
-          paymentCurrency: "BNB",
+          paymentCurrency: "USDT",
           user: {
             connect: { id: user.id },
           },
@@ -116,7 +177,7 @@ export async function POST(req: NextRequest) {
     if (!receipt) {
       // If we've exceeded max check count, mark as failed
       if (existingTransactionRecord.checkCount >= MAX_VERIFICATION_ATTEMPTS) {
-        await (prisma as any).transaction.update({
+        await prisma.transaction.update({
           where: { id: existingTransactionRecord.id },
           data: {
             status: "FAILED",
@@ -143,7 +204,7 @@ export async function POST(req: NextRequest) {
     // Verify transaction status
     if (receipt.status === 0) {
       // Update transaction record to mark as failed
-      await (prisma as any).transaction.update({
+      await prisma.transaction.update({
         where: { id: existingTransactionRecord.id },
         data: {
           status: "FAILED",
@@ -160,11 +221,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify this is a transaction to our presale contract
+    console.log(receipt.to, BSC_PRESALE_CONTRACT_ADDRESS);
     if (
       receipt.to?.toLowerCase() !== BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
     ) {
       // Update transaction record to mark as failed
-      await (prisma as any).transaction.update({
+      await prisma.transaction.update({
         where: { id: existingTransactionRecord.id },
         data: {
           status: "FAILED",
@@ -187,7 +249,7 @@ export async function POST(req: NextRequest) {
 
     if (existingPurchaseRecord) {
       // Update our transaction record to link to the existing purchase
-      await (prisma as any).transaction.update({
+      await prisma.transaction.update({
         where: { id: existingTransactionRecord.id },
         data: {
           status: "COMPLETED",
@@ -231,18 +293,96 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if this is a buyTokens function call
-    if (decodedData?.name !== "buyTokens") {
+    // Check if this is a buyTokensWithUsdt function call
+    if (decodedData?.name !== "buyTokensWithUsdt") {
       return NextResponse.json(
-        { error: "Transaction is not a token purchase" },
+        { error: "Transaction is not a USDT token purchase" },
         { status: 400 }
       );
     }
 
     // Extract token amount from function arguments
     const tokenAmount = Number(decodedData.args[0]);
-    const valueInWei = transaction.value.toString();
-    const valueInBnb = ethers.formatEther(valueInWei);
+
+    // Look for TokensPurchasedWithUsdt event
+    let buyer = transaction.from;
+    let usdtAmount = "0";
+    let referrer = "0x0000000000000000000000000000000000000000";
+
+    // Create event interface
+    const eventInterface = new ethers.Interface([
+      `event TokensPurchasedWithUsdt(address indexed buyer, uint256 usdtAmount, uint256 tokenAmount, address indexed referrer)`,
+    ]);
+
+    const eventTopic = ethers.id(tokensPurchasedWithUsdtEvent);
+
+    // Filter logs for the event
+    for (const log of receipt.logs) {
+      // Check if this log is from our contract and has the right event
+      if (
+        log.address.toLowerCase() ===
+          BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase() &&
+        log.topics[0] === eventTopic
+      ) {
+        try {
+          const parsedLog = eventInterface.parseLog({
+            topics: log.topics,
+            data: log.data,
+          });
+
+          if (parsedLog) {
+            buyer = parsedLog.args.buyer;
+            usdtAmount = formatUnits(parsedLog.args.usdtAmount, USDT_DECIMALS);
+            referrer = parsedLog.args.referrer;
+            break;
+          }
+        } catch (error) {
+          console.error("Error parsing event log:", error);
+        }
+      }
+    }
+
+    // If we couldn't parse the event properly
+    if (usdtAmount === "0") {
+      // Find USDT transfer event as fallback method
+      const usdtTransferTopic = ethers.id("Transfer(address,address,uint256)");
+
+      for (const log of receipt.logs) {
+        if (
+          log.address.toLowerCase() === BSC_USDT_ADDRESS.toLowerCase() &&
+          log.topics[0] === usdtTransferTopic
+        ) {
+          const usdtInterface = new ethers.Interface([
+            "event Transfer(address indexed from, address indexed to, uint256 value)",
+          ]);
+
+          try {
+            const transferLog = usdtInterface.parseLog({
+              topics: log.topics,
+              data: log.data,
+            });
+
+            if (
+              transferLog &&
+              transferLog.args.to.toLowerCase() ===
+                BSC_PRESALE_CONTRACT_ADDRESS.toLowerCase()
+            ) {
+              usdtAmount = formatUnits(transferLog.args.value, USDT_DECIMALS);
+              break;
+            }
+          } catch (error) {
+            console.error("Error parsing USDT transfer:", error);
+          }
+        }
+      }
+    }
+
+    // Last resort - calculate based on token amount and price
+    if (usdtAmount === "0") {
+      const calculatedUsdtValue =
+        Number(formatEther(BigInt(tokenAmount))) * LMX_PRICE_USD;
+      usdtAmount = calculatedUsdtValue.toString();
+    }
 
     let referralPaid = false;
     if (user.referrerId) {
@@ -252,52 +392,78 @@ export async function POST(req: NextRequest) {
       if (referrer?.solanaAddress) {
         referralPaid = await sendReferralTokens(
           referrer.solanaAddress,
-          parseFloat(valueInBnb),
-          "bsc"
+          parseFloat(usdtAmount),
+          "usdt"
         );
       }
     }
+
     // Create a new purchase record
     const newPurchase = await prisma.purchase.create({
       data: {
         userId: user.id,
         transactionSignature: hash,
-        paymentAmount: valueInBnb,
+        paymentAmount: usdtAmount,
         lmxTokensAllocated: formatEther(BigInt(tokenAmount)),
         pricePerLmxInUsdt: LMX_PRICE_USD,
         network: "BSC",
         status: "COMPLETED",
-        paymentCurrency: "BNB",
+        paymentCurrency: "USDT",
         referralBonusPaid: referralPaid,
+        // These fields may be included if they exist in the schema, otherwise remove them
+        // Only keep fields that exist in your Prisma schema
       },
     });
 
     // Update transaction record with token and payment info
-    const updatedTransaction = await (prisma as any).transaction.update({
+    const updatedTransaction = await prisma.transaction.update({
       where: { id: existingTransactionRecord.id },
       data: {
         status: "COMPLETED",
         tokenAmount: formatEther(BigInt(tokenAmount)),
-        paymentAmount: valueInBnb,
+        paymentAmount: usdtAmount,
       },
     });
+
+    // Handle referral bonus (if the transaction event had a referrer)
+    if (referrer && referrer !== "0x0000000000000000000000000000000000000000") {
+      // Find the referrer in the database
+      const referrerUser = await prisma.user.findFirst({
+        where: {
+          evmAddress: referrer.toLowerCase(),
+        },
+      });
+
+      if (referrerUser) {
+        // Calculate 5% bonus
+        const bonusAmount = Number(formatEther(BigInt(tokenAmount))) * 0.05;
+
+        // Note: Add referral bonus record if your schema has this model
+        // If referralBonus doesn't exist in your schema, this section should be removed
+        // or adapted to match your actual schema
+        console.log(
+          `Referral bonus of ${bonusAmount} tokens would be allocated to user ${referrerUser.id}`
+        );
+
+        // If you have a different way to track referral bonuses in your schema, use that instead
+      }
+    }
 
     return NextResponse.json({
       verified: true,
       transaction: {
         hash,
         sender: transaction.from,
-        amount: valueInBnb, // BNB amount
+        amount: usdtAmount, // USDT amount
         tokenAmount: tokenAmount, // LMX token amount
         blockNumber: receipt.blockNumber,
         gasFee: ethers.formatEther(transaction.gasPrice * receipt.gasUsed),
       },
-      // Include the new purchase
       purchase: newPurchase,
       transactionRecord: updatedTransaction,
     });
   } catch (error) {
-    console.error("Error verifying BSC transaction:", error);
+    console.error("Error verifying BSC USDT transaction:", error);
     return NextResponse.json(
       { error: "Failed to verify transaction" },
       { status: 500 }

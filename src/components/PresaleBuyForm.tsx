@@ -18,13 +18,19 @@ import {
   RefreshCcw,
   Loader2,
   DollarSign,
+  CoinsIcon,
+  BadgeCheck,
+  ChevronDown,
 } from "lucide-react";
 import usePresale from "@/components/hooks/usePresale";
 import GlowButton from "@/components/GlowButton";
 import { toast } from "sonner";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { useBscPresale } from "./hooks/useBscPresale";
+import { useBscUsdtPresale } from "./hooks/useBscUsdtPresale";
 import { useSolanaPresale } from "./hooks/useSolanaPresale";
+import { useSolanaUsdtPresale } from "./hooks/useSolanaUsdtPresale";
+import { useWalletBalances } from "./hooks/useWalletBalances";
 import TransactionStatusModal from "./TransactionStatusModal";
 import { SolanaWalletPrompt } from "./SolanaWalletPrompt";
 import { BSCWalletPrompt } from "./BSCWalletPrompt";
@@ -37,7 +43,8 @@ import { getStoredReferralCode } from "@/lib/referral";
 import { useSession } from "next-auth/react";
 import { modal } from "@/components/providers/wallet-provider";
 import useReferralHandling from "./hooks/useReferralHandling";
-import { MIN_BUY } from "@/lib/constants";
+import { MIN_BUY, NETWORK_ICONS, CURRENCY_ICONS } from "@/lib/constants";
+import Image from "next/image";
 
 // Extended type for our session with referredBy field
 interface CustomSessionUser {
@@ -123,6 +130,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   }, [referralCode, user]);
 
   const [network, setNetwork] = useState<"bsc" | "solana">("bsc");
+  const [solanaCurrency, setSolanaCurrency] = useState<"SOL" | "USDT">("SOL");
   const [showSolanaVerificationModal, setShowSolanaVerificationModal] =
     useState(false);
   const [showBSCVerificationModal, setShowBSCVerificationModal] =
@@ -136,6 +144,29 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       setNetwork("bsc");
     }
   }, [chainId]);
+
+  // Reset to default SOL currency when network changes to Solana
+  useEffect(() => {
+    if (network === "solana") {
+      setSolanaCurrency("SOL");
+    }
+  }, [network]);
+
+  // Get all presale functionality from the usePresale hook
+  const {
+    signReferralCode,
+    cryptoPrices,
+    isLoadingPrices,
+    loadCryptoPrices,
+    calculateTokensFromCrypto,
+    lmxPriceUsd,
+    max,
+    min,
+    totalRaised,
+    percentageSold,
+    hardcap,
+    soldTokens,
+  } = usePresale();
 
   // Handle session updates after wallet verification
   useEffect(() => {
@@ -161,22 +192,11 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     showBSCVerificationModal,
   ]);
 
-  // Get all presale functionality from the usePresale hook
-  const {
-    signReferralCode,
-    cryptoPrices,
-    isLoadingPrices,
-    loadCryptoPrices,
-    calculateTokensFromCrypto,
-    lmxPriceUsd,
-    max,
-    min,
-    totalRaised,
-    percentageSold,
-    hardcap,
-    soldTokens,
-  } = usePresale();
   const presaleStatus = true;
+
+  // Define currency type for BSC
+  const [bscCurrency, setBscCurrency] = useState<"BNB" | "USDT">("BNB");
+
   // Use the appropriate hook based on selected network
   const {
     buyTokens: buyBscTokens,
@@ -193,6 +213,21 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     transactionSignature: bscTransactionSignature = null,
   } = useBscPresale(tokenAmount, customReferralCode);
 
+  // Use BSC USDT hook if BSC currency is USDT
+  const {
+    buyTokens: buyBscUsdtTokens,
+    isLoading: isBscUsdtBuying,
+    isModalOpen: isBscUsdtModalOpen = false,
+    closeModal: closeBscUsdtModal = () => {},
+    transactionStatus: bscUsdtTransactionStatus = {
+      steps: [],
+      currentStepId: null,
+      isComplete: false,
+      isError: false,
+    },
+    transactionSignature: bscUsdtTransactionSignature = null,
+  } = useBscUsdtPresale(tokenAmount, customReferralCode);
+
   const {
     buyTokens: buySolTokens,
     isLoading: isSolBuying,
@@ -207,20 +242,98 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     transactionSignature: solTransactionSignature = null,
   } = useSolanaPresale(tokenAmount, customReferralCode);
 
-  // Use the appropriate values based on selected network
-  const isLoading = network === "bsc" ? isBscBuying : isSolBuying;
-  const isModalOpen = network === "bsc" ? isBscModalOpen : isSolModalOpen;
-  const closeModal = network === "bsc" ? closeBscModal : closeSolModal;
+  const {
+    buyTokens: buySolUsdtTokens,
+    isLoading: isSolUsdtBuying,
+    isModalOpen: isSolUsdtModalOpen = false,
+    closeModal: closeSolUsdtModal = () => {},
+    transactionStatus: solUsdtTransactionStatus = {
+      steps: [],
+      currentStepId: null,
+      isComplete: false,
+      isError: false,
+    },
+    transactionSignature: solUsdtTransactionSignature = null,
+  } = useSolanaUsdtPresale(tokenAmount, customReferralCode);
+
+  // Use the appropriate values based on selected network and currency
+  const isLoading =
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? isBscBuying
+        : isBscUsdtBuying
+      : solanaCurrency === "SOL"
+        ? isSolBuying
+        : isSolUsdtBuying;
+
+  const isModalOpen =
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? isBscModalOpen
+        : isBscUsdtModalOpen
+      : solanaCurrency === "SOL"
+        ? isSolModalOpen
+        : isSolUsdtModalOpen;
+
+  const closeModal =
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? closeBscModal
+        : closeBscUsdtModal
+      : solanaCurrency === "SOL"
+        ? closeSolModal
+        : closeSolUsdtModal;
+
   const transactionStatus =
-    network === "bsc" ? bscTransactionStatus : solTransactionStatus;
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? bscTransactionStatus
+        : bscUsdtTransactionStatus
+      : solanaCurrency === "SOL"
+        ? solTransactionStatus
+        : solUsdtTransactionStatus;
+
   const transactionSignature =
-    network === "bsc" ? bscTransactionSignature : solTransactionSignature;
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? bscTransactionSignature
+        : bscUsdtTransactionSignature
+      : solanaCurrency === "SOL"
+        ? solTransactionSignature
+        : solUsdtTransactionSignature;
 
   // Wallet connection status
   const hasWalletConnected = isConnected && address;
 
-  // Set currency symbol based on selected network
-  const currencySymbol = network === "bsc" ? "BNB" : "SOL";
+  // Get wallet balances
+  const {
+    solBalance,
+    usdtBalance,
+    bnbBalance,
+    bscUsdtBalance,
+    isLoadingBalances,
+    refreshBalances,
+  } = useWalletBalances();
+
+  // Set currency symbol based on selected network and currency
+  const currencySymbol = network === "bsc" ? bscCurrency : solanaCurrency;
+
+  // Get current balance based on network and currency
+  const currentBalance =
+    network === "bsc"
+      ? bscCurrency === "BNB"
+        ? bnbBalance
+        : bscUsdtBalance
+      : solanaCurrency === "SOL"
+        ? solBalance
+        : usdtBalance;
+
+  // Refresh balances when network or currency changes
+  useEffect(() => {
+    if (hasWalletConnected) {
+      refreshBalances();
+    }
+  }, [solanaCurrency, bscCurrency, refreshBalances]);
 
   // Handle network switch
   const handleNetworkChange = (newNetwork: "bsc" | "solana") => {
@@ -263,11 +376,21 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
     // Calculate crypto amount from USD
     if (network === "bsc") {
-      const bnbCost = usdValue / cryptoPrices.bnb;
-      setCryptoAmount(parseFloat(bnbCost.toFixed(8))); // BNB precision
+      if (bscCurrency === "BNB") {
+        const bnbCost = usdValue / cryptoPrices.bnb;
+        setCryptoAmount(parseFloat(bnbCost.toFixed(8))); // BNB precision
+      } else {
+        // For USDT on BSC, the USD value is the same as the USDT amount (1:1)
+        setCryptoAmount(parseFloat(usdValue.toFixed(2))); // USDT typically has 2 decimal places in UI
+      }
     } else {
-      const solCost = usdValue / cryptoPrices.sol;
-      setCryptoAmount(parseFloat(solCost.toFixed(9))); // SOL has 9 decimals
+      if (solanaCurrency === "SOL") {
+        const solCost = usdValue / cryptoPrices.sol;
+        setCryptoAmount(parseFloat(solCost.toFixed(9))); // SOL has 9 decimals
+      } else {
+        // For USDT, the USD value is the same as the USDT amount (1:1)
+        setCryptoAmount(parseFloat(usdValue.toFixed(2))); // USDT typically has 2 decimal places in UI
+      }
     }
   };
 
@@ -321,12 +444,47 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       return;
     }
 
+    // Check if the user has enough balance for the purchase
+    if (currentBalance !== null) {
+      if (cryptoAmount > currentBalance) {
+        toast.error(
+          `Insufficient ${currencySymbol} balance. You have ${currentBalance.toFixed(
+            currencySymbol === "SOL"
+              ? 4
+              : currencySymbol === "USDT"
+                ? 2
+                : currencySymbol === "BNB"
+                  ? 4
+                  : 2
+          )} ${currencySymbol} but need ${cryptoAmount.toFixed(
+            currencySymbol === "SOL"
+              ? 4
+              : currencySymbol === "USDT"
+                ? 2
+                : currencySymbol === "BNB"
+                  ? 4
+                  : 2
+          )} ${currencySymbol}.`
+        );
+        return;
+      }
+    }
+
     try {
-      // Execute purchase based on selected network
+      // Execute purchase based on selected network and currency
       if (network === "bsc") {
-        await buyBscTokens();
+        if (bscCurrency === "BNB") {
+          await buyBscTokens();
+        } else {
+          await buyBscUsdtTokens();
+        }
       } else {
-        await buySolTokens();
+        // For Solana, use the appropriate purchase method based on currency
+        if (solanaCurrency === "SOL") {
+          await buySolTokens();
+        } else {
+          await buySolUsdtTokens();
+        }
       }
     } catch (error) {
       console.error("Error buying tokens:", error);
@@ -352,28 +510,84 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-white">Buy LMX Tokens</h2>
         <div className="flex items-center gap-3">
-          {/* Network selector */}
-          <div className="flex bg-black/30 rounded-md p-1 border border-primary/20">
-            <button
-              onClick={() => handleNetworkChange("bsc")}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                network === "bsc"
-                  ? "bg-primary/30 text-white"
-                  : "text-white/70 hover:text-white"
+          {/* Network selector with icons */}
+          <div className="bg-black/30 rounded-md p-1 border border-primary/20">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleNetworkChange("bsc")}
+                className={`px-3 py-1 rounded-md text-sm transition-colors flex items-center gap-1 ${
+                  network === "bsc"
+                    ? "bg-primary/30 text-white"
+                    : "text-white/70 hover:text-white"
+                }`}
+              >
+                <Image
+                  src={NETWORK_ICONS.BSC}
+                  alt="BSC"
+                  width={16}
+                  height={16}
+                  className="rounded-full"
+                />
+                <span>BSC</span>
+              </button>
+              <button
+                onClick={() => handleNetworkChange("solana")}
+                className={`px-3 py-1 rounded-md text-sm transition-colors flex items-center gap-1 ${
+                  network === "solana"
+                    ? "bg-primary/30 text-white"
+                    : "text-white/70 hover:text-white"
+                }`}
+              >
+                <Image
+                  src={NETWORK_ICONS.SOLANA}
+                  alt="Solana"
+                  width={16}
+                  height={16}
+                  className="rounded-full"
+                />
+                <span>Solana</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Currency selector dropdown */}
+          <div className="relative">
+            <div
+              className={`flex items-center gap-1 px-3 py-1 bg-black/30 rounded-md cursor-pointer border border-primary/20 hover:bg-black/40 transition-colors text-sm ${
+                (network === "solana" && solanaCurrency === "USDT") ||
+                (network === "bsc" && bscCurrency === "USDT")
+                  ? "text-white"
+                  : "text-white"
               }`}
+              onClick={() => {
+                if (network === "solana") {
+                  setSolanaCurrency(solanaCurrency === "SOL" ? "USDT" : "SOL");
+                } else {
+                  setBscCurrency(bscCurrency === "BNB" ? "USDT" : "BNB");
+                }
+              }}
             >
-              BSC
-            </button>
-            <button
-              onClick={() => handleNetworkChange("solana")}
-              className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                network === "solana"
-                  ? "bg-primary/30 text-white"
-                  : "text-white/70 hover:text-white"
-              }`}
-            >
-              Solana
-            </button>
+              <Image
+                src={
+                  network === "solana"
+                    ? solanaCurrency === "SOL"
+                      ? CURRENCY_ICONS.SOL
+                      : CURRENCY_ICONS.USDT
+                    : bscCurrency === "BNB"
+                      ? CURRENCY_ICONS.BNB
+                      : CURRENCY_ICONS.USDT
+                }
+                alt="Currency"
+                width={16}
+                height={16}
+                className="rounded-full"
+              />
+              <span>{network === "solana" ? solanaCurrency : bscCurrency}</span>
+              <ChevronDown className="h-3 w-3 ml-1" />
+            </div>
+
+            {/* Dropdown menu for currency selection */}
+            {/* We can implement a full dropdown later if needed */}
           </div>
 
           <button
@@ -430,12 +644,42 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
             <>
               {/* USD Amount Input */}
               <div className="mb-6">
-                <Label
-                  htmlFor="usdAmount"
-                  className="text-sm text-white/70 block mb-2"
-                >
-                  Amount in USD
-                </Label>
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="usdAmount" className="text-sm text-white/70">
+                    Amount in USD
+                  </Label>
+
+                  {/* Wallet Balance Display */}
+                  {hasWalletConnected && (
+                    <div className="flex items-center text-xs text-white/70">
+                      <Wallet className="h-3 w-3 mr-1" />
+                      Balance:{" "}
+                      {isLoadingBalances ? (
+                        <Loader2 className="h-3 w-3 animate-spin ml-1" />
+                      ) : (
+                        <span className="font-medium text-primary/90">
+                          {currentBalance !== null
+                            ? `${currentBalance.toFixed(
+                                currencySymbol === "SOL"
+                                  ? 4
+                                  : currencySymbol === "BNB"
+                                    ? 4
+                                    : 2
+                              )} ${currencySymbol}`
+                            : "Unknown"}
+                        </span>
+                      )}
+                      <button
+                        onClick={refreshBalances}
+                        className="ml-1 text-primary/60 hover:text-primary/90"
+                        title="Refresh balance"
+                      >
+                        <RefreshCcw className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-2 items-center">
                   <Input
                     id="usdAmount"
@@ -449,14 +693,89 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                   <div className="bg-black/40 px-3 py-2 rounded-md text-white/80">
                     USD
                   </div>
+
+                  {/* Max Button */}
+                  {hasWalletConnected &&
+                    currentBalance !== null &&
+                    currentBalance > 0 && (
+                      <button
+                        onClick={() => {
+                          // Calculate max USD based on available balance
+                          if (network === "solana") {
+                            if (
+                              solanaCurrency === "SOL" &&
+                              solBalance !== null
+                            ) {
+                              const maxUsd =
+                                solBalance * (cryptoPrices?.sol || 0);
+                              setUsdAmount(Math.max(0.1, maxUsd * 0.95)); // Leave 5% for gas fees
+                              updateAmounts(Math.max(0.1, maxUsd * 0.95));
+                            } else if (
+                              solanaCurrency === "USDT" &&
+                              usdtBalance !== null
+                            ) {
+                              setUsdAmount(usdtBalance * 0.99); // Leave 1% for gas fees
+                              updateAmounts(usdtBalance * 0.99);
+                            }
+                          } else {
+                            // BSC network
+                            if (bscCurrency === "BNB" && bnbBalance !== null) {
+                              const maxUsd =
+                                bnbBalance * (cryptoPrices?.bnb || 0);
+                              setUsdAmount(Math.max(0.1, maxUsd * 0.95)); // Leave 5% for gas fees
+                              updateAmounts(Math.max(0.1, maxUsd * 0.95));
+                            } else if (
+                              bscCurrency === "USDT" &&
+                              bscUsdtBalance !== null
+                            ) {
+                              setUsdAmount(bscUsdtBalance * 0.99); // Leave 1% for gas fees
+                              updateAmounts(bscUsdtBalance * 0.99);
+                            }
+                          }
+                        }}
+                        className="px-2 py-1 bg-primary/20 rounded-md text-xs font-medium text-white hover:bg-primary/30 transition-colors"
+                        title="Use maximum available balance"
+                      >
+                        MAX
+                      </button>
+                    )}
                 </div>
 
                 {/* Cost Breakdown */}
                 <div className="mt-2 text-sm text-center text-white/70">
                   ≈ {isNaN(tokenAmount) ? "0.00" : tokenAmount.toFixed(2)} LMX
                   <span className="mx-2 text-white/40">|</span>
-                  {isNaN(cryptoAmount) ? "0.00" : cryptoAmount.toFixed(2)}{" "}
+                  {isNaN(cryptoAmount)
+                    ? "0.00"
+                    : cryptoAmount.toFixed(
+                        currencySymbol === "USDT"
+                          ? 2
+                          : currencySymbol === "SOL"
+                            ? 4
+                            : 6
+                      )}{" "}
                   {currencySymbol}
+                  {/* Balance Indicator */}
+                  {currentBalance !== null && hasWalletConnected && (
+                    <span
+                      className={`ml-2 ${
+                        cryptoAmount > currentBalance
+                          ? "text-red-400"
+                          : "text-green-400"
+                      }`}
+                      title={
+                        cryptoAmount > currentBalance
+                          ? "Insufficient balance"
+                          : "Sufficient balance"
+                      }
+                    >
+                      {cryptoAmount > currentBalance ? (
+                        "(Insufficient)"
+                      ) : (
+                        <BadgeCheck className="inline h-4 w-4" />
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
 
