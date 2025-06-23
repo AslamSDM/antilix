@@ -56,15 +56,12 @@ export async function POST(req: NextRequest) {
     ).transaction.findUnique({
       where: { hash },
       include: {
-        completedPurchase: true,
+        status: true,
       },
     });
 
     // If transaction already exists and was completed, return the result
-    if (
-      existingTransactionRecord?.status === "COMPLETED" &&
-      existingTransactionRecord.completedPurchase
-    ) {
+    if (existingTransactionRecord?.status === "COMPLETED") {
       return NextResponse.json({
         verified: true,
         transaction: existingTransactionRecord,
@@ -86,7 +83,7 @@ export async function POST(req: NextRequest) {
           lastChecked: new Date(),
         },
         include: {
-          completedPurchase: true,
+          status: true,
         },
       });
     }
@@ -200,9 +197,6 @@ export async function POST(req: NextRequest) {
         where: { id: existingTransactionRecord.id },
         data: {
           status: "COMPLETED",
-          completedPurchase: {
-            connect: { id: existingPurchaseRecord.id },
-          },
         },
       });
 
@@ -291,9 +285,6 @@ export async function POST(req: NextRequest) {
         status: "COMPLETED",
         tokenAmount: formatEther(BigInt(tokenAmount)),
         paymentAmount: valueInBnb,
-      },
-      include: {
-        completedPurchase: true,
       },
     });
 
