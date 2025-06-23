@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
     // Check if we already have tracked this transaction
     let existingTransactionRecord = await (
@@ -95,7 +101,6 @@ export async function POST(req: NextRequest) {
     if (!existingTransactionRecord) {
       existingTransactionRecord = await (prisma as any).transaction.create({
         data: {
-          userId: session.user.id,
           hash: signature,
           status: "PENDING",
           network: "SOLANA",
@@ -103,6 +108,9 @@ export async function POST(req: NextRequest) {
           tokenAmount: "0",
           paymentAmount: "0",
           paymentCurrency: "SOL",
+          user: {
+            connect: { id: user.id },
+          },
         },
       });
     }

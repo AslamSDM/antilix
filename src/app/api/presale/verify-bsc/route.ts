@@ -35,6 +35,17 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "User not found",
+        },
+        { status: 404 }
+      );
+    }
 
     const body = await req.json();
     const { hash } = verificationSchema.parse(body);
@@ -84,7 +95,6 @@ export async function POST(req: NextRequest) {
     if (!existingTransactionRecord) {
       existingTransactionRecord = await (prisma as any).transaction.create({
         data: {
-          userId: session.user.id,
           hash,
           status: "PENDING",
           network: "BSC",
@@ -92,6 +102,9 @@ export async function POST(req: NextRequest) {
           tokenAmount: "0",
           paymentAmount: "0",
           paymentCurrency: "BNB",
+          user: {
+            connect: { id: user.id },
+          },
         },
       });
     }
@@ -243,23 +256,6 @@ export async function POST(req: NextRequest) {
     const valueInWei = transaction.value.toString();
     const valueInBnb = ethers.formatEther(valueInWei);
 
-    let user = await prisma.user.findFirstOrThrow({
-      where: {
-        id: session.user.id,
-      },
-    });
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          evmAddress: transaction.from.toLowerCase(),
-          walletAddress: transaction.from.toLowerCase(),
-          referralCode: `LMX${Math.random()
-            .toString(36)
-            .substring(2, 10)
-            .toUpperCase()}`,
-        },
-      });
-    }
     let referralPaid = false;
     if (user.referrerId) {
       const referrer = await prisma.user.findUnique({
