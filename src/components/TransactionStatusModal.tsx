@@ -52,14 +52,14 @@ const TransactionStatusModal: React.FC<TransactionStatusModalProps> = ({
       <DialogContent className="bg-black border border-primary/20 text-white max-w-md">
         <DialogHeader className="flex flex-row justify-between items-center">
           <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
             className="h-8 w-8 rounded-full"
           >
             <X className="h-4 w-4" />
-          </Button>
+          </Button> */}
         </DialogHeader>
 
         <TransactionStatusIndicator steps={status.steps} />

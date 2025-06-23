@@ -629,14 +629,14 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
         network={network}
       />
       {/* Solana Wallet Verification Modal */}
-      <SolanaWalletPrompt
+      {/* <SolanaWalletPrompt
         isModal={!session?.user?.solanaAddress}
         onVerificationComplete={() => {
           setShowSolanaVerificationModal(false);
           // Small delay to allow session to update before refreshing
           setTimeout(() => window.location.reload(), 500);
         }}
-      />
+      /> */}
       {/* BSC Wallet Verification Modal */}
       {/* <BSCWalletPrompt
         isModal={!session?.user?.evmAddress}

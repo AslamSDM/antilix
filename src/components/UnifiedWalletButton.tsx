@@ -273,6 +273,7 @@ export function UnifiedWalletButton({
               onVerificationComplete={() =>
                 setShowSolanaVerificationModal(false)
               }
+              noDismiss={true} // Prevent dismissing the modal until verification is complete
             />
           </div>
         </DialogContent>

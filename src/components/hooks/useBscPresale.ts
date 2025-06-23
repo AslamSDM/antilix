@@ -106,6 +106,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   // Calculate cost in BNB using real-time price data
   useEffect(() => {
     const calculateDynamicCost = async () => {
+      if (!tokenAmount) return;
       if (tokenAmount <= 0) return;
 
       setIsLoadingPrice(true);
@@ -121,7 +122,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
         setDynamicCost(parseEther(bnbCost.toString()));
       } catch (error) {
         console.error("Error calculating token cost:", error);
-        toast.error("Error calculating token cost, using fallback price");
+        // toast.error("Error calculating token cost, using fallback price");
 
         // Fallback to contract price if API fails
         if (tokenPrice) {
