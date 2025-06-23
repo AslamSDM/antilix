@@ -35,7 +35,6 @@ const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
 import usePresale from "@/components/hooks/usePresale";
 import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
-import { TypingAnimation } from "@/components/magicui/typing-animation";
 import { LMX_PRICE } from "@/lib/constants";
 
 // Tokenomics data
@@ -516,11 +515,21 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               className="overflow-hidden relative mb-3"
               style={{ maxWidth: "100%", margin: "0 auto" }}
             >
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-center ">
-                <span className="text-primary">
-                  <TypingAnimation>LITMEX Token Seed Round</TypingAnimation>
-                </span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl text-center  ">
+                <span className="text-primary">LITMEX Token Seed Round</span>
               </h1>
+              <p className="text-gray-300 text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto">
+                Litmex seed round is{" "}
+                <span className="text-primary font-semibold">now live</span>.
+                Building{" "}
+                <span className="text-amber-400 font-medium">Gamblifi</span> for
+                <span className="luxury-text">
+                  {" "}
+                  autonomous onchain AI gambling
+                </span>
+                . Join early as we{" "}
+                <span className="italic text-purple-400">reshape betting</span>.
+              </p>
             </motion.div>
           </motion.div>
 
