@@ -182,16 +182,16 @@ export function UnifiedWalletButton({
     // If wallet is connected but needs verification
     if (isConnected && hasAddress) {
       // BSC wallet connected but not verified
-      if (isOnBscNetwork && !hasEvmAddress) {
-        return {
-          text: "Verify BSC Wallet",
-          icon: <AlertTriangle size={16} className="mr-1.5 text-amber-400" />,
-          onClick: handleVerifyWallet,
-          variant: "outline",
-          style:
-            "border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300",
-        };
-      }
+      // if (isOnBscNetwork && !hasEvmAddress) {
+      //   return {
+      //     text: "Verify BSC Wallet",
+      //     icon: <AlertTriangle size={16} className="mr-1.5 text-amber-400" />,
+      //     onClick: handleVerifyWallet,
+      //     variant: "outline",
+      //     style:
+      //       "border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300",
+      //   };
+      // }
 
       // Solana wallet connected but not verified
       if (!isOnBscNetwork && !hasSolanaAddress) {

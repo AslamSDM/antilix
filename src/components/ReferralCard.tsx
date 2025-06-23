@@ -77,9 +77,8 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
       </div>
 
       <p className="text-gray-300 mb-6">
-        Share your unique referral link with friends and earn a 15% bonus on
-        their contribution. also earn 10% bonus in $TRUMP tokens on their
-        contribution'
+        Share your unique referral link with friends and earn 10% bonus in
+        $TRUMP tokens on their contribution'
       </p>
 
       <div className="relative">

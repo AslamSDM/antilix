@@ -1277,8 +1277,8 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               </div>
 
               <p className="text-base sm:text-lg bg-black/30 p-3 rounded-lg border border-primary/10">
-                Share your unique referral link and earn Trump Tokens on every
-                purchase made through your World Liberty Finance referrals
+                Made through your world Liberty financial referrals Athil
+                maathram change aakkiyaalum mathi
               </p>
             </div>
           </ScrollAnimationWrapper>
