@@ -550,10 +550,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               {/* Presale Progress */}
               <div className="mt-6">
                 <div className="bg-black/20 p-3 rounded-md mb-3">
-                  <div className="flex justify-between text-sm mb-1">
+                  {/* <div className="flex justify-between text-sm mb-1">
                     <span className="text-white/70">LMX Price:</span>
                     <span className="text-white">${lmxPriceUsd}</span>
-                  </div>
+                  </div> */}
                   {/* <div className="flex justify-between text-sm">
                     <span className="text-white/70">Tokens Sold:</span>
                     <span className="text-white">
