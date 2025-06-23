@@ -5,6 +5,7 @@ import { USDT_SPL_TOKEN_ADDRESS, BSC_USDT_ADDRESS } from "@/lib/constants";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { formatUnits, formatEther } from "viem";
 import { useReadContract } from "wagmi";
+import { ethers } from "ethers";
 
 // ERC20 ABI for balance queries
 const erc20Abi = [
@@ -30,7 +31,7 @@ export function useWalletBalances() {
 
   // Check if we're on BSC or Solana
   const isSolana = chainId === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
-  const isBsc = chainId === "eip155:56";
+  const isBsc = chainId === 56;
 
   // Read BSC USDT balance
   const { data: bscUsdtBalanceData, refetch: refetchBscUsdtBalance } =
@@ -114,26 +115,13 @@ export function useWalletBalances() {
 
     try {
       // For BNB balance, we can use the public RPC endpoint
-      const response = await fetch(`https://bsc-dataseed.binance.org/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_getBalance",
-          params: [address, "latest"],
-          id: 1,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.result) {
-        // Convert hex to number and from wei to BNB
-        setBnbBalance(Number(formatEther(BigInt(data.result))));
-      } else {
-        setBnbBalance(null);
-      }
+      // For BNB balance, we can use ethers provider
+      const provider = new ethers.JsonRpcProvider(
+        "https://bsc-dataseed.binance.org/"
+      );
+      const balanceWei = await provider.getBalance(address as string);
+      console.log("BNB Balance Wei:", balanceWei.toString());
+      setBnbBalance(Number(formatEther(balanceWei)));
 
       // Also refresh USDT balance
       await refetchBscUsdtBalance();
@@ -147,6 +135,7 @@ export function useWalletBalances() {
 
   // Fetch balances based on current network
   const fetchBalances = async () => {
+    console.log("Fetching balances for address:", address, isSolana, isBsc);
     if (isSolana) {
       if (solBalance === null || usdtBalance === null) {
         await fetchSolanaBalances();
