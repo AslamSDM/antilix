@@ -169,7 +169,6 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     loadCryptoPrices,
     calculateTokensFromCrypto,
     lmxPriceUsd,
-    presaleStatus,
     max,
     min,
     totalRaised,
@@ -177,6 +176,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     hardcap,
     soldTokens,
   } = usePresale();
+  const presaleStatus = true;
   // Use the appropriate hook based on selected network
   const {
     buyTokens: buyBscTokens,
