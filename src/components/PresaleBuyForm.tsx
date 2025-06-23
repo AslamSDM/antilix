@@ -514,8 +514,11 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     ) : (
                       <div className="flex items-center justify-center">
                         <span>
-                          Buy ${usdAmount.toFixed(2)} worth of LMX (
-                          {tokenAmount.toFixed(2)} LMX)
+                          Buy $
+                          {isNaN(usdAmount) ? "0.00" : usdAmount.toFixed(2)}{" "}
+                          worth of LMX (
+                          {isNaN(tokenAmount) ? "0.00" : tokenAmount.toFixed(2)}{" "}
+                          LMX)
                         </span>
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </div>
