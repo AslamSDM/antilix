@@ -27,6 +27,7 @@ import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pa
 
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
+import { useSession } from "next-auth/react";
 import "../../components/sections/animation-utils.css";
 
 // Use the /next import for Spline with React.lazy
@@ -36,6 +37,7 @@ import usePresale from "@/components/hooks/usePresale";
 import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 import { LMX_PRICE } from "@/lib/constants";
+import { useRouter } from "next/navigation";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -241,6 +243,13 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
 
   // Use the presale hook for wallet connection and presale data
   const { connected, switchNetwork, presaleNetwork } = usePresale();
@@ -519,16 +528,8 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
                 <span className="text-primary">LITMEX Token Seed Round</span>
               </h1>
               <p className="text-gray-300 text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto mt-4">
-                Litmex seed round is{" "}
-                <span className="text-primary font-semibold">now live</span>.
-                Building{" "}
-                <span className="text-amber-400 font-medium">Gamblifi</span> for
-                <span className="luxury-text">
-                  {" "}
-                  autonomous onchain AI gambling
-                </span>
-                . Join early as we{" "}
-                <span className="italic text-purple-400">reshape betting</span>.
+                Litmex seed round is now live Building Gamblifi for autonomous
+                onchain AI gambling . Join early as we reshape betting
               </p>
             </motion.div>
           </motion.div>

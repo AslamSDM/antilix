@@ -15,14 +15,29 @@ async function authPagesMiddleware(req: NextRequest) {
 
   return NextResponse.next();
 }
+async function presaleMiddleware(req: NextRequest) {
+  const token = await getToken({ req });
+
+  // If user is authenticated and trying to access sign-in or sign-up page,
+  // automatically redirect to presale page
+  if (!token) {
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  }
+
+  return NextResponse.next();
+}
 
 // Main middleware function that handles both auth pages and protected routes
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  console.log("Middleware triggered for path:", req);
 
   // For auth pages (signin/signup), use authPagesMiddleware to redirect to presale if logged in
   if (pathname === "/auth/signin" || pathname === "/auth/signup") {
     return authPagesMiddleware(req);
+  }
+  if (pathname === "/presale" || pathname.startsWith("/profile")) {
+    return presaleMiddleware(req);
   }
 
   // For protected routes, let the default NextAuth middleware handle it

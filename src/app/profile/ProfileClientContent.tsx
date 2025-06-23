@@ -20,6 +20,7 @@ import { UserBalanceDisplay } from "@/components/UserBalanceDisplay";
 import { RecentActivitySummary } from "@/components/RecentActivitySummary";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface Purchase {
   id: string;
@@ -68,7 +69,12 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
   const appkitAccountData = useAppKitAccount();
   const { loading } = appKitState;
   const { data: session, status: sessionStatus } = useSession();
-
+  const router = useRouter();
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [sessionStatus, router]);
   // Get the tab from URL query parameter if available
   const [activeTab, setActiveTab] = useState<string>(() => {
     // Only run in the browser, not during SSR
