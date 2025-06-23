@@ -14,8 +14,8 @@ import { ERROR_TYPES } from "@/lib/errors";
 
 // Max attempts to check transaction status
 const MAX_VERIFICATION_ATTEMPTS = 10;
-// Delay between verification attempts in ms (5 seconds)
-const VERIFICATION_DELAY = 5000;
+// Delay between verification attempts in ms (3 seconds - reduced for better UX)
+const VERIFICATION_DELAY = 3000;
 
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
@@ -23,12 +23,88 @@ const SECOND_TIER_WALLET =
 const DISTRIBUTION_WALLET_PRIVATE_KEY =
   process.env.DISTRIBUTION_WALLET_PRIVATE_KEY ?? "";
 
-// Validation schema
+// Connection with timeout and retry configuration
+const createConnection = () => {
+  return new Connection(
+    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+      "https://mainnet.helius-rpc.com/?api-key=c84ddc95-f80a-480a-b8b0-7df6d2fcc62f",
+    {
+      commitment: "confirmed",
+      confirmTransactionInitialTimeout: 30000, // 30 seconds
+      disableRetryOnRateLimit: false,
+    }
+  );
+};
+
+// Helper function to safely extract account keys
+const extractAccountKeys = (txMessage: any): PublicKey[] => {
+  try {
+    if (!txMessage.accountKeys || !Array.isArray(txMessage.accountKeys)) {
+      return [];
+    }
+
+    // Handle newer transaction format with nested arrays
+    if (Array.isArray(txMessage.accountKeys[0])) {
+      return txMessage.accountKeys
+        .flat()
+        .filter((key: any) => key instanceof PublicKey);
+    }
+
+    // Handle simple array structure
+    return txMessage.accountKeys.filter((key: any) => key instanceof PublicKey);
+  } catch (error) {
+    console.error("Error extracting account keys:", error);
+    return [];
+  }
+};
+
+// Helper function to get transaction with retries
+const getTransactionWithRetry = async (
+  connection: Connection,
+  signature: string,
+  maxRetries: number = 3
+) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `Attempting to fetch transaction (attempt ${attempt}/${maxRetries}):`,
+        signature
+      );
+
+      const transaction = await connection.getTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: attempt === maxRetries ? "finalized" : "confirmed",
+      });
+
+      if (transaction) {
+        console.log("Transaction found on attempt", attempt);
+        return transaction;
+      }
+
+      if (attempt < maxRetries) {
+        console.log(
+          `Transaction not found, waiting ${VERIFICATION_DELAY}ms before retry...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, VERIFICATION_DELAY));
+      }
+    } catch (error) {
+      console.error(`Transaction fetch attempt ${attempt} failed:`, error);
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  return null;
+};
 
 export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
+  const startTime = Date.now();
 
+  try {
+    // Session validation
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
         {
@@ -38,36 +114,38 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Parse and validate request body
     const body = await req.json();
-    // const { signature } = verificationSchema.parse(body);
     const { signature } = body;
 
-    // Validate that signature is a string
-    if (typeof signature !== "string") {
+    if (typeof signature !== "string" || signature.length < 80) {
       return NextResponse.json(
-        { error: "Signature must be a string" },
+        { error: "Invalid signature format" },
         { status: 400 }
       );
     }
+    console.log(session.user.id);
+    // Get user
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
     });
-    console.log("Verifying transaction for user:", user?.id);
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if we already have tracked this transaction
+    console.log("Verifying transaction for user:", user.id);
+
+    // Check existing transaction record
     let existingTransactionRecord = await (
       prisma as any
     ).transaction.findUnique({
       where: { hash: signature },
-      include: {
-        completedPurchase: true,
-      },
+      include: { completedPurchase: true },
     });
 
-    // If transaction already exists and was completed, return the result
+    // Return if already completed
     if (
       existingTransactionRecord?.status === "COMPLETED" &&
       existingTransactionRecord.completedPurchase
@@ -76,83 +154,17 @@ export async function POST(req: NextRequest) {
         verified: true,
         transaction: existingTransactionRecord,
         purchase: existingTransactionRecord.completedPurchase,
+        cached: true,
       });
     }
 
-    // If transaction exists but it's still pending and under max check count, update counter and proceed
-    if (
-      existingTransactionRecord &&
-      existingTransactionRecord.status === "PENDING"
-    ) {
-      existingTransactionRecord = await (prisma as any).transaction.update({
-        where: { id: existingTransactionRecord.id },
-        data: {
-          checkCount: {
-            increment: 1,
-          },
-          lastChecked: new Date(),
-        },
-        include: {
-          completedPurchase: true,
-        },
-      });
-    }
-
-    // If no existing transaction, create a new one
-    if (!existingTransactionRecord) {
-      existingTransactionRecord = await (prisma as any).transaction.create({
-        data: {
-          hash: signature,
-          status: "PENDING",
-          network: "SOLANA",
-          // These fields will be updated after verification
-          tokenAmount: "0",
-          paymentAmount: "0",
-          paymentCurrency: "SOL",
-          user: {
-            connect: { id: user.id },
-          },
-        },
-      });
-    }
-
-    // Connect to Solana
-    const connection = new Connection(
-      process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-        "https://mainnet.helius-rpc.com/?api-key=c84ddc95-f80a-480a-b8b0-7df6d2fcc62f" // Use Helius RPC or your preferred RPC endpoint
-    );
-
-    console.log("Processing signature:", signature);
-    // Fetch transaction details with commitment level and additional details
-    let transaction = await connection.getTransaction(signature, {
-      maxSupportedTransactionVersion: 0,
-      commitment: "confirmed",
-    });
-
-    // Add retry logic if transaction is null
-    if (!transaction) {
-      // Wait a bit and try again - transaction might not be finalized yet
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Retrying transaction fetch for:", signature);
-      const retryTransaction = await connection.getTransaction(signature, {
-        maxSupportedTransactionVersion: 0,
-        commitment: "finalized",
-      });
-      if (retryTransaction) {
-        console.log("Transaction found on retry");
-        // Assign to transaction instead of returning directly
-        transaction = retryTransaction;
-      }
-    }
-
-    if (!transaction) {
-      // If we've exceeded max check count, mark as failed
+    // Update or create transaction record
+    if (existingTransactionRecord?.status === "PENDING") {
+      // Check if we've exceeded max attempts
       if (existingTransactionRecord.checkCount >= MAX_VERIFICATION_ATTEMPTS) {
         await (prisma as any).transaction.update({
           where: { id: existingTransactionRecord.id },
-          data: {
-            status: "FAILED",
-          },
+          data: { status: "FAILED" },
         });
 
         return NextResponse.json(
@@ -165,61 +177,79 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      return NextResponse.json({
-        status: "PENDING",
-        message:
-          "Transaction not yet confirmed on Solana network, will retry verification",
-        transaction: existingTransactionRecord,
+      existingTransactionRecord = await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: {
+          checkCount: { increment: 1 },
+          lastChecked: new Date(),
+        },
+        include: { completedPurchase: true },
+      });
+    } else if (!existingTransactionRecord) {
+      existingTransactionRecord = await (prisma as any).transaction.create({
+        data: {
+          hash: signature,
+          status: "PENDING",
+          network: "SOLANA",
+          tokenAmount: "0",
+          paymentAmount: "0",
+          paymentCurrency: "SOL",
+          checkCount: 1,
+          user: { connect: { id: user.id } },
+        },
       });
     }
 
-    // Check if the transaction is a transfer to our master wallet
-    let isTransferToMasterWallet = false;
-    let senderAddress = "";
-
+    // Connect to Solana with error handling
+    let connection: Connection;
     try {
-      // Get the transaction message object and cast as any to bypass TypeScript errors
-      const txMessage = transaction.transaction.message as any;
-
-      // Handle the array of arrays structure we now know exists
-      if (txMessage.accountKeys && Array.isArray(txMessage.accountKeys)) {
-        // Check for newer transaction format with accountKeys as array of arrays
-        if (Array.isArray(txMessage.accountKeys[0])) {
-          // Get sender address from the first account in the first array
-          if (txMessage.accountKeys[0][0]) {
-            senderAddress = txMessage.accountKeys[0][0].toBase58();
-          }
-
-          // Check all accounts to find our master wallet
-          for (const keyArray of txMessage.accountKeys) {
-            if (
-              keyArray[0] &&
-              keyArray[0].toBase58() === MASTER_WALLET_ADDRESS
-            ) {
-              isTransferToMasterWallet = true;
-              break;
-            }
-          }
-        } else {
-          // Handle simple array structure (less common)
-          senderAddress = txMessage.accountKeys[0].toBase58();
-
-          isTransferToMasterWallet = txMessage.accountKeys.some(
-            (key: PublicKey) => key.toBase58() === MASTER_WALLET_ADDRESS
-          );
-        }
-      }
-    } catch (e) {
-      console.error("Error processing transaction:", e);
+      connection = createConnection();
+    } catch (error) {
+      console.error("Failed to create Solana connection:", error);
+      return NextResponse.json(
+        { error: "Failed to connect to Solana network" },
+        { status: 503 }
+      );
     }
 
-    if (!isTransferToMasterWallet) {
-      // Update transaction record to mark as failed
+    // Fetch transaction with retries
+    const transaction = await getTransactionWithRetry(connection, signature);
+
+    if (!transaction) {
+      return NextResponse.json({
+        status: "PENDING",
+        message: "Transaction not yet confirmed on Solana network",
+        transaction: existingTransactionRecord,
+        attempts: existingTransactionRecord.checkCount,
+        maxAttempts: MAX_VERIFICATION_ATTEMPTS,
+      });
+    }
+
+    // Validate transaction structure
+    if (!transaction.meta || !transaction.transaction?.message) {
       await (prisma as any).transaction.update({
         where: { id: existingTransactionRecord.id },
-        data: {
-          status: "FAILED",
-        },
+        data: { status: "FAILED" },
+      });
+
+      return NextResponse.json(
+        { error: "Invalid transaction structure" },
+        { status: 400 }
+      );
+    }
+
+    // Extract and validate account keys
+    const accountKeys = extractAccountKeys(transaction.transaction.message);
+    const senderAddress = accountKeys[0]?.toBase58() || "";
+
+    const isTransferToMasterWallet = accountKeys.some(
+      (key) => key.toBase58() === MASTER_WALLET_ADDRESS
+    );
+
+    if (!isTransferToMasterWallet) {
+      await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: { status: "FAILED" },
       });
 
       return NextResponse.json(
@@ -232,19 +262,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // if (senderAddress !== session.user.solanaAddress) {
-    //   return NextResponse.json(
-    //     { error: "Failed to verify transaction" },
-    //     { status: 500 }
-    //   );
-    // }
-
-    // Extract transaction amount
+    // Calculate transfer amount from balance changes
     let transferAmount = 0;
-
-    // Use balance difference as a more reliable method of determining transfer amount
-    if (transaction.meta?.preBalances && transaction.meta?.postBalances) {
-      // Find the sender's balance change (typically index 0)
+    if (transaction.meta.preBalances && transaction.meta.postBalances) {
       const balanceChange =
         transaction.meta.preBalances[0] - transaction.meta.postBalances[0];
       if (balanceChange > 0) {
@@ -252,113 +272,83 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update transaction with the payment amount
-    await (prisma as any).transaction.update({
-      where: { id: existingTransactionRecord.id },
-      data: {
-        paymentAmount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
-      },
-    });
+    if (transferAmount <= 0) {
+      await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: { status: "FAILED" },
+      });
 
-    // Check if we already have this transaction recorded as a purchase
+      return NextResponse.json(
+        {
+          error: "Invalid transfer amount detected",
+          transaction: existingTransactionRecord,
+        },
+        { status: 400 }
+      );
+    }
+
+    const solAmount = transferAmount / 1_000_000_000; // Convert lamports to SOL
+
+    // Check for existing purchase
     const existingPurchaseRecord = await prisma.purchase.findUnique({
       where: { transactionSignature: signature },
     });
 
     if (existingPurchaseRecord) {
-      // Update our transaction record to link to the existing purchase
       await (prisma as any).transaction.update({
         where: { id: existingTransactionRecord.id },
         data: {
           status: "COMPLETED",
-          completedPurchase: {
-            connect: { id: existingPurchaseRecord.id },
-          },
+          paymentAmount: solAmount.toString(),
+          completedPurchase: { connect: { id: existingPurchaseRecord.id } },
         },
       });
 
-      return NextResponse.json(
-        {
-          verified: true,
-          transaction: existingTransactionRecord,
-          purchase: existingPurchaseRecord,
-        },
-        { status: 200 }
-      );
-    }
-
-    // Extract referral code if present (from memo instruction)
-
-    // If we have a referral code, and this is a new transaction (not existing),
-    // save the purchase so we can process referral bonus
-    let newPurchase = null;
-
-    let sender = await prisma.user.findFirstOrThrow({
-      where: {
-        id: session.user.id,
-      },
-    });
-    if (!sender) {
-      // Create new user for this sender
-      const newReferralCode = `LMX${Math.random()
-        .toString(36)
-        .substring(2, 10)
-        .toUpperCase()}`;
-      sender = await prisma.user.create({
-        data: {
-          walletAddress: senderAddress,
-          solanaAddress: senderAddress,
-          walletType: "solana",
-          referralCode: newReferralCode,
-          // Only link to referrer if referralCode exists
-        },
+      return NextResponse.json({
+        verified: true,
+        transaction: existingTransactionRecord,
+        purchase: existingPurchaseRecord,
+        processingTime: Date.now() - startTime,
       });
     }
-    console.log(
-      `Sender found: ${sender ? sender.id : "No existing user found"}`
-    );
+
+    // Process new purchase
     let referralPaid = false;
+    const sender = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
 
-    try {
-      // Save the purchase
-      if (sender) {
-        const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
+    if (!sender) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-        // If we have a referrer, process the bonus distribution
-        if (sender.referrerId) {
-          const referrer = await prisma.user.findUnique({
-            where: { id: sender.referrerId },
-            select: { id: true, solanaAddress: true },
-          });
-          if (referrer && referrer.solanaAddress) {
-            try {
-              referralPaid = await sendReferralTokens(
-                referrer.solanaAddress,
-                transferAmount / 1_000_000_000, // Convert from lamports to SOL
-                "sol"
-              );
-            } catch (error) {
-              console.error("Error sending referral tokens:", error);
-              // Don't block the verification response if sending referral tokens fails
-            }
-          }
+    // Handle referral bonus
+    if (sender.referrerId) {
+      const referrer = await prisma.user.findUnique({
+        where: { id: sender.referrerId },
+        select: { id: true, solanaAddress: true },
+      });
+
+      if (referrer?.solanaAddress) {
+        try {
+          referralPaid = await sendReferralTokens(
+            referrer.solanaAddress,
+            solAmount,
+            "sol"
+          );
+        } catch (error) {
+          console.error("Error sending referral tokens:", error);
         }
       }
-    } catch (purchaseError) {
-      console.error(
-        "Error recording purchase or processing referral:",
-        purchaseError
-      );
-      // Don't block the verification response if saving the purchase fails
     }
+
+    // Calculate token amount and create purchase
     const prices = await fetchCryptoPricesServer();
-    const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
     const tokenAmount = calculateTokenAmount(solAmount, "sol", prices);
 
-    // Create a new purchase record
     const purchase = await (prisma as any).purchase.create({
       data: {
-        userId: sender?.id ?? 0,
+        userId: sender.id,
         network: "SOLANA",
         paymentAmount: solAmount,
         paymentCurrency: "SOL",
@@ -366,12 +356,12 @@ export async function POST(req: NextRequest) {
         pricePerLmxInUsdt: LMX_PRICE_USD,
         transactionSignature: signature,
         referralBonusPaid: referralPaid,
-        status: "COMPLETED", // Mark as completed since we already verified it
-        transactionId: existingTransactionRecord.id, // Link to the transaction record
+        status: "COMPLETED",
+        transactionId: existingTransactionRecord.id,
       },
     });
 
-    // Update transaction record with token and payment info
+    // Update transaction record
     const updatedTransaction = await (prisma as any).transaction.update({
       where: { id: existingTransactionRecord.id },
       data: {
@@ -379,9 +369,7 @@ export async function POST(req: NextRequest) {
         tokenAmount: tokenAmount.toString(),
         paymentAmount: solAmount.toString(),
       },
-      include: {
-        completedPurchase: true,
-      },
+      include: { completedPurchase: true },
     });
 
     return NextResponse.json({
@@ -391,12 +379,29 @@ export async function POST(req: NextRequest) {
         sender: senderAddress,
         amount: solAmount,
       },
-      // Include the new purchase
-      purchase: purchase,
+      purchase,
       transactionRecord: updatedTransaction,
+      processingTime: Date.now() - startTime,
     });
   } catch (error) {
     console.error("Error verifying Solana transaction:", error);
+
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes("timeout")) {
+        return NextResponse.json(
+          { error: "Transaction verification timed out, please try again" },
+          { status: 408 }
+        );
+      }
+      if (error.message.includes("rate limit")) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded, please wait before retrying" },
+          { status: 429 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: "Failed to verify transaction" },
       { status: 500 }
