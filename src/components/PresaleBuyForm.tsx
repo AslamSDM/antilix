@@ -491,8 +491,8 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 {process.env.NODE_ENV !== "production" && (
                   <div className="mt-1 text-xs text-primary/50">
                     {user?.referredBy
-                      ? `Session referral: ${user.referredBy}`
-                      : "No session referral"}
+                      ? `Session referral: ${user?.referredBy}`
+                      : ""}
                   </div>
                 )}
               </div>
@@ -554,7 +554,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                     <span className="text-white/70">LMX Price:</span>
                     <span className="text-white">${lmxPriceUsd}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  {/* <div className="flex justify-between text-sm">
                     <span className="text-white/70">Tokens Sold:</span>
                     <span className="text-white">
                       {formatEther(
@@ -586,11 +586,11 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                         : "0"}{" "}
                       {currencySymbol}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                {/* <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
                   <motion.div
                     className="h-full bg-gradient-to-r from-primary/60 to-primary"
                     initial={{ width: "0%" }}
@@ -600,7 +600,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 </div>
                 <div className="text-right text-xs text-primary">
                   {percentageSold.toFixed(2)}% sold
-                </div>
+                </div> */}
               </div>
 
               {/* Link to purchase history */}
