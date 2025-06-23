@@ -453,9 +453,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
                 {/* Cost Breakdown */}
                 <div className="mt-2 text-sm text-center text-white/70">
-                  ≈ {tokenAmount.toFixed(2)} LMX
+                  ≈ {isNaN(tokenAmount) ? "0.00" : tokenAmount.toFixed(2)} LMX
                   <span className="mx-2 text-white/40">|</span>
-                  {cryptoAmount.toFixed(8)} {currencySymbol}
+                  {isNaN(cryptoAmount) ? "0.00" : cryptoAmount.toFixed(2)}{" "}
+                  {currencySymbol}
                 </div>
               </div>
 
