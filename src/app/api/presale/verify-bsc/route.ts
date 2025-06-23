@@ -55,9 +55,6 @@ export async function POST(req: NextRequest) {
       prisma as any
     ).transaction.findUnique({
       where: { hash },
-      include: {
-        status: true,
-      },
     });
 
     // If transaction already exists and was completed, return the result
@@ -81,9 +78,6 @@ export async function POST(req: NextRequest) {
             increment: 1,
           },
           lastChecked: new Date(),
-        },
-        include: {
-          status: true,
         },
       });
     }
