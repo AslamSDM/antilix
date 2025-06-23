@@ -50,17 +50,6 @@ export default function BettingMarketsSection({
         </motion.div>
       </motion.div>
 
-      {/* Subtitle - top right */}
-      <motion.div
-        className="floating-text top-right floating-animation-slow slide-in"
-        animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
-        <p className="text-lg text-primary/80 font-display">
-          Any Event, Any Time
-        </p>
-      </motion.div>
-
       {/* Main description - center right */}
       <motion.div
         className="floating-text center-left paragraph-text  slide-in"
