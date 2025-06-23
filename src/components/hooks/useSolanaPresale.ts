@@ -287,6 +287,7 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
   // Close the modal
   const closeModal = () => {
     setIsModalOpen(false);
+    setIsLoading(false);
   };
 
   return {

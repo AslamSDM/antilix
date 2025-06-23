@@ -338,6 +338,7 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
   // Close modal function
   const closeModal = () => {
     setIsModalOpen(false);
+    setIsLoading(false);
   };
 
   return {
