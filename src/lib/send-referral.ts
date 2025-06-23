@@ -34,7 +34,7 @@ const SECOND_TIER_WALLET =
 export async function sendReferralTokens(
   referrer: string,
   value: number,
-  chain: "sol" | "bsc"
+  chain: "sol" | "bsc" | "usdt"
 ) {
   try {
     const connection = new Connection(
@@ -54,8 +54,11 @@ export async function sendReferralTokens(
 
     if (chain === "bsc") {
       purchaseAmountInUsd = parseFloat((value * prices.bnb).toString());
-    } else {
+    } else if (chain === "sol") {
       purchaseAmountInUsd = parseFloat((value * prices.sol).toString());
+    } else {
+      // Assuming 'usdt' chain means USDT on Solana
+      purchaseAmountInUsd = value;
     }
     console.log(purchaseAmountInUsd, "purchaseAmountInUsd");
 

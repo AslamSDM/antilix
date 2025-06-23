@@ -163,10 +163,15 @@ export async function fetchCryptoPricesServer(): Promise<CryptoPrices> {
  */
 export function calculateTokenAmount(
   cryptoAmount: number,
-  cryptoType: "bnb" | "sol",
+  cryptoType: "bnb" | "sol" | "usdt",
   prices: CryptoPrices
 ): number {
   if (cryptoAmount <= 0) return 0;
+
+  // USDT is already in USD value (1:1)
+  if (cryptoType === "usdt") {
+    return cryptoAmount / LMX_PRICE_USD;
+  }
 
   const cryptoPrice = cryptoType === "bnb" ? prices.bnb : prices.sol;
   const usdValue = cryptoAmount * cryptoPrice;
@@ -181,12 +186,18 @@ export function calculateTokenAmount(
  */
 export function calculateCryptoCost(
   tokenAmount: number,
-  cryptoType: "bnb" | "sol",
+  cryptoType: "bnb" | "sol" | "usdt",
   prices: CryptoPrices
 ): number {
   if (tokenAmount <= 0) return 0;
 
   const usdCost = tokenAmount * LMX_PRICE_USD;
+
+  // USDT is already in USD value (1:1)
+  if (cryptoType === "usdt") {
+    return usdCost;
+  }
+
   const cryptoPrice = cryptoType === "bnb" ? prices.bnb : prices.sol;
   return usdCost / cryptoPrice;
 }
