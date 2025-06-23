@@ -12,6 +12,7 @@ export default async function PresalePage() {
       contributorCount={presaleData.contributorCount}
       totalRaised={presaleData.totalRaised}
       usdRaised={presaleData.usdRaised}
+      prices={presaleData.prices}
     />
   );
 }

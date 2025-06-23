@@ -249,10 +249,16 @@ export default function usePresale() {
   // Removed useEffect that forced presaleNetwork to 'bsc'
 
   const loadCryptoPrices = useCallback(
-    async (forceRefresh: boolean = false) => {
+    async (
+      forceRefresh: boolean = false,
+      pricesServer: {
+        bnb: number;
+        sol: number;
+      } | null = null
+    ) => {
       setIsLoadingPrices(true);
       try {
-        const prices = await fetchCryptoPrices(forceRefresh);
+        const prices = pricesServer || (await fetchCryptoPrices(forceRefresh));
         setCryptoPrices(prices);
         if (tokenAmount > 0) {
           const bnbCost = calculateCryptoCost(tokenAmount, "bnb", prices);
@@ -278,9 +284,12 @@ export default function usePresale() {
 
   useEffect(() => {
     loadCryptoPrices(false);
-    const intervalId = setInterval(() => {
-      loadCryptoPrices(true);
-    }, 5 * 60 * 1000);
+    const intervalId = setInterval(
+      () => {
+        loadCryptoPrices(true);
+      },
+      5 * 60 * 1000
+    );
     return () => clearInterval(intervalId);
   }, [loadCryptoPrices]);
 

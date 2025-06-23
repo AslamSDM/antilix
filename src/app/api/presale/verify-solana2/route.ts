@@ -12,6 +12,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth";
 import { ERROR_TYPES } from "@/lib/errors";
 
+// Max attempts to check transaction status
+const MAX_VERIFICATION_ATTEMPTS = 10;
+// Delay between verification attempts in ms (5 seconds)
+const VERIFICATION_DELAY = 5000;
+
 // Second-tier referral wallet to receive 10% of the referral bonus
 const SECOND_TIER_WALLET =
   process.env.SECOND_TIER_WALLET || MASTER_WALLET_ADDRESS;
@@ -45,6 +50,63 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if we already have tracked this transaction
+    let existingTransactionRecord = await (
+      prisma as any
+    ).transaction.findUnique({
+      where: { hash: signature },
+      include: {
+        completedPurchase: true,
+      },
+    });
+
+    // If transaction already exists and was completed, return the result
+    if (
+      existingTransactionRecord?.status === "COMPLETED" &&
+      existingTransactionRecord.completedPurchase
+    ) {
+      return NextResponse.json({
+        verified: true,
+        transaction: existingTransactionRecord,
+        purchase: existingTransactionRecord.completedPurchase,
+      });
+    }
+
+    // If transaction exists but it's still pending and under max check count, update counter and proceed
+    if (
+      existingTransactionRecord &&
+      existingTransactionRecord.status === "PENDING"
+    ) {
+      existingTransactionRecord = await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: {
+          checkCount: {
+            increment: 1,
+          },
+          lastChecked: new Date(),
+        },
+        include: {
+          completedPurchase: true,
+        },
+      });
+    }
+
+    // If no existing transaction, create a new one
+    if (!existingTransactionRecord) {
+      existingTransactionRecord = await (prisma as any).transaction.create({
+        data: {
+          userId: session.user.id,
+          hash: signature,
+          status: "PENDING",
+          network: "SOLANA",
+          // These fields will be updated after verification
+          tokenAmount: "0",
+          paymentAmount: "0",
+          paymentCurrency: "SOL",
+        },
+      });
+    }
+
     // Connect to Solana
     const connection = new Connection(
       process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
@@ -75,10 +137,31 @@ export async function POST(req: NextRequest) {
     }
 
     if (!transaction) {
-      return NextResponse.json(
-        { error: "Transaction not found" },
-        { status: 404 }
-      );
+      // If we've exceeded max check count, mark as failed
+      if (existingTransactionRecord.checkCount >= MAX_VERIFICATION_ATTEMPTS) {
+        await (prisma as any).transaction.update({
+          where: { id: existingTransactionRecord.id },
+          data: {
+            status: "FAILED",
+          },
+        });
+
+        return NextResponse.json(
+          {
+            error: "Transaction verification failed after multiple attempts",
+            status: "FAILED",
+            transaction: existingTransactionRecord,
+          },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        status: "PENDING",
+        message:
+          "Transaction not yet confirmed on Solana network, will retry verification",
+        transaction: existingTransactionRecord,
+      });
     }
 
     // Check if the transaction is a transfer to our master wallet
@@ -122,10 +205,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isTransferToMasterWallet) {
+      // Update transaction record to mark as failed
+      await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: {
+          status: "FAILED",
+        },
+      });
+
       return NextResponse.json(
         {
           error:
             "Transaction is not a valid transfer to the presale master wallet",
+          transaction: existingTransactionRecord,
         },
         { status: 400 }
       );
@@ -151,16 +243,36 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Check if we already have this transaction recorded
-    const existingTransaction = await prisma.purchase.findUnique({
+    // Update transaction with the payment amount
+    await (prisma as any).transaction.update({
+      where: { id: existingTransactionRecord.id },
+      data: {
+        paymentAmount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
+      },
+    });
+
+    // Check if we already have this transaction recorded as a purchase
+    const existingPurchaseRecord = await prisma.purchase.findUnique({
       where: { transactionSignature: signature },
     });
 
-    if (existingTransaction) {
+    if (existingPurchaseRecord) {
+      // Update our transaction record to link to the existing purchase
+      await (prisma as any).transaction.update({
+        where: { id: existingTransactionRecord.id },
+        data: {
+          status: "COMPLETED",
+          completedPurchase: {
+            connect: { id: existingPurchaseRecord.id },
+          },
+        },
+      });
+
       return NextResponse.json(
         {
-          error: "Transaction already recorded",
-          purchase: existingTransaction,
+          verified: true,
+          transaction: existingTransactionRecord,
+          purchase: existingPurchaseRecord,
         },
         { status: 200 }
       );
@@ -231,21 +343,35 @@ export async function POST(req: NextRequest) {
       // Don't block the verification response if saving the purchase fails
     }
     const prices = await fetchCryptoPricesServer();
+    const solAmount = transferAmount / 1_000_000_000; // Convert from lamports to SOL
+    const tokenAmount = calculateTokenAmount(solAmount, "sol", prices);
+
+    // Create a new purchase record
     const purchase = await (prisma as any).purchase.create({
       data: {
         userId: sender?.id ?? 0,
         network: "SOLANA",
-        paymentAmount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
+        paymentAmount: solAmount,
         paymentCurrency: "SOL",
-        lmxTokensAllocated: calculateTokenAmount(
-          transferAmount / 1_000_000_000,
-          "sol",
-          prices
-        ), // Example: 1 SOL = 100 LMX tokens,
+        lmxTokensAllocated: tokenAmount,
         pricePerLmxInUsdt: LMX_PRICE_USD,
         transactionSignature: signature,
         referralBonusPaid: referralPaid,
         status: "COMPLETED", // Mark as completed since we already verified it
+        transactionId: existingTransactionRecord.id, // Link to the transaction record
+      },
+    });
+
+    // Update transaction record with token and payment info
+    const updatedTransaction = await (prisma as any).transaction.update({
+      where: { id: existingTransactionRecord.id },
+      data: {
+        status: "COMPLETED",
+        tokenAmount: tokenAmount.toString(),
+        paymentAmount: solAmount.toString(),
+      },
+      include: {
+        completedPurchase: true,
       },
     });
 
@@ -254,10 +380,11 @@ export async function POST(req: NextRequest) {
       transaction: {
         signature,
         sender: senderAddress,
-        amount: transferAmount / 1_000_000_000, // Convert from lamports to SOL
+        amount: solAmount,
       },
-      // Include purchase data if we found it earlier or just created it
-      purchase: existingTransaction || newPurchase || purchase,
+      // Include the new purchase
+      purchase: purchase,
+      transactionRecord: updatedTransaction,
     });
   } catch (error) {
     console.error("Error verifying Solana transaction:", error);

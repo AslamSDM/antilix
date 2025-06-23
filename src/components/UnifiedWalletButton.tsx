@@ -48,6 +48,12 @@ export function UnifiedWalletButton({
   const needsBSCVerification =
     isAuthenticated && hasAddress && !hasEvmAddress && isOnBscNetwork;
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      modal.disconnect();
+    }
+  }, [status]);
+
   // Effect to handle AppKit modal state changes
   useEffect(() => {
     if (appKitState?.open) {
@@ -207,7 +213,7 @@ export function UnifiedWalletButton({
     }
 
     // If wallet is verified (either Solana or EVM)
-    if (hasSolanaAddress || hasEvmAddress) {
+    if ((hasSolanaAddress && isConnected) || (hasEvmAddress && isConnected)) {
       return {
         text: getDisplayAddress() || "Connected",
         icon: <CheckCircle size={16} className="mr-1.5 text-green-400" />,

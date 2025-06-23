@@ -221,12 +221,17 @@ interface PresaleClientContentProps {
   contributorCount: number;
   totalRaised: number;
   usdRaised: number;
+  prices?: {
+    bnb?: number;
+    sol?: number;
+  };
 }
 
 const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   contributorCount,
   totalRaised,
   usdRaised,
+  prices = { bnb: 600, sol: 150 }, // Default prices if not provided
 }) => {
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState(0);
@@ -249,16 +254,6 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
     src: "/sounds/section-change.mp3",
     volume: 0.2,
   });
-
-  // Handle wallet connection
-  const handleWalletConnect = (type: "ethereum" | "solana") => {
-    // When wallet is connected, switch to the appropriate network
-    if (type === "ethereum") {
-      switchNetwork("bsc");
-    } else if (type === "solana") {
-      switchNetwork("solana");
-    }
-  };
 
   // Track scroll position and update active section
   useEffect(() => {
@@ -572,6 +567,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             >
               <div className="w-full">
                 <PresaleBuyForm
+                  prices={prices}
                   referralCode={searchParams?.get("ref") || ""}
                   className="backdrop-blur-xl border-primary/20 shadow-[0_0_10px] sm:shadow-[0_0_15px] md:shadow-[0_0_20px] rgba(212,175,55,0.2)"
                 />

@@ -28,6 +28,7 @@ import { useSolanaPresale } from "./hooks/useSolanaPresale";
 import TransactionStatusModal from "./TransactionStatusModal";
 import { SolanaWalletPrompt } from "./SolanaWalletPrompt";
 import { BSCWalletPrompt } from "./BSCWalletPrompt";
+import { PendingTransactions } from "./PendingTransactions";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { solana, base, bsc } from "@reown/appkit/networks";
 import { formatEther } from "viem";
@@ -54,11 +55,16 @@ interface CustomSessionUser {
 interface PresaleBuyFormProps {
   referralCode?: string;
   className?: string;
+  prices?: {
+    bnb: number;
+    sol: number;
+  };
 }
 
 const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   referralCode,
   className = "",
+  prices = { bnb: 600, sol: 1500 }, // Default prices if not provided
 }) => {
   // State
   const [customReferralCode, setCustomReferralCode] = useState<string>(
@@ -331,7 +337,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   // Refresh price data
   const refreshPrices = async () => {
     toast.info("Refreshing cryptocurrency prices...");
-    await loadCryptoPrices();
+    await loadCryptoPrices(false, prices);
     toast.success("Cryptocurrency prices updated");
   };
 
@@ -601,6 +607,9 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
               </div> */}
             </>
           )}
+
+          {/* Show pending transactions */}
+          <PendingTransactions />
         </>
       )}
       {/* Transaction Status Modal for both BSC and Solana transactions */}

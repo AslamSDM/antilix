@@ -147,6 +147,12 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
       toast.error("Transaction sent but could not be verified");
       setIsLoading(false);
     }
+
+    let attempts = 0;
+    const maxAttempts = 30; // Maximum number of polling attempts
+    const pollInterval = 5000; // Poll every 5 seconds
+    let pollTimer: NodeJS.Timeout;
+
     async function verifyTransaction() {
       try {
         const verificationResponse = await fetch("/api/presale/verify-bsc", {
@@ -159,9 +165,20 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
           }),
         });
 
+        const responseData = await verificationResponse.json();
+
+        if (responseData.status === "PENDING" && attempts < maxAttempts) {
+          // Transaction is still pending, poll again after interval
+          attempts++;
+          console.log(
+            `Transaction still pending. Polling attempt ${attempts}/${maxAttempts}`
+          );
+          pollTimer = setTimeout(verifyTransaction, pollInterval);
+          return;
+        }
+
         if (!verificationResponse.ok) {
-          const error = await verificationResponse.json();
-          console.error("Transaction verification failed:", error);
+          console.error("Transaction verification failed:", responseData);
           setError("verify-transaction", "Transaction verification failed");
           toast.error(
             "Transaction verification failed. Please contact support."
@@ -170,9 +187,35 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
           return false;
         }
 
-        const verificationData = await verificationResponse.json();
+        // Transaction was successfully verified
+        if (responseData.verified) {
+          nextStep(); // Move to final step
+
+          // Step 5: Save allocation in database
+          setCurrentStep("save-allocation");
+          nextStep(); // Move to next step
+          completeTransaction(); // Mark transaction as complete
+          toast.success(`Successfully purchased ${tokenAmount} LMX tokens!`);
+          return true;
+        } else if (responseData.status === "FAILED") {
+          setError("verify-transaction", "Transaction failed on blockchain");
+          toast.error("Transaction failed. Please try again.");
+          setIsLoading(false);
+          return false;
+        }
       } catch (verificationError) {
         console.error("Error during verification:", verificationError);
+
+        if (attempts < maxAttempts) {
+          // Error during verification, try again
+          attempts++;
+          console.log(
+            `Verification error. Retrying. Attempt ${attempts}/${maxAttempts}`
+          );
+          pollTimer = setTimeout(verifyTransaction, pollInterval);
+          return;
+        }
+
         setError("verify-transaction", "Transaction confirmation timed out");
         toast.warning(
           "Transaction sent but confirmation timed out. Check your wallet for status."
@@ -180,17 +223,14 @@ export function useBscPresale(tokenAmount: number, referrer?: string) {
         setIsLoading(false);
         return true; // Return true since tx was sent
       }
-
-      nextStep(); // Move to final step
-
-      // Step 5: Save allocation in database
-      setCurrentStep("save-allocation");
-      nextStep(); // Move to next step
-      completeTransaction(); // Mark transaction as complete
-      toast.success(`Successfully purchased ${tokenAmount} LMX tokens!`);
-      return true; // Return true to indicate success
     }
+
     verifyTransaction();
+
+    // Clean up timer when component unmounts
+    return () => {
+      if (pollTimer) clearTimeout(pollTimer);
+    };
   }, [currentStep, hash]);
 
   // Function to set referrer - simplified implementation

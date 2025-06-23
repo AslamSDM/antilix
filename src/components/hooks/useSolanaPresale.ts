@@ -163,26 +163,103 @@ export function useSolanaPresale(tokenAmount: number, referralCode?: string) {
       // Step 4: Verify the transaction
       setCurrentStep("verify-transaction");
 
-      const verificationResponse = await fetch("/api/presale/verify-solana2", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          signature,
-        }),
-      });
+      // Define polling variables
+      let attempts = 0;
+      const maxAttempts = 30; // Maximum number of polling attempts
+      const pollInterval = 5000; // Poll every 5 seconds
 
-      if (!verificationResponse.ok) {
-        const error = await verificationResponse.json();
-        console.error("Transaction verification failed:", error);
-        setError("verify-transaction", "Transaction verification failed");
-        toast.error("Transaction verification failed. Please contact support.");
-        setIsLoading(false);
+      // Function to verify transaction with polling
+      const pollTransactionVerification = async (): Promise<boolean> => {
+        try {
+          const verificationResponse = await fetch(
+            "/api/presale/verify-solana2",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                signature,
+              }),
+            }
+          );
+
+          const responseData = await verificationResponse.json();
+
+          if (responseData.status === "PENDING" && attempts < maxAttempts) {
+            // Transaction is still pending, poll again after interval
+            attempts++;
+            console.log(
+              `Solana transaction still pending. Polling attempt ${attempts}/${maxAttempts}`
+            );
+            await new Promise((resolve) => setTimeout(resolve, pollInterval));
+            return pollTransactionVerification(); // Recursively poll again
+          }
+
+          if (!verificationResponse.ok) {
+            console.error(
+              "Solana transaction verification failed:",
+              responseData
+            );
+            setError("verify-transaction", "Transaction verification failed");
+            toast.error(
+              "Transaction verification failed. Please contact support."
+            );
+            setIsLoading(false);
+            return false;
+          }
+
+          // Transaction was successfully verified
+          if (responseData.verified) {
+            console.log("Solana transaction verified successfully");
+            nextStep(); // Move to next step
+            return true;
+          } else if (responseData.status === "FAILED") {
+            setError(
+              "verify-transaction",
+              "Transaction failed on Solana blockchain"
+            );
+            toast.error("Transaction failed. Please try again.");
+            setIsLoading(false);
+            return false;
+          }
+
+          // If we get here without a clear status, consider it a failure
+          setError(
+            "verify-transaction",
+            "Verification returned unclear status"
+          );
+          toast.error(
+            "Transaction verification returned an unclear result. Please contact support."
+          );
+          setIsLoading(false);
+          return false;
+        } catch (error) {
+          console.error("Error during Solana verification:", error);
+
+          if (attempts < maxAttempts) {
+            // Error during verification, try again
+            attempts++;
+            console.log(
+              `Verification error. Retrying. Attempt ${attempts}/${maxAttempts}`
+            );
+            await new Promise((resolve) => setTimeout(resolve, pollInterval));
+            return pollTransactionVerification(); // Recursively poll again
+          }
+
+          setError("verify-transaction", "Transaction verification error");
+          toast.error("Error verifying transaction. Please contact support.");
+          setIsLoading(false);
+          return false;
+        }
+      };
+
+      // Start polling for transaction verification
+      const verificationSuccess = await pollTransactionVerification();
+
+      if (!verificationSuccess) {
         return false;
       }
-
-      const verificationData = await verificationResponse.json();
 
       nextStep(); // Move to next step
 
