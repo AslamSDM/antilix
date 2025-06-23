@@ -504,7 +504,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
           />
         </div>
 
-        <div className="container mx-auto relative z-10 mt-12 sm:mt-16 md:mt-24">
+        <div className="container mx-auto relative z-10 mt-24 sm:mt-16 md:mt-22">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -515,10 +515,10 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               className="overflow-hidden relative mb-3"
               style={{ maxWidth: "100%", margin: "0 auto" }}
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl text-center  ">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl text-center ">
                 <span className="text-primary">LITMEX Token Seed Round</span>
               </h1>
-              <p className="text-gray-300 text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto">
+              <p className="text-gray-300 text-base sm:text-lg md:text-xl text-center max-w-3xl mx-auto mt-4">
                 Litmex seed round is{" "}
                 <span className="text-primary font-semibold">now live</span>.
                 Building{" "}
