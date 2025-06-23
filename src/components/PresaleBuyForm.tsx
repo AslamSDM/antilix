@@ -56,8 +56,8 @@ interface PresaleBuyFormProps {
   referralCode?: string;
   className?: string;
   prices?: {
-    bnb: number;
-    sol: number;
+    bnb: number | undefined;
+    sol: number | undefined;
   };
 }
 
@@ -337,7 +337,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   // Refresh price data
   const refreshPrices = async () => {
     toast.info("Refreshing cryptocurrency prices...");
-    await loadCryptoPrices(false, prices);
+    await loadCryptoPrices(false, {
+      bnb: prices.bnb || 600,
+      sol: prices.sol || 150,
+    });
     toast.success("Cryptocurrency prices updated");
   };
 

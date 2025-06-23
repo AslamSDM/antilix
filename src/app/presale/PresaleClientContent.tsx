@@ -233,6 +233,11 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   usdRaised,
   prices = { bnb: 600, sol: 150 }, // Default prices if not provided
 }) => {
+  // Ensure prices object has the required properties and correct types
+  const formattedPrices = {
+    bnb: prices?.bnb || 600,
+    sol: prices?.sol || 150,
+  };
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -562,12 +567,11 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-6 lg:max-w-2xl mx-auto relative px-0"
             >
               <div className="w-full">
                 <PresaleBuyForm
-                  prices={prices}
+                  prices={formattedPrices}
                   referralCode={searchParams?.get("ref") || ""}
                   className="backdrop-blur-xl border-primary/20 shadow-[0_0_10px] sm:shadow-[0_0_15px] md:shadow-[0_0_20px] rgba(212,175,55,0.2)"
                 />

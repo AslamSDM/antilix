@@ -46,7 +46,10 @@ export default async function getPresaleData() {
       contributorCount: contributorCount || 0,
       totalRaised: parseFloat(solRaised.toString()) || 0,
       usdRaised: usdRaised || 0,
-      prices,
+      prices: {
+        bnb: prices.bnb || 600, // Default BNB price if not available
+        sol: prices.sol || 150, // Default SOL price if not available
+      },
     };
 
     // Store in cache for 60 seconds
