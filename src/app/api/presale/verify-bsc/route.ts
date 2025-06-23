@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create contract interface to decode input data
-    const contractInterface = new ethers.Interface(presaleAbi);
+    const contractInterface = new ethers.Interface(presaleAbi.abi);
 
     // Try to decode transaction input
     let decodedData;
