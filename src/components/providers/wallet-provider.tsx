@@ -35,7 +35,7 @@ export const modal = createAppKit({
     analytics: true,
     socials: false,
     email: false,
-    allWallets: false,
+    allWallets: true,
   },
   themeVariables: {
     "--w3m-accent": "#3b82f6", // Blue accent to match our app theme
@@ -52,18 +52,9 @@ export const modal = createAppKit({
   defaultAccountTypes: {
     solana: "eoa",
   },
-  enableWallets: true,
-  enableInjected: true,
-  enableAuthLogger: false,
-  enableCoinbase: true,
-  debug: false, // Disable debug mode in production
-
   allowUnsupportedChain: false,
-  enableWalletConnect: true,
   allWallets: "SHOW", // Show all wallets for better UX
   enableNetworkSwitch: true,
-  enableWalletGuide: true,
-  showWallets: true, // Show wallet options by default
 });
 
 function ContextProviderAsWalletProviders({
