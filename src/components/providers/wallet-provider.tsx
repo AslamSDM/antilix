@@ -52,18 +52,12 @@ export const modal = createAppKit({
   defaultAccountTypes: {
     solana: "eoa",
   },
-  enableWallets: true,
-  enableInjected: true,
-  enableAuthLogger: false,
-  enableCoinbase: true,
-  debug: false, // Disable debug mode in production
+  debug: true, // Disable debug mode in production
 
   allowUnsupportedChain: false,
   enableWalletConnect: true,
   allWallets: "SHOW", // Show all wallets for better UX
   enableNetworkSwitch: true,
-  enableWalletGuide: true,
-  showWallets: true, // Show wallet options by default
 });
 
 function ContextProviderAsWalletProviders({

@@ -401,13 +401,13 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
           if (!verificationResponse.ok || !responseData.verified) {
             console.error("Transaction verification failed:", responseData);
-            setError(
-              "verify-transaction",
-              responseData.message || "Transaction verification failed"
-            );
-            toast.error(
-              "Transaction verification failed. Please contact support."
-            );
+            // setError(
+            //   "verify-transaction",
+            //   responseData.message || "Transaction verification failed"
+            // );
+            // toast.error(
+            //   "Transaction verification failed. Please contact support."
+            // );
             setIsLoading(false);
             return;
           }
@@ -423,11 +423,11 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
           setIsLoading(false);
         } catch (error) {
           console.error("Error verifying transaction:", error);
-          setError(
-            "verify-transaction",
-            "Error verifying transaction. Please check your wallet."
-          );
-          toast.error("Error verifying transaction. Please check your wallet.");
+          //   setError(
+          //     "verify-transaction",
+          //     "Error verifying transaction. Please check your wallet."
+          //   );
+          //   toast.error("Error verifying transaction. Please check your wallet.");
           setIsLoading(false);
         }
       };
