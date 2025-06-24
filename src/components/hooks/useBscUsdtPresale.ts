@@ -211,6 +211,7 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
       refetchUsdtAllowance();
 
       // Move to prepare transaction step
+      nextStep();
       setCurrentStep("prepare-transaction");
       nextStep();
 
@@ -445,6 +446,8 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
       } else {
         console.log("Sufficient allowance, proceeding directly to purchase");
         setApprovalCompleted(true);
+
+        nextStep();
         setCurrentStep("prepare-transaction");
         nextStep();
 
