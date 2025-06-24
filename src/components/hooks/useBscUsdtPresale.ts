@@ -183,7 +183,6 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
         // Calculate cost in USDT (using USD amount directly since 1:1)
         const usdtCost = calculateCryptoCost(tokenAmount, "usdt", prices);
-        console.log("Calculated USDT cost:", usdtCost);
         // Convert to smallest USDT unit (6 decimals) for the contract
         setDynamicCost(parseUnits(usdtCost.toString(), 18));
       } catch (error) {
@@ -373,8 +372,7 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
       // Refetch allowance to get the latest value
       await refetchUsdtAllowance();
-      console.log("USDT Allowance:", usdtAllowance);
-      console.log("Dynamic Cost:", dynamicCost);
+
       if (!usdtAllowance || (usdtAllowance as bigint) < dynamicCost) {
         // Need to approve USDT first
         try {
