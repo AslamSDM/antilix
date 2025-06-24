@@ -5,7 +5,7 @@ import {
 } from "wagmi";
 import { parseUnits } from "viem";
 import { fetchCryptoPrices, calculateCryptoCost } from "@/lib/price-utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { useTransactionStatus, TransactionStep } from "./useTransactionStatus";
@@ -97,11 +97,13 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
   const [dynamicCost, setDynamicCost] = useState<bigint>(BigInt(0));
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
-  const [usdtPrice, setUsdtPrice] = useState<number>(1); // USDT price is pegged to USD
+  const [usdtPrice, setUsdtPrice] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
   >(null);
+  const [approvalCompleted, setApprovalCompleted] = useState(false);
+  const [purchaseInitiated, setPurchaseInitiated] = useState(false);
   const { address } = useAccount();
 
   // Initialize transaction status
@@ -148,45 +150,47 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     data: approvalHash,
     isPending: isApprovePending,
     error: approveError,
+    reset: resetApproval,
   } = useWriteContract();
 
   // Wait for approval transaction confirmation
-  const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: approvalHash as `0x${string}`,
-    });
+  const {
+    isLoading: isApprovalConfirming,
+    isSuccess: isApprovalConfirmed,
+    isError: isApprovalError,
+  } = useWaitForTransactionReceipt({
+    hash: approvalHash as `0x${string}`,
+  });
 
   // Write contract hook for buying tokens with USDT
   const {
     writeContract: buyWithUsdt,
     data: purchaseHash,
     isPending: isPurchasePending,
-
     isSuccess: isPurchaseSuccess,
     isError: isPurchaseError,
     error: purchaseError,
+    reset: resetPurchase,
   } = useWriteContract();
 
   // Wait for purchase transaction confirmation
-  const { isLoading: isPurchaseConfirming, isSuccess: isPurchaseConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: purchaseHash as `0x${string}`,
-    });
+  const {
+    isLoading: isPurchaseConfirming,
+    isSuccess: isPurchaseConfirmed,
+    isError: isPurchaseTransactionError,
+  } = useWaitForTransactionReceipt({
+    hash: purchaseHash as `0x${string}`,
+  });
 
-  // Calculate cost in USDT - nearly 1:1 with USD since it's a stablecoin
+  // Calculate cost in USDT
   useEffect(() => {
     const calculateUsdtCost = async () => {
       if (!tokenAmount || tokenAmount <= 0) return;
 
       setIsLoadingPrice(true);
       try {
-        // For USDT, we use a 1:1 ratio with USD since it's a stablecoin
-        // But we'll get the real price just to be safe
         const prices = await fetchCryptoPrices();
-
-        // Calculate cost in USDT (using USD amount directly since 1:1)
         const usdtCost = calculateCryptoCost(tokenAmount, "usdt", prices);
-        // Convert to smallest USDT unit (6 decimals) for the contract
         setDynamicCost(parseUnits(usdtCost.toString(), 18));
       } catch (error) {
         console.error("Error calculating token cost:", error);
@@ -199,141 +203,165 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     calculateUsdtCost();
   }, [tokenAmount]);
 
-  // Effect to handle approval confirmation
+  // Handle approval transaction confirmation
   useEffect(() => {
-    if (isApprovalConfirmed && currentStep?.id === "approve-usdt") {
-      nextStep(); // Move to prepare transaction step
-      refetchUsdtAllowance(); // Refresh allowance data
-    }
-    if (
-      (usdtAllowance as bigint) >= dynamicCost &&
-      currentStep?.id === "approve-usdt"
-    ) {
-      // If allowance is sufficient, skip to prepare transaction step
-      nextStep();
+    if (isApprovalConfirmed && !approvalCompleted) {
+      console.log("Approval confirmed, proceeding to purchase");
+      setApprovalCompleted(true);
+      refetchUsdtAllowance();
+
+      // Move to prepare transaction step
       setCurrentStep("prepare-transaction");
-      nextStep(); // Move to next step
-    }
-  }, [isApprovalConfirmed, currentStep, isApprovalConfirming, usdtAllowance]);
-  useEffect(() => {
-    if (isApprovalConfirmed && currentStep?.id === "prepare-transaction") {
       nextStep();
 
-      // Step 4: Send transaction
-      setCurrentStep("send-transaction");
-
-      try {
-        // Call the contract's buyTokensWithUsdt function - this is the new method from the contract
-        // First try the new function, and if it fails, fall back to the old function name
-        try {
-          buyWithUsdt({
-            address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-            abi: usdtPresaleAbi,
-            functionName: "buyTokensWithUsdt",
-            args: [parseEther(tokenAmount.toString())],
-          });
-        } catch (e) {
-          console.warn("buyTokensWithUsdt failed, trying buyWithUSDT", e);
-          // Fall back to the old function name if the new one fails
-        }
-
-        nextStep();
-      } catch (error) {
-        console.error("Error sending transaction:", error);
-        setError("send-transaction", "Failed to send transaction");
-        toast.error("Failed to send transaction");
-        setIsLoading(false);
-        return;
-      }
-
-      // Step 5: Verify transaction (handled in the effect watching purchaseHash)
-      setCurrentStep("verify-transaction");
+      // Small delay to ensure state updates, then proceed to purchase
+      setTimeout(() => {
+        initiatePurchase();
+      }, 1000);
     }
-  }, [isApprovalConfirmed, currentStep]);
+  }, [isApprovalConfirmed, approvalCompleted]);
 
-  // Effect to handle purchase hash
+  // Handle approval errors
   useEffect(() => {
-    if (!purchaseHash) return;
-    if (currentStep?.id !== "verify-transaction") return;
+    if (isApprovalError && approvalHash) {
+      console.error("Approval transaction failed");
+      setError("approve-usdt", "Approval transaction failed");
+      toast.error("USDT approval failed. Please try again.");
+      setIsLoading(false);
+    }
+  }, [isApprovalError, approvalHash]);
 
-    setTransactionSignature(purchaseHash);
+  // Handle purchase transaction confirmation
+  useEffect(() => {
+    if (isPurchaseConfirmed && purchaseHash && !transactionSignature) {
+      console.log("Purchase confirmed, starting verification");
+      setTransactionSignature(purchaseHash);
+      setCurrentStep("verify-transaction");
+      nextStep();
 
-    let attempts = 0;
-    const maxAttempts = 30;
-    const pollInterval = 5000;
-    let pollTimer: NodeJS.Timeout;
+      // Start verification process
+      verifyTransaction(purchaseHash);
+    }
+  }, [isPurchaseConfirmed, purchaseHash, transactionSignature]);
 
-    async function verifyTransaction() {
-      try {
-        const verificationResponse = await fetch(
-          "/api/presale/verify-bsc-usdt",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              hash: purchaseHash,
-            }),
-          }
-        );
+  // Handle purchase errors
+  useEffect(() => {
+    if (isPurchaseTransactionError && purchaseHash) {
+      console.error("Purchase transaction failed");
+      setError("send-transaction", "Purchase transaction failed");
+      toast.error("Purchase transaction failed. Please try again.");
+      setIsLoading(false);
+    }
+  }, [isPurchaseTransactionError, purchaseHash]);
 
-        const responseData = await verificationResponse.json();
+  // Separate function to initiate purchase
+  const initiatePurchase = useCallback(async () => {
+    if (purchaseInitiated) return;
 
-        if (responseData.status === "PENDING" && attempts < maxAttempts) {
-          attempts++;
+    console.log("Initiating purchase transaction");
+    setPurchaseInitiated(true);
+
+    try {
+      setCurrentStep("send-transaction");
+      nextStep();
+
+      await buyWithUsdt({
+        address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+        abi: usdtPresaleAbi,
+        functionName: "buyTokensWithUsdt",
+        args: [parseEther(tokenAmount.toString())],
+      });
+
+      console.log("Purchase transaction sent");
+    } catch (error) {
+      console.error("Error sending purchase transaction:", error);
+      setError("send-transaction", "Failed to send purchase transaction");
+      toast.error("Failed to send purchase transaction");
+      setIsLoading(false);
+      setPurchaseInitiated(false);
+    }
+  }, [
+    purchaseInitiated,
+    buyWithUsdt,
+    tokenAmount,
+    setCurrentStep,
+    nextStep,
+    setError,
+  ]);
+
+  // Verification function
+  const verifyTransaction = useCallback(
+    async (hash: string) => {
+      let attempts = 0;
+      const maxAttempts = 30;
+      const pollInterval = 5000;
+
+      const pollForVerification = async (): Promise<void> => {
+        try {
           console.log(
-            `Transaction still pending. Polling attempt ${attempts}/${maxAttempts}`
+            `Verifying transaction attempt ${attempts + 1}/${maxAttempts}`
           );
-          pollTimer = setTimeout(verifyTransaction, pollInterval);
-          return;
-        }
 
-        if (!verificationResponse.ok) {
-          console.error("Transaction verification failed:", responseData);
-          setError("verify-transaction", "Transaction verification failed");
-          toast.error(
-            "Transaction verification failed. Please contact support."
+          const verificationResponse = await fetch(
+            "/api/presale/verify-bsc-usdt",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                hash: hash,
+              }),
+            }
           );
-          setIsLoading(false);
-          return false;
-        }
 
-        // Transaction was successfully verified
-        if (responseData.verified) {
-          nextStep(); // Move to final step
+          const responseData = await verificationResponse.json();
+          console.log("Verification response:", responseData);
 
-          // Save allocation in database
+          if (responseData.status === "PENDING" && attempts < maxAttempts) {
+            attempts++;
+            setTimeout(pollForVerification, pollInterval);
+            return;
+          }
+
+          if (!verificationResponse.ok || !responseData.verified) {
+            console.error("Transaction verification failed:", responseData);
+            setError(
+              "verify-transaction",
+              responseData.message || "Transaction verification failed"
+            );
+            toast.error(
+              "Transaction verification failed. Please contact support."
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          // Success
+          console.log("Transaction verified successfully");
           setCurrentStep("save-allocation");
-          nextStep(); // Move to next step
-          completeTransaction(); // Mark transaction as complete
+          nextStep();
+          completeTransaction();
           toast.success(
             `Successfully purchased ${tokenAmount} LMX tokens with USDT!`
           );
-          return true;
-        } else {
+          setIsLoading(false);
+        } catch (error) {
+          console.error("Error verifying transaction:", error);
           setError(
             "verify-transaction",
-            responseData.message || "Verification failed"
+            "Error verifying transaction. Please check your wallet."
           );
+          toast.error("Error verifying transaction. Please check your wallet.");
           setIsLoading(false);
-          return false;
         }
-      } catch (error) {
-        console.error("Error verifying transaction:", error);
-        setError(
-          "verify-transaction",
-          "Error verifying transaction. Please check your wallet."
-        );
-        setIsLoading(false);
-        return false;
-      } finally {
-        if (pollTimer) clearTimeout(pollTimer);
-      }
-    }
+      };
 
-    verifyTransaction();
-  }, [purchaseHash, currentStep, isPurchaseSuccess]);
+      // Start polling
+      await pollForVerification();
+    },
+    [setCurrentStep, nextStep, completeTransaction, setError, tokenAmount]
+  );
 
   // Main function to buy tokens with USDT
   const buyTokens = async () => {
@@ -352,23 +380,28 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
       return;
     }
 
-    // Reset modal state
+    // Reset all states
     resetStatus();
+    resetApproval();
+    resetPurchase();
+    setApprovalCompleted(false);
+    setPurchaseInitiated(false);
+    setTransactionSignature(null);
     setIsModalOpen(true);
     setIsLoading(true);
 
     try {
+      console.log("Starting buy process");
+
       // Step 1: Wallet connect
       setCurrentStep("wallet-connect");
+      nextStep();
 
       // Check USDT balance
-      if (usdtBalance === undefined || usdtBalance === null) {
-        await refetchUsdtBalance();
-      }
+      await refetchUsdtBalance();
 
       if (
         usdtBalance !== undefined &&
-        usdtBalance !== null &&
         BigInt(usdtBalance.toString()) < dynamicCost
       ) {
         toast.error("Insufficient USDT balance");
@@ -377,71 +410,48 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
         return;
       }
 
-      nextStep();
-
-      // Step 2: Check if approval is needed and approve USDT if required
+      // Step 2: Check and handle approval
       setCurrentStep("approve-usdt");
-
-      // Refetch allowance to get the latest value
       await refetchUsdtAllowance();
 
-      if (!usdtAllowance || (usdtAllowance as bigint) < dynamicCost) {
-        // Need to approve USDT first
+      const currentAllowance = usdtAllowance as bigint;
+      console.log(
+        "Current allowance:",
+        currentAllowance?.toString(),
+        "Required:",
+        dynamicCost.toString()
+      );
+
+      if (!currentAllowance || currentAllowance < dynamicCost) {
+        console.log("Approval needed, requesting approval");
+
         try {
-          approveUsdt({
+          await approveUsdt({
             address: BSC_USDT_ADDRESS as `0x${string}`,
             abi: usdtAbi,
             functionName: "approve",
-            args: [BSC_PRESALE_CONTRACT_ADDRESS, dynamicCost], // Approve 2x for future transactions
+            args: [BSC_PRESALE_CONTRACT_ADDRESS, dynamicCost * BigInt(2)], // Approve 2x for future transactions
           });
 
-          // Wait for approval to be confirmed in the effect
-          return; // Exit here, effect will continue process after approval
+          console.log("Approval transaction sent");
+          // The approval confirmation will be handled by the useEffect above
         } catch (error) {
-          console.error("Error approving USDT:", error);
-          setError("approve-usdt", "Failed to approve USDT");
-          toast.error("Failed to approve USDT spending");
+          console.error("Error requesting approval:", error);
+          setError("approve-usdt", "Failed to request USDT approval");
+          toast.error("Failed to request USDT approval");
           setIsLoading(false);
           return;
         }
       } else {
-        // Already approved, move to next step
+        console.log("Sufficient allowance, proceeding directly to purchase");
+        setApprovalCompleted(true);
+        setCurrentStep("prepare-transaction");
         nextStep();
+
+        setTimeout(() => {
+          initiatePurchase();
+        }, 500);
       }
-
-      // Step 3: Prepare transaction
-      setCurrentStep("prepare-transaction");
-      nextStep();
-
-      // Step 4: Send transaction
-      setCurrentStep("send-transaction");
-
-      try {
-        // Call the contract's buyTokensWithUsdt function - this is the new method from the contract
-        // First try the new function, and if it fails, fall back to the old function name
-        try {
-          buyWithUsdt({
-            address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
-            abi: usdtPresaleAbi,
-            functionName: "buyTokensWithUsdt",
-            args: [parseEther(tokenAmount.toString())],
-          });
-        } catch (e) {
-          console.warn("buyTokensWithUsdt failed, trying buyWithUSDT", e);
-          // Fall back to the old function name if the new one fails
-        }
-
-        nextStep();
-      } catch (error) {
-        console.error("Error sending transaction:", error);
-        setError("send-transaction", "Failed to send transaction");
-        toast.error("Failed to send transaction");
-        setIsLoading(false);
-        return;
-      }
-
-      // Step 5: Verify transaction (handled in the effect watching purchaseHash)
-      setCurrentStep("verify-transaction");
     } catch (error) {
       console.error("Error in buy process:", error);
       toast.error("An unexpected error occurred");
@@ -455,6 +465,9 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     setIsModalOpen(false);
     setIsLoading(false);
     resetStatus();
+    setApprovalCompleted(false);
+    setPurchaseInitiated(false);
+    setTransactionSignature(null);
   };
 
   return {
