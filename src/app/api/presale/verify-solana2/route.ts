@@ -145,10 +145,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Return if already completed
-    if (
-      existingTransactionRecord?.status === "COMPLETED" &&
-      existingTransactionRecord.completedPurchase
-    ) {
+    if (existingTransactionRecord?.status === "COMPLETED") {
       return NextResponse.json({
         verified: true,
         transaction: existingTransactionRecord,
