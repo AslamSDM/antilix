@@ -307,7 +307,6 @@ export async function POST(req: NextRequest) {
     // Look for TokensPurchasedWithUsdt event
     let buyer = transaction.from;
     let usdtAmount = "0";
-    let referrer = "0x0000000000000000000000000000000000000000";
 
     // Create event interface
     const eventInterface = new ethers.Interface([
@@ -333,7 +332,6 @@ export async function POST(req: NextRequest) {
           if (parsedLog) {
             buyer = parsedLog.args.buyer;
             usdtAmount = formatUnits(parsedLog.args.usdtAmount, USDT_DECIMALS);
-            referrer = parsedLog.args.referrer;
             break;
           }
         } catch (error) {
@@ -424,30 +422,6 @@ export async function POST(req: NextRequest) {
         paymentAmount: usdtAmount,
       },
     });
-
-    // Handle referral bonus (if the transaction event had a referrer)
-    if (referrer && referrer !== "0x0000000000000000000000000000000000000000") {
-      // Find the referrer in the database
-      const referrerUser = await prisma.user.findFirst({
-        where: {
-          evmAddress: referrer.toLowerCase(),
-        },
-      });
-
-      if (referrerUser) {
-        // Calculate 5% bonus
-        const bonusAmount = Number(formatEther(BigInt(tokenAmount))) * 0.05;
-
-        // Note: Add referral bonus record if your schema has this model
-        // If referralBonus doesn't exist in your schema, this section should be removed
-        // or adapted to match your actual schema
-        console.log(
-          `Referral bonus of ${bonusAmount} tokens would be allocated to user ${referrerUser.id}`
-        );
-
-        // If you have a different way to track referral bonuses in your schema, use that instead
-      }
-    }
 
     return NextResponse.json({
       verified: true,

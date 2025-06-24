@@ -135,6 +135,7 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
     useState(false);
   const [showBSCVerificationModal, setShowBSCVerificationModal] =
     useState(false);
+  const [needsUsdtApproval, setNeedsUsdtApproval] = useState(false);
 
   useEffect(() => {
     // Switch network based on CAIP network
@@ -216,6 +217,10 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   // Use BSC USDT hook if BSC currency is USDT
   const {
     buyTokens: buyBscUsdtTokens,
+    approveUsdtSpending,
+    isUsdtApproved,
+    isApprovalMode,
+    approvalCompleted,
     isLoading: isBscUsdtBuying,
     isModalOpen: isBscUsdtModalOpen = false,
     closeModal: closeBscUsdtModal = () => {},
@@ -304,6 +309,18 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
 
   // Wallet connection status
   const hasWalletConnected = isConnected && address;
+
+  // Add an effect to check if USDT approval is needed whenever amount changes
+  useEffect(() => {
+    const checkApprovalNeeded = async () => {
+      if (network === "bsc" && bscCurrency === "USDT" && hasWalletConnected) {
+        const approved = await isUsdtApproved();
+        setNeedsUsdtApproval(!approved);
+      }
+    };
+
+    checkApprovalNeeded();
+  }, [network, bscCurrency, tokenAmount, hasWalletConnected, isUsdtApproved]);
 
   // Get wallet balances
   const {
@@ -476,6 +493,15 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
         if (bscCurrency === "BNB") {
           await buyBscTokens();
         } else {
+          // For BSC USDT, check if approval is needed first
+          const approved = await isUsdtApproved();
+          if (!approved) {
+            toast.info("USDT approval required before purchase");
+            await approveUsdtSpending();
+            return; // Stop here, user needs to click Buy again after approval
+          }
+
+          // If we got here, USDT is approved and we can proceed with purchase
           await buyBscUsdtTokens();
         }
       } else {
@@ -816,11 +842,62 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
                 )}
               </div>
 
-              {/* Buy Button */}
+              {/* Buy/Approve Button */}
               <div className="mb-4">
                 {!hasWalletConnected ? (
                   <WalletConnectButton className="w-full py-3" />
+                ) : network === "bsc" && bscCurrency === "USDT" ? (
+                  // Special handling for USDT on BSC to show approval button when needed
+                  <div>
+                    <GlowButton
+                      onClick={handleBuy}
+                      disabled={isLoading || !presaleStatus || usdAmount <= 0}
+                      className="w-full py-3 bg-gradient-to-br from-indigo-600/90 to-violet-700 hover:from-indigo-600 hover:to-violet-600 border-indigo-400/30 text-white font-medium transition-all duration-200"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>
+                            {isApprovalMode
+                              ? "Approving USDT..."
+                              : "Processing Purchase..."}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center">
+                          <span>
+                            {needsUsdtApproval ? (
+                              <>Approve {usdAmount} USDT</>
+                            ) : (
+                              <>
+                                Buy $
+                                {isNaN(usdAmount)
+                                  ? "0.00"
+                                  : usdAmount.toFixed(2)}{" "}
+                                worth of LMX (
+                                {isNaN(tokenAmount)
+                                  ? "0.00"
+                                  : tokenAmount.toFixed(2)}{" "}
+                                LMX)
+                              </>
+                            )}
+                          </span>
+                          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </div>
+                      )}
+                    </GlowButton>
+
+                    {/* Show approval info for USDT flow */}
+                    {!isLoading && (
+                      <div className="mt-2 text-xs text-center text-white/70">
+                        {needsUsdtApproval
+                          ? "First approve USDT spending, then you'll be able to complete the purchase"
+                          : "USDT spending already approved. You can buy tokens now."}
+                      </div>
+                    )}
+                  </div>
                 ) : (
+                  // Standard button for other currencies
                   <GlowButton
                     onClick={handleBuy}
                     disabled={isLoading || !presaleStatus || usdAmount <= 0}

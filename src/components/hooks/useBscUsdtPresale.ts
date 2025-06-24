@@ -16,8 +16,8 @@ import {
 import { parseEther } from "ethers";
 import { usdtPresaleAbi } from "@/lib/abi-usdt";
 
-// Initial transaction steps for BSC USDT
-const initialTransactionSteps: TransactionStep[] = [
+// Initial transaction steps for BSC USDT approval
+const initialApprovalSteps: TransactionStep[] = [
   {
     id: "wallet-connect",
     title: "Connect Wallet",
@@ -25,9 +25,37 @@ const initialTransactionSteps: TransactionStep[] = [
     status: "pending",
   },
   {
-    id: "approve-usdt",
-    title: "Approve USDT",
-    description: "Approve USDT spending for the presale contract",
+    id: "check-balance",
+    title: "Check Balance",
+    description: "Verify sufficient USDT balance",
+    status: "pending",
+  },
+  {
+    id: "send-approval",
+    title: "Send Approval",
+    description: "Sign and send USDT approval to the BSC network",
+    status: "pending",
+  },
+  {
+    id: "confirm-approval",
+    title: "Confirm Approval",
+    description: "Wait for approval confirmation",
+    status: "pending",
+  },
+];
+
+// Initial transaction steps for BSC USDT purchase
+const initialPurchaseSteps: TransactionStep[] = [
+  {
+    id: "wallet-connect",
+    title: "Connect Wallet",
+    description: "Connect to your BSC wallet",
+    status: "pending",
+  },
+  {
+    id: "check-approval",
+    title: "Check Approval",
+    description: "Verify USDT is approved for spending",
     status: "pending",
   },
   {
@@ -99,6 +127,12 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   const [usdtPrice, setUsdtPrice] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // This controls whether we're in approval or purchase flow
+  const [isApprovalMode, setIsApprovalMode] = useState(false);
+  // This controls which transaction steps to show in the modal
+  const [displayedMode, setDisplayedMode] = useState<"approval" | "purchase">(
+    "approval"
+  );
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
   >(null);
@@ -106,7 +140,7 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
   const [purchaseInitiated, setPurchaseInitiated] = useState(false);
   const { address } = useAccount();
 
-  // Initialize transaction status
+  // Initialize transaction status using the displayedMode to determine which steps to show
   const {
     status: transactionStatus,
     setCurrentStep,
@@ -115,7 +149,9 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     completeTransaction,
     setError,
     resetStatus,
-  } = useTransactionStatus(initialTransactionSteps);
+  } = useTransactionStatus(
+    displayedMode === "approval" ? initialApprovalSteps : initialPurchaseSteps
+  );
 
   // Check presale status
   const { data: presaleStatus } = useReadContract({
@@ -206,21 +242,28 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
   // Handle approval transaction confirmation
   useEffect(() => {
     if (isApprovalConfirmed && !approvalCompleted) {
-      console.log("Approval confirmed, proceeding to purchase");
+      console.log("Approval confirmed");
       setApprovalCompleted(true);
       refetchUsdtAllowance();
 
-      // Move to prepare transaction step
-      nextStep();
-      setCurrentStep("prepare-transaction");
-      nextStep();
+      // Move to confirmation step in approval mode
+      if (isApprovalMode) {
+        setCurrentStep("confirm-approval");
+        nextStep();
+        completeTransaction();
+        resetStatus();
+        setDisplayedMode("purchase"); // Switch to purchase mode after approval
 
-      // Small delay to ensure state updates, then proceed to purchase
-      setTimeout(() => {
-        initiatePurchase();
-      }, 1000);
+        toast.success(
+          "USDT approved successfully! You can now purchase tokens."
+        );
+        setTimeout(() => {
+          setIsLoading(false);
+          setIsModalOpen(false);
+        }, 2000);
+      }
     }
-  }, [isApprovalConfirmed, approvalCompleted]);
+  }, [isApprovalConfirmed, approvalCompleted, isApprovalMode]);
 
   // Handle approval errors
   useEffect(() => {
@@ -303,6 +346,37 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
             `Verifying transaction attempt ${attempts + 1}/${maxAttempts}`
           );
 
+          // First check if the transaction is already completed in the database
+          const statusResponse = await fetch(
+            "/api/presale/check-transaction-status",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                hash: hash,
+              }),
+            }
+          );
+
+          const statusData = await statusResponse.json();
+          console.log("Transaction status check:", statusData);
+
+          // If already verified in the database, we're done
+          if (statusData.verified) {
+            console.log("Transaction already verified in the database");
+            setCurrentStep("save-allocation");
+            nextStep();
+            completeTransaction();
+            toast.success(
+              `Successfully purchased ${tokenAmount} LMX tokens with USDT!`
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          // If not found or not verified, proceed with blockchain verification
           const verificationResponse = await fetch(
             "/api/presale/verify-bsc-usdt",
             {
@@ -364,7 +438,114 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     [setCurrentStep, nextStep, completeTransaction, setError, tokenAmount]
   );
 
-  // Main function to buy tokens with USDT
+  // Function to approve USDT spending - now exported separately
+  const approveUsdtSpending = async () => {
+    if (!address) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    if (!presaleStatus) {
+      toast.error("Presale is not active");
+      return;
+    }
+
+    if (tokenAmount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    // Reset states related to approval
+    resetStatus();
+    resetApproval();
+    setDisplayedMode("approval"); // Show approval steps in the modal
+    setApprovalCompleted(false);
+    setIsModalOpen(true);
+    setIsLoading(true);
+    setIsApprovalMode(true); // Set the functional mode to approval
+
+    try {
+      console.log("Starting USDT approval process");
+
+      // Step 1: Wallet connect
+      setCurrentStep("wallet-connect");
+      nextStep();
+
+      // Step 2: Check USDT balance
+      setCurrentStep("check-balance");
+      await refetchUsdtBalance();
+
+      if (
+        usdtBalance !== undefined &&
+        BigInt(usdtBalance?.toString() ?? "") < dynamicCost
+      ) {
+        toast.error("Insufficient USDT balance");
+        setError("check-balance", "Insufficient USDT balance");
+        setIsLoading(false);
+        setIsModalOpen(false);
+        return;
+      }
+      nextStep();
+
+      // Check current allowance first
+      await refetchUsdtAllowance();
+      const currentAllowance = usdtAllowance as bigint;
+      console.log(
+        "Current allowance:",
+        currentAllowance?.toString(),
+        "Required:",
+        dynamicCost.toString()
+      );
+
+      if (!currentAllowance || currentAllowance < dynamicCost) {
+        console.log("Approval needed, requesting approval");
+
+        // Step 3: Send approval transaction
+        setCurrentStep("send-approval");
+
+        try {
+          await approveUsdt({
+            address: BSC_USDT_ADDRESS as `0x${string}`,
+            abi: usdtAbi,
+            functionName: "approve",
+            args: [BSC_PRESALE_CONTRACT_ADDRESS, dynamicCost * BigInt(2)], // Approve 2x for future transactions
+          });
+
+          console.log("Approval transaction sent");
+          toast.success("USDT approval transaction sent");
+          nextStep(); // Move to waiting for confirmation
+          // The approval confirmation will be handled by the useEffect above
+        } catch (error) {
+          console.error("Error requesting approval:", error);
+          setError("send-approval", "Failed to request USDT approval");
+          toast.error("Failed to request USDT approval");
+          setIsLoading(false);
+          setIsModalOpen(false);
+          return;
+        }
+      } else {
+        console.log("Sufficient allowance already exists");
+        toast.success("You have already approved USDT spending");
+        setApprovalCompleted(true);
+        setCurrentStep("send-approval");
+        nextStep();
+        setCurrentStep("confirm-approval");
+        nextStep();
+        completeTransaction();
+        setTimeout(() => {
+          setIsLoading(false);
+          setIsModalOpen(false);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Error in approval process:", error);
+      toast.error("An unexpected error occurred during approval");
+      setIsLoading(false);
+      setIsModalOpen(false);
+    }
+  };
+
+  // Main function to buy tokens with USDT (after approval)
   const buyTokens = async () => {
     if (!address) {
       toast.error("Please connect your wallet");
@@ -381,103 +562,111 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
       return;
     }
 
-    // Reset all states
+    // Check if USDT is approved first
+    await refetchUsdtAllowance();
+    const currentAllowance = usdtAllowance as bigint;
+
+    if (!currentAllowance || currentAllowance < dynamicCost) {
+      toast.warning("USDT spending not approved yet. Please approve first.");
+      return false; // Return false to indicate approval is needed
+    }
+
+    // Reset purchase-related states
     resetStatus();
-    resetApproval();
     resetPurchase();
-    setApprovalCompleted(false);
     setPurchaseInitiated(false);
     setTransactionSignature(null);
+    setDisplayedMode("purchase"); // Show purchase steps in the modal
     setIsModalOpen(true);
     setIsLoading(true);
+    setIsApprovalMode(false); // Set to purchase mode for functional flow
 
     try {
-      console.log("Starting buy process");
+      console.log("Starting purchase process with pre-approved USDT");
 
-      // Step 1: Wallet connect
+      // Step 1: Connect wallet
       setCurrentStep("wallet-connect");
       nextStep();
 
-      // Check USDT balance
-      await refetchUsdtBalance();
-
-      if (
-        usdtBalance !== undefined &&
-        BigInt(usdtBalance?.toString() ?? "") < dynamicCost
-      ) {
-        toast.error("Insufficient USDT balance");
-        setError("wallet-connect", "Insufficient USDT balance");
-        setIsLoading(false);
-        return;
-      }
-
-      // Step 2: Check and handle approval
-      setCurrentStep("approve-usdt");
+      // Step 2: Check approval status
+      setCurrentStep("check-approval");
       await refetchUsdtAllowance();
+      const refreshedAllowance = usdtAllowance as bigint;
 
-      const currentAllowance = usdtAllowance as bigint;
-      console.log(
-        "Current allowance:",
-        currentAllowance?.toString(),
-        "Required:",
-        dynamicCost.toString()
-      );
-
-      if (!currentAllowance || currentAllowance < dynamicCost) {
-        console.log("Approval needed, requesting approval");
-
-        try {
-          await approveUsdt({
-            address: BSC_USDT_ADDRESS as `0x${string}`,
-            abi: usdtAbi,
-            functionName: "approve",
-            args: [BSC_PRESALE_CONTRACT_ADDRESS, dynamicCost * BigInt(2)], // Approve 2x for future transactions
-          });
-
-          console.log("Approval transaction sent");
-          // The approval confirmation will be handled by the useEffect above
-        } catch (error) {
-          console.error("Error requesting approval:", error);
-          setError("approve-usdt", "Failed to request USDT approval");
-          toast.error("Failed to request USDT approval");
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        console.log("Sufficient allowance, proceeding directly to purchase");
-        setApprovalCompleted(true);
-
-        nextStep();
-        setCurrentStep("prepare-transaction");
-        nextStep();
-
-        setTimeout(() => {
-          initiatePurchase();
-        }, 500);
+      if (!refreshedAllowance || refreshedAllowance < dynamicCost) {
+        setError("check-approval", "USDT approval insufficient or expired");
+        toast.error(
+          "USDT approval insufficient. Please approve USDT spending first."
+        );
+        setIsLoading(false);
+        setIsModalOpen(false);
+        return false;
       }
+      nextStep();
+
+      // Step 3: Prepare transaction
+      setCurrentStep("prepare-transaction");
+      nextStep();
+
+      // Step 4: Initiate purchase
+      initiatePurchase();
+      return true;
     } catch (error) {
       console.error("Error in buy process:", error);
       toast.error("An unexpected error occurred");
       setIsLoading(false);
       setIsModalOpen(false);
+      return false;
     }
   };
 
-  // Close modal function
-  const closeModal = () => {
+  // Reset all states function to be used after a successful transaction
+  const resetState = () => {
+    // Reset modal and loading states
     setIsModalOpen(false);
     setIsLoading(false);
+
+    // Reset transaction status states
     resetStatus();
+
+    // Reset transaction flow states
     setApprovalCompleted(false);
     setPurchaseInitiated(false);
     setTransactionSignature(null);
+
+    // Reset transaction data
+    resetApproval();
+    resetPurchase();
+
+    // Reset modes to default for next action
+    setDisplayedMode("purchase");
+
+    // Note: We don't reset isApprovalMode here as it represents the functional state
+    // and should be determined by checking allowance the next time the user interacts
   };
+
+  // Close modal function - now using the resetState function
+  const closeModal = () => {
+    resetState();
+  };
+
+  // Helper function to check if USDT is approved
+  const isUsdtApproved = useCallback(async () => {
+    await refetchUsdtAllowance();
+    return usdtAllowance && BigInt(usdtAllowance.toString()) >= dynamicCost;
+  }, [refetchUsdtAllowance, usdtAllowance, dynamicCost]);
 
   return {
     buyTokens,
+    approveUsdtSpending, // Expose approval function separately
+    isUsdtApproved, // Add helper to check approval status
+    isApprovalMode, // Expose whether we're in approval or purchase mode
+    displayedMode, // Expose which mode is being displayed in the modal
+    approvalCompleted, // Expose approval state
     isLoading,
     isModalOpen,
     closeModal,
+    resetState, // Expose the reset function for external use
     transactionStatus,
     transactionSignature,
     usdtBalance,

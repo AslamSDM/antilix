@@ -65,6 +65,33 @@ export function PendingTransactions() {
     setProcessingTransactions((prev) => new Set(prev).add(tx.id));
 
     try {
+      // First check if the transaction is already completed in the database
+      const statusResponse = await fetch(
+        "/api/presale/check-transaction-status",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hash: tx.hash }),
+        }
+      );
+
+      const statusData = await statusResponse.json();
+
+      // If already verified in the database, we're done
+      if (statusResponse.ok && statusData.verified) {
+        toast.success(
+          `Transaction verified: ${tx.paymentAmount} ${tx.paymentCurrency} purchase confirmed`,
+          {
+            description: `You've successfully purchased LMX tokens on ${tx.network}`,
+          }
+        );
+
+        // Remove from pending list
+        setPendingTransactions((prev) => prev.filter((t) => t.id !== tx.id));
+        return;
+      }
+
+      // If not verified in the database, try blockchain verification
       let endpoint = "";
       // Determine the correct verification endpoint based on network and currency
       if (tx.network === "BSC") {
