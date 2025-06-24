@@ -161,6 +161,9 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     writeContract: buyWithUsdt,
     data: purchaseHash,
     isPending: isPurchasePending,
+
+    isSuccess: isPurchaseSuccess,
+    isError: isPurchaseError,
     error: purchaseError,
   } = useWriteContract();
 
@@ -321,7 +324,7 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     }
 
     verifyTransaction();
-  }, [purchaseHash, currentStep]);
+  }, [purchaseHash, currentStep, isPurchaseSuccess]);
 
   // Main function to buy tokens with USDT
   const buyTokens = async () => {
