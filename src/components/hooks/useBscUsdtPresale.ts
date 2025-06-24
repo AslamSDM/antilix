@@ -183,9 +183,9 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
         // Calculate cost in USDT (using USD amount directly since 1:1)
         const usdtCost = calculateCryptoCost(tokenAmount, "usdt", prices);
-
+        console.log("Calculated USDT cost:", usdtCost);
         // Convert to smallest USDT unit (6 decimals) for the contract
-        setDynamicCost(parseUnits(usdtCost.toString(), 6));
+        setDynamicCost(parseUnits(usdtCost.toString(), 18));
       } catch (error) {
         console.error("Error calculating token cost:", error);
         toast.error("Error calculating USDT cost. Please try again.");
@@ -202,6 +202,41 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
     if (isApprovalConfirmed && currentStep?.id === "approve-usdt") {
       nextStep(); // Move to prepare transaction step
       refetchUsdtAllowance(); // Refresh allowance data
+    }
+  }, [isApprovalConfirmed, currentStep]);
+  useEffect(() => {
+    if (isApprovalConfirmed && currentStep?.id === "prepare-transaction") {
+      nextStep();
+
+      // Step 4: Send transaction
+      setCurrentStep("send-transaction");
+
+      try {
+        // Call the contract's buyTokensWithUsdt function - this is the new method from the contract
+        // First try the new function, and if it fails, fall back to the old function name
+        try {
+          buyWithUsdt({
+            address: BSC_PRESALE_CONTRACT_ADDRESS as `0x${string}`,
+            abi: usdtPresaleAbi,
+            functionName: "buyTokensWithUsdt",
+            args: [parseEther(tokenAmount.toString())],
+          });
+        } catch (e) {
+          console.warn("buyTokensWithUsdt failed, trying buyWithUSDT", e);
+          // Fall back to the old function name if the new one fails
+        }
+
+        nextStep();
+      } catch (error) {
+        console.error("Error sending transaction:", error);
+        setError("send-transaction", "Failed to send transaction");
+        toast.error("Failed to send transaction");
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 5: Verify transaction (handled in the effect watching purchaseHash)
+      setCurrentStep("verify-transaction");
     }
   }, [isApprovalConfirmed, currentStep]);
 
@@ -338,7 +373,8 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
       // Refetch allowance to get the latest value
       await refetchUsdtAllowance();
-
+      console.log("USDT Allowance:", usdtAllowance);
+      console.log("Dynamic Cost:", dynamicCost);
       if (!usdtAllowance || (usdtAllowance as bigint) < dynamicCost) {
         // Need to approve USDT first
         try {
