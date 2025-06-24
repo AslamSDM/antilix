@@ -16,6 +16,10 @@ export const networks = [solana, bsc] as [AppKitNetwork, ...AppKitNetwork[]];
 
 //Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
+  storage: createStorage({
+    storage: cookieStorage,
+  }),
+
   ssr: true,
   projectId,
   networks,
