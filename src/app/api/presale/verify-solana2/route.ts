@@ -142,14 +142,10 @@ export async function POST(req: NextRequest) {
       prisma as any
     ).transaction.findUnique({
       where: { hash: signature },
-      include: { completedPurchase: true },
     });
 
     // Return if already completed
-    if (
-      existingTransactionRecord?.status === "COMPLETED" &&
-      existingTransactionRecord.completedPurchase
-    ) {
+    if (existingTransactionRecord?.status === "COMPLETED") {
       return NextResponse.json({
         verified: true,
         transaction: existingTransactionRecord,
@@ -183,7 +179,6 @@ export async function POST(req: NextRequest) {
           checkCount: { increment: 1 },
           lastChecked: new Date(),
         },
-        include: { completedPurchase: true },
       });
     } else if (!existingTransactionRecord) {
       existingTransactionRecord = await (prisma as any).transaction.create({
@@ -300,7 +295,6 @@ export async function POST(req: NextRequest) {
         data: {
           status: "COMPLETED",
           paymentAmount: solAmount.toString(),
-          completedPurchase: { connect: { id: existingPurchaseRecord.id } },
         },
       });
 
