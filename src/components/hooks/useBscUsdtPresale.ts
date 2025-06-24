@@ -402,7 +402,7 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
 
       if (
         usdtBalance !== undefined &&
-        BigInt(usdtBalance.toString()) < dynamicCost
+        BigInt(usdtBalance?.toString() ?? "") < dynamicCost
       ) {
         toast.error("Insufficient USDT balance");
         setError("wallet-connect", "Insufficient USDT balance");
