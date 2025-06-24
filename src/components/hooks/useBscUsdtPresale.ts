@@ -205,7 +205,16 @@ export function useBscUsdtPresale(tokenAmount: number, referrer?: string) {
       nextStep(); // Move to prepare transaction step
       refetchUsdtAllowance(); // Refresh allowance data
     }
-  }, [isApprovalConfirmed, currentStep]);
+    if (
+      (usdtAllowance as bigint) >= dynamicCost &&
+      currentStep?.id === "approve-usdt"
+    ) {
+      // If allowance is sufficient, skip to prepare transaction step
+      nextStep();
+      setCurrentStep("prepare-transaction");
+      nextStep(); // Move to next step
+    }
+  }, [isApprovalConfirmed, currentStep, isApprovalConfirming, usdtAllowance]);
   useEffect(() => {
     if (isApprovalConfirmed && currentStep?.id === "prepare-transaction") {
       nextStep();
