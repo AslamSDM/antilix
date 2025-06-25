@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/next-auth";
 import prisma from "@/lib/prisma";
 import ProfileClientContent from "./ProfileClientContent";
+import { parse } from "path";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60; // Revalidate data every 60 seconds
@@ -116,6 +117,7 @@ async function getUserData(userId: string): Promise<UserData> {
         id: true,
         createdAt: true,
         lmxTokensAllocated: true,
+        pricePerLmxInUsdt: true,
         status: true,
         network: true,
         transactionSignature: true,
@@ -136,13 +138,14 @@ async function getUserData(userId: string): Promise<UserData> {
     });
 
     // Calculate bonus as 5% of the referred purchases
-    const referralBonusPercentage = 0.05;
+    const referralBonusPercentage = 0.1;
 
     totalReferralBonus = referralPurchases.reduce((total, purchase) => {
       const purchaseAmount =
         typeof purchase.lmxTokensAllocated === "object"
           ? parseFloat(purchase.lmxTokensAllocated.toString())
-          : parseFloat(purchase.lmxTokensAllocated || "0");
+          : parseFloat(purchase.lmxTokensAllocated || "0") *
+            Number(purchase.pricePerLmxInUsdt || "0");
 
       return total + purchaseAmount * referralBonusPercentage;
     }, 0);
