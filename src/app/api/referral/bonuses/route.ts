@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     const referralCount = user.referrals.length;
 
     // Get completed referral payments
-    const completedPayments = await prisma.referralPayment.findMany({
+    const completedPayments = await (prisma as any).referralPayment.findMany({
       where: {
         referrerId: userId,
         status: "COMPLETED",
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Get pending referral payments
-    const pendingPayments = await prisma.referralPayment.findMany({
+    const pendingPayments = await (prisma as any).referralPayment.findMany({
       where: {
         referrerId: userId,
         status: "PENDING",
