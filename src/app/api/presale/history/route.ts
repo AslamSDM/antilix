@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     // Get wallet address from query param only
 
     // Find user by their wallet address
-    const user = await prisma.user.findFirstOrThrow({
+    const user = await prisma.user.findFirst({
       where: {
         id: session.user.id,
       },

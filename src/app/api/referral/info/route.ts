@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
         id: true,
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Look up the referral code in the database to get user details
-    const referrer = await prisma.user.findFirstOrThrow({
+    const referrer = await prisma.user.findFirst({
       where: { referralCode: code },
       select: {
         id: true,

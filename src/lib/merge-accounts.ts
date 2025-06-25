@@ -32,7 +32,7 @@ export async function mergeWalletAccounts(
   try {
     // Step 1: Identify if the user already has accounts with different wallet types
     // Find user by current wallet address that's being connected
-    const primaryUser = await (prisma as any).user.findFirstOrThrow({
+    const primaryUser = await (prisma as any).user.findFirst({
       where: {
         OR: [
           { walletAddress },
@@ -62,7 +62,7 @@ export async function mergeWalletAccounts(
     // If we found a Solana account, look for matching EVM accounts and vice versa
     const searchField =
       walletType === "solana" ? "evmAddress" : "solanaAddress";
-    const otherAccount = await (prisma as any).user.findFirstOrThrow({
+    const otherAccount = await (prisma as any).user.findFirst({
       where: {
         [searchField]: { not: null },
         // Don't include the same user we already found

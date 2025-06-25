@@ -31,7 +31,7 @@ export async function autoRegisterUser(
 
     // Check if the user already exists in any of the wallet fields
 
-    let existingUser = await prisma.user.findFirstOrThrow({
+    let existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { solanaAddress: address },
@@ -121,7 +121,7 @@ export async function autoRegisterUser(
         );
 
         // Find the existing user again (in case they were just created in a race condition)
-        const existingUser = await prisma.user.findFirstOrThrow({
+        const existingUser = await prisma.user.findFirst({
           where: {
             OR: [
               { solanaAddress: address },
