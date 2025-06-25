@@ -106,20 +106,20 @@ enum PurchaseStatus {
 }
 
 model Transaction {
-  id              String      @id @default(cuid())
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   userId          String
   network         NetworkType
-  hash            String      @unique
-  status          String      @default("PENDING")
-  lastChecked     DateTime    @default(now())
-  checkCount      Int         @default(0)
+  hash            String            @unique
+  status          TransactionStatus @default(PENDING)
+  lastChecked     DateTime          @default(now())
+  checkCount      Int               @default(0)
   tokenAmount     Decimal
   paymentAmount   Decimal
   paymentCurrency String
-  user            User        @relation(fields: [userId], references: [id])
-  Purchase        Purchase?   @relation(fields: [purchaseId], references: [id])
+  user            User              @relation(fields: [userId], references: [id])
+  Purchase        Purchase?         @relation(fields: [purchaseId], references: [id])
   purchaseId      String?
 
   @@index([userId])
@@ -128,25 +128,25 @@ model Transaction {
 
 // New model for tracking referral payments
 model ReferralPayment {
-  id                   String                @id @default(cuid())
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  id                   String            @id @default(cuid())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   referrerId           String // ID of the user who gets the reward
   purchaseId           String // Related purchase that triggered the referral
   amount               Decimal // Amount of tokens to be paid
   amountUsd            Decimal // USD value at time of payment calculation
-  status               ReferralPaymentStatus @default(PENDING)
+  status               TransactionStatus @default(PENDING)
   transactionSignature String? // Blockchain transaction signature when paid
-  paymentCurrency      String                @default("SOL")
-  referrer             User                  @relation(fields: [referrerId], references: [id])
-  purchase             Purchase              @relation(fields: [purchaseId], references: [id])
+  paymentCurrency      String            @default("SOL")
+  referrer             User              @relation(fields: [referrerId], references: [id])
+  purchase             Purchase          @relation(fields: [purchaseId], references: [id])
 
   @@index([referrerId])
   @@index([purchaseId])
   @@index([status])
 }
 
-enum ReferralPaymentStatus {
+enum TransactionStatus {
   PENDING // Payment waiting for referrer to verify wallet
   PROCESSING // Payment is being processed
   COMPLETED // Payment has been sent
