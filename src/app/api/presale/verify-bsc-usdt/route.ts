@@ -391,7 +391,8 @@ export async function POST(req: NextRequest) {
         referralPaid = await sendReferralTokens(
           referrer.solanaAddress,
           parseFloat(usdtAmount),
-          "usdt"
+          "usdt",
+          user.referrerId
         );
       }
     }

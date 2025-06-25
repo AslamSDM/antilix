@@ -428,7 +428,8 @@ export async function POST(req: NextRequest) {
           referralPaid = await sendReferralTokens(
             referrer.solanaAddress,
             transferAmount,
-            "usdt"
+            "usdt",
+            sender.referrerId
           );
         } catch (error) {
           console.error("Error sending referral tokens:", error);

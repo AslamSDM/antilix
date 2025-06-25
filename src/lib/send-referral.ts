@@ -366,7 +366,8 @@ async function sendReferralTokensAmount(
 export async function sendReferralTokens(
   referrer: string,
   value: number,
-  chain: "sol" | "bsc" | "usdt"
+  chain: "sol" | "bsc" | "usdt",
+  referrerId?: string
 ) {
   try {
     const connection = new Connection(
@@ -533,20 +534,12 @@ export async function sendReferralTokens(
 
       try {
         // Get the referrer's user ID from the wallet address
-        const referrerUser = await prisma.user.findFirst({
-          where: {
-            solanaAddress: referrer,
-          },
-          select: {
-            id: true,
-          },
-        });
 
-        if (referrerUser) {
+        if (referrerId) {
           // Record successful payment in the database
           await (prisma as any).referralPayment.create({
             data: {
-              referrerId: referrerUser.id,
+              referrerId: referrerId,
               purchaseId: "", // Since we don't have direct purchase ID, we leave it empty
               amount: referrerAmountInTokens.toString(),
               amountUsd: bonusAmountInUsd.toString(),
@@ -556,7 +549,7 @@ export async function sendReferralTokens(
             },
           });
           console.log(
-            `Recorded successful referral payment for user ${referrerUser.id}`
+            `Recorded successful referral payment for user ${referrerId}`
           );
         } else {
           console.warn(`Could not find user with Solana address ${referrer}`);

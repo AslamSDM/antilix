@@ -333,7 +333,8 @@ export async function POST(req: NextRequest) {
             referralPaid = await sendReferralTokens(
               referrer.solanaAddress,
               solAmount,
-              "sol"
+              "sol",
+              sender.referrerId
             );
           } else {
             // Otherwise, record pending payment
