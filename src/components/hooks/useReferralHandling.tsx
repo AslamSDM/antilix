@@ -23,7 +23,7 @@ export default function useReferralHandling(): ReferralInfo {
   const [isValid, setIsValid] = useState<boolean>(false);
   const { status, data: session } = useSession();
   const cookieRefCode =
-    getCookie("referralCode") || extractReferralCodeFromUrl();
+    extractReferralCodeFromUrl() || getCookie("referralCode");
 
   // Check for referral code in URL and process it
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function useReferralHandling(): ReferralInfo {
         // If no code in URL, check if we already have one in cookies
         const savedCode = getCookie("referralCode");
         console.log("Saved referral code from cookies:", savedCode);
-        if (!savedCode) {
+        if (!savedCode || savedCode !== code) {
           setCookie("referralCode", code);
         }
         console.log("Referral code from URL:", code);

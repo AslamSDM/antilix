@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 import { LMX_PRICE } from "@/lib/constants";
 import { useRouter } from "next/navigation";
+import useReferralHandling from "@/components/hooks/useReferralHandling";
 
 // Tokenomics data
 const tokenomicsData = [
@@ -245,6 +246,7 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const { status } = useSession();
   const router = useRouter();
+  const referralInfo = useReferralHandling();
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
