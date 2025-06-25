@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         evmAddress: true,
         referrerId: true,
         referrer: true,
+        referralCode: true,
       },
     });
     if (!user) {
@@ -45,6 +46,12 @@ export async function GET(req: NextRequest) {
     if (!code) {
       return NextResponse.json(
         { error: "Missing referral code" },
+        { status: 400 }
+      );
+    }
+    if (user.referralCode === code) {
+      return NextResponse.json(
+        { error: "You cannot refer yourself" },
         { status: 400 }
       );
     }

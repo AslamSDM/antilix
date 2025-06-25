@@ -6,13 +6,43 @@ import { Share2, Copy, Check, Users } from "lucide-react";
 import LuxuryCard from "./LuxuryCard";
 import { generateReferralUrl } from "@/lib/referral";
 import { useSession } from "next-auth/react";
+import ReferralStats from "./ReferralStats";
+
+interface ReferralPaymentStats {
+  totalPaidAmount: number;
+  totalPendingAmount: number;
+  totalPaidUsd: number;
+  totalPendingUsd: number;
+  completedPaymentsCount: number;
+  pendingPaymentsCount: number;
+}
 
 interface ReferralCardProps {
   className?: string;
+  totalBonus?: number;
+  referralCount?: number;
+  paymentStats?: ReferralPaymentStats;
+  serverRenderedStats?: {
+    totalBonus: string;
+    totalPendingBonus: string;
+    totalUsd: string;
+    totalPendingUsd: string;
+    referralCount: number;
+    referralCode: string;
+    solanaVerified: boolean;
+    payments: {
+      completed: number;
+      pending: number;
+    };
+  };
 }
 
 export const ReferralCard: React.FC<ReferralCardProps> = ({
   className = "",
+  totalBonus = 0,
+  referralCount = 0,
+  paymentStats,
+  serverRenderedStats,
 }) => {
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -30,6 +60,11 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     const fetchBonusData = async () => {
       if (status !== "authenticated") return;
       if (!session?.user.referralCode) return;
+
+      // Skip fetching if we already have server-rendered stats
+      if (serverRenderedStats) {
+        return;
+      }
 
       try {
         const response = await fetch(
@@ -49,7 +84,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
     };
 
     fetchBonusData();
-  }, [session, status]);
+  }, [session, status, serverRenderedStats]);
 
   // If no referral code is provided or fetched, generate a placeholder
 
@@ -70,7 +105,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
 
   if (!session?.user?.referralCode) return null;
   return (
-    <LuxuryCard className={`p-6 ${className}`}>
+    <LuxuryCard className={`p-6 ${className} w-full`}>
       <div className="flex items-center mb-4">
         <Share2 className="w-6 h-6 text-primary mr-3" />
         <h3 className="text-xl font-bold">Refer Friends & Earn 10% Bonus</h3>
@@ -113,38 +148,10 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
         </div>
       </div>
 
-      {/* Referral Stats */}
-      <div className="mt-6 grid grid-cols-2 gap-4">
-        {/* <div className="bg-black/40 rounded-lg p-3 text-center">
-          <div className="text-xs text-gray-400 mb-1">Total Bonus</div>
-          <div className="text-lg font-bold">
-            {parseFloat(bonusStats.totalBonus).toLocaleString(undefined, {
-              maximumFractionDigits: 2,
-            })}{" "}
-            LMX
-          </div>
-        </div> */}
-
-        <div className="bg-black/40 rounded-lg p-3 text-center">
-          <div className="text-xs text-gray-400 mb-1">Referrals</div>
-          <div className="text-lg font-bold">{bonusStats.referralCount}</div>
-        </div>
-
-        <div className="bg-black/40 rounded-lg p-3 text-center">
-          <div className="text-xs text-gray-400 mb-1">Purchases</div>
-          <div className="text-lg font-bold">{bonusStats.count}</div>
-        </div>
+      {/* Use ReferralStats component instead of the inline stats */}
+      <div className="mt-6">
+        <ReferralStats serverRenderedStats={serverRenderedStats} />
       </div>
-      {/* 
-      <div className="mt-4 flex justify-center">
-        <a
-          href="/referral"
-          className="text-primary hover:text-primary/80 text-sm flex items-center"
-        >
-          <Users className="w-4 h-4 mr-1" />
-          View Detailed Referral Analytics
-        </a>
-      </div> */}
 
       {/* Social sharing options */}
       <div className="flex justify-center mt-6 space-x-4">
@@ -164,17 +171,57 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
       </div>
 
       {/* Rewards visualization */}
-      <div className="mt-6 pt-6 border-t border-primary/20">
-        <h4 className="font-medium mb-3 text-center">Your Referral Rewards</h4>
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-400">Total Referred</div>
-          <div className="font-medium">0 Users</div>
+      {serverRenderedStats?.referralCount && (
+        <div className="mt-6 pt-6 border-t border-primary/20">
+          <h4 className="font-medium mb-3 text-center">
+            Your Referral Rewards
+          </h4>
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-400">Total Referred</div>
+            <div className="font-medium">
+              {serverRenderedStats ? serverRenderedStats.referralCount : 0}{" "}
+              Users
+            </div>
+          </div>
+          <div className="flex justify-between items-center mt-2">
+            <div className="text-sm text-gray-400">Total Value Earned</div>
+            <div className="font-medium text-primary">
+              $
+              {serverRenderedStats
+                ? parseFloat(serverRenderedStats.totalUsd).toLocaleString(
+                    undefined,
+                    { maximumFractionDigits: 2 }
+                  )
+                : "0.00"}
+            </div>
+          </div>
+
+          {/* Payment Stats Summary */}
+          {(paymentStats ||
+            (serverRenderedStats?.payments &&
+              (serverRenderedStats.payments.completed > 0 ||
+                serverRenderedStats.payments.pending > 0))) && (
+            <div className="mt-4">
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-sm text-gray-400">Completed Payments</div>
+                <div className="font-medium text-primary">
+                  {paymentStats?.completedPaymentsCount ||
+                    serverRenderedStats?.payments?.completed ||
+                    0}
+                </div>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-sm text-gray-400">Pending Payments</div>
+                <div className="font-medium text-yellow-300">
+                  {paymentStats?.pendingPaymentsCount ||
+                    serverRenderedStats?.payments?.pending ||
+                    0}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        {/* <div className="flex justify-between items-center mt-2">
-          <div className="text-sm text-gray-400">Bonus Earned</div>
-          <div className="font-medium text-primary">0 LMX</div>
-        </div> */}
-      </div>
+      )}
     </LuxuryCard>
   );
 };

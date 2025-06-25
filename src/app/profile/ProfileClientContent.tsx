@@ -21,6 +21,7 @@ import { RecentActivitySummary } from "@/components/RecentActivitySummary";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import ReferralCard from "@/components/ReferralCard";
 
 interface Purchase {
   id: string;
@@ -44,7 +45,30 @@ interface UserData {
     count: number;
     totalBonus: number;
     purchases: ReferredUserPurchase[];
+    paymentStats: ReferralPaymentStats;
+    referralStats?: {
+      totalBonus: string;
+      totalPendingBonus: string;
+      totalUsd: string;
+      totalPendingUsd: string;
+      referralCount: number;
+      referralCode: string;
+      solanaVerified: boolean;
+      payments: {
+        completed: number;
+        pending: number;
+      };
+    };
   };
+}
+
+interface ReferralPaymentStats {
+  totalPaidAmount: number;
+  totalPendingAmount: number;
+  totalPaidUsd: number;
+  totalPendingUsd: number;
+  completedPaymentsCount: number;
+  pendingPaymentsCount: number;
 }
 
 interface ProfileClientContentProps {
@@ -61,6 +85,14 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
       count: 0,
       totalBonus: 0,
       purchases: [],
+      paymentStats: {
+        totalPaidAmount: 0,
+        totalPendingAmount: 0,
+        totalPaidUsd: 0,
+        totalPendingUsd: 0,
+        completedPaymentsCount: 0,
+        pendingPaymentsCount: 0,
+      },
     },
   },
   initialSession,
@@ -605,240 +637,64 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
               )}
 
               {activeTab === "referrals" && (
-                <div className="space-y-6">
-                  <motion.div
-                    variants={itemVariants}
-                    className="bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
-                  >
-                    <div className="flex items-center mb-4">
-                      <Share2 className="h-6 w-6 text-primary mr-2 animate-pulse-slow" />
-                      <h3 className="text-lg font-medium luxury-text">
-                        Referral Program
-                      </h3>
-                    </div>
+                <motion.div
+                  variants={itemVariants}
+                  className="w-full bg-black/40 backdrop-blur-sm p-6 rounded-lg border border-primary/30 shadow-[0_0_10px_rgba(212,175,55,0.05)] transform transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      {/* Replace the existing referral content with ReferralCard */}
+                      <ReferralCard
+                        totalBonus={userData.referrals.totalBonus}
+                        referralCount={userData.referrals.count}
+                        paymentStats={userData.referrals.paymentStats}
+                        serverRenderedStats={userData.referrals.referralStats}
+                      />
 
-                    {isAuthenticated ? (
-                      <>
-                        <div className="mb-6">
-                          <p className="text-white/80">
-                            Invite friends to join Litmex and earn bonus LMX
-                            tokens when they make a purchase using your referral
-                            link.
-                          </p>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                            <motion.div
-                              className="bg-black/30 p-4 rounded-lg border border-primary/20"
-                              whileHover={{ scale: 1.02 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 10,
-                              }}
-                            >
-                              <h5 className="text-white/80 text-sm">
-                                Total Referred Users
-                              </h5>
-                              <p className="text-primary text-3xl font-bold mt-2">
-                                {userData.referrals.count}
-                              </p>
-                              <p className="text-white/60 text-xs mt-1">
-                                Users who joined with your referral
-                              </p>
-                            </motion.div>
-
-                            {/* <motion.div
-                              className="bg-black/30 p-4 rounded-lg border border-primary/20"
-                              whileHover={{ scale: 1.02 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 10,
-                              }}
-                            > */}
-                            {/* <h5 className="text-white/80 text-sm">
-                                Total Bonus Earned
-                              </h5>
-                              <p className="text-primary text-3xl font-bold mt-2">
-                                {userData.referrals.totalBonus} LMX
-                              </p> */}
-                            {/* <p className="text-white/60 text-xs mt-1">
-                                Tokens earned from referrals
-                              </p> */}
-                            {/* </motion.div> */}
-                          </div>
-                        </div>
-
-                        {session?.user?.referralCode && (
-                          <div className="mt-8">
-                            <h4 className="text-lg font-medium luxury-text mb-4">
-                              Your Referral Link
-                            </h4>
-                            <div className="bg-black/20 p-4 rounded-lg border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
-                              <div className="w-full md:flex-grow overflow-hidden">
-                                <div className="relative w-full overflow-hidden">
-                                  <p className="text-primary truncate text-sm md:text-base pr-4">
-                                    {typeof window !== "undefined"
-                                      ? `${window.location.origin}?ref=${session?.user?.referralCode}`
-                                      : `Loading...`}
-                                  </p>
-                                  <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-black/20 to-transparent"></div>
-                                </div>
-                              </div>
-                              <Button
-                                onClick={() => {
-                                  if (typeof navigator !== "undefined") {
-                                    navigator.clipboard.writeText(
-                                      `${window?.location?.origin}?ref=${session?.user?.referralCode}`
-                                    );
-                                  }
-                                }}
-                                className="whitespace-nowrap bg-primary hover:bg-primary/90 text-black w-full md:w-auto shrink-0"
-                              >
-                                Copy Link
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Referred Users Purchases Section */}
-                        <div className="mt-8">
-                          <h4 className="text-lg font-medium luxury-text mb-4">
-                            Referred Users' Purchases
+                      {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
+                      {connected && currentWalletType === "solana" ? (
+                        <div className="bg-black/20 p-6 rounded-lg mt-8">
+                          <h4 className="text-primary mb-4 font-medium">
+                            Wallet Verified Referrals (Solana)
                           </h4>
-
-                          {userData.referrals.purchases.length > 0 ? (
-                            <div className="bg-black/30 rounded-lg border border-primary/20">
-                              <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                  <thead className="border-b border-primary/20">
-                                    <tr>
-                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
-                                        User
-                                      </th>
-                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
-                                        Amount
-                                      </th>
-                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
-                                        Network
-                                      </th>
-                                      <th className="px-4 py-3 text-sm font-normal text-white/70">
-                                        Date
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-800/30">
-                                    {userData.referrals.purchases.map(
-                                      (purchase) => (
-                                        <tr
-                                          key={purchase.id}
-                                          className="hover:bg-primary/5 transition-colors"
-                                        >
-                                          <td className="px-4 py-3 text-sm">
-                                            {purchase.userEmail ? (
-                                              <span className="text-white/80">
-                                                {purchase.userEmail.slice(0, 3)}
-                                                ...
-                                                {purchase.userEmail
-                                                  .split("@")[0]
-                                                  .slice(-2)}
-                                                @
-                                                {
-                                                  purchase.userEmail.split(
-                                                    "@"
-                                                  )[1]
-                                                }
-                                              </span>
-                                            ) : (
-                                              <span className="text-white/50">
-                                                Anonymous
-                                              </span>
-                                            )}
-                                          </td>
-                                          <td className="px-4 py-3 text-sm text-primary">
-                                            {parseFloat(
-                                              purchase.lmxTokensAllocated
-                                            ).toFixed(2)}{" "}
-                                            LMX
-                                          </td>
-                                          <td className="px-4 py-3 text-sm">
-                                            <span
-                                              className={`${purchase.network.toLowerCase() === "solana" ? "bg-indigo-950/30 text-indigo-300" : "bg-amber-950/30 text-amber-300"} px-2 py-1 rounded text-xs`}
-                                            >
-                                              {purchase.network}
-                                            </span>
-                                          </td>
-                                          <td className="px-4 py-3 text-sm text-white/60">
-                                            {new Date(
-                                              purchase.createdAt
-                                            ).toLocaleDateString()}
-                                          </td>
-                                        </tr>
-                                      )
-                                    )}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="bg-black/30 p-6 rounded-lg border border-primary/20 text-center">
-                              <p className="text-white/70">
-                                None of your referred users have made purchases
-                                yet.
-                              </p>
-                              <p className="text-white/50 mt-2 text-sm">
-                                Share your referral link to start earning
-                                bonuses when they buy.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
-                        {connected && currentWalletType === "solana" ? (
-                          <div className="bg-black/20 p-6 rounded-lg mt-8">
-                            <h4 className="text-primary mb-4 font-medium">
-                              Wallet Verified Referrals (Solana)
-                            </h4>
-                            <p className="text-white/70 text-sm mb-4">
-                              Sign with your Solana wallet to create
-                              cryptographically-verified referral links that
-                              provide additional bonuses.
-                            </p>
-                            <Button className="bg-primary hover:bg-primary/90 text-black">
-                              Generate Verified Link
-                            </Button>
-                          </div>
-                        ) : connected ? (
-                          <div className="bg-black/20 p-6 rounded-lg mt-8"></div>
-                        ) : null}
-                      </>
-                    ) : (
-                      <div className="text-center py-10">
-                        <motion.p
-                          className="text-white/70 mb-6"
-                          animate={{ opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          Sign in or connect your wallet to access the referral
-                          program
-                        </motion.p>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button
-                            onClick={handleConnect}
-                            className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
-                            disabled={loading}
-                          >
-                            {loading ? "Connecting..." : "Connect Wallet"}
+                          <p className="text-white/70 text-sm mb-4">
+                            Sign with your Solana wallet to create
+                            cryptographically-verified referral links that
+                            provide additional bonuses.
+                          </p>
+                          <Button className="bg-primary hover:bg-primary/90 text-black">
+                            Generate Verified Link
                           </Button>
-                        </motion.div>
-                      </div>
-                    )}
-                  </motion.div>
-                </div>
+                        </div>
+                      ) : connected ? (
+                        <div className="bg-black/20 p-6 rounded-lg mt-8"></div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <div className="text-center py-10">
+                      <motion.p
+                        className="text-white/70 mb-6"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        Sign in or connect your wallet to access the referral
+                        program
+                      </motion.p>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          onClick={handleConnect}
+                          className="mx-auto bg-primary hover:bg-primary/90 text-black font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                          disabled={loading}
+                        >
+                          {loading ? "Connecting..." : "Connect Wallet"}
+                        </Button>
+                      </motion.div>
+                    </div>
+                  )}
+                </motion.div>
               )}
             </div>
           </Card>

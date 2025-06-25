@@ -523,7 +523,13 @@ export function SolanaWalletPrompt({
               {isModal ? "Dismiss" : "Remind me later"}
             </button>
             <button
-              onClick={isConnected ? handleVerifyWallet : handleConnectWallet}
+              onClick={
+                isConnected
+                  ? chainId == 1
+                    ? () => {}
+                    : handleVerifyWallet
+                  : handleConnectWallet
+              }
               disabled={isConnecting || isSigningMessage}
               className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-blue-900 disabled:opacity-50 flex justify-center items-center"
             >
@@ -576,24 +582,30 @@ export function SolanaWalletPrompt({
                   Verifying...
                 </>
               ) : isConnected ? (
-                <>
-                  Verify Wallet
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="ml-1 inline-block h-4 w-4"
-                  >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </>
+                chainId == 1 ? (
+                  <>
+                    <w3m-network-button />
+                  </>
+                ) : (
+                  <>
+                    Verify Wallet
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="ml-1 inline-block h-4 w-4"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </>
+                )
               ) : (
                 <>
                   Connect Wallet

@@ -1292,8 +1292,11 @@ const PresaleClientContent: React.FC<PresaleClientContentProps> = ({
               </p>
             </div>
           </ScrollAnimationWrapper>
+
           <ScrollAnimationWrapper delay={0.4}>
-            <ReferralCard />
+            <div className="max-w-xl mx-auto">
+              <ReferralCard />
+            </div>
           </ScrollAnimationWrapper>
         </div>
       </section>

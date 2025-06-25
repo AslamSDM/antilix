@@ -21,6 +21,15 @@ interface ReferredUserPurchase extends Purchase {
   userName?: string | null;
 }
 
+interface ReferralPaymentStats {
+  totalPaidAmount: number;
+  totalPendingAmount: number;
+  totalPaidUsd: number;
+  totalPendingUsd: number;
+  completedPaymentsCount: number;
+  pendingPaymentsCount: number;
+}
+
 interface UserData {
   purchases: Purchase[];
   balance: number;
@@ -29,6 +38,20 @@ interface UserData {
     count: number;
     totalBonus: number;
     purchases: ReferredUserPurchase[];
+    paymentStats: ReferralPaymentStats;
+    referralStats?: {
+      totalBonus: string;
+      totalPendingBonus: string;
+      totalUsd: string;
+      totalPendingUsd: string;
+      referralCount: number;
+      referralCode: string;
+      solanaVerified: boolean;
+      payments: {
+        completed: number;
+        pending: number;
+      };
+    };
   };
 }
 
@@ -125,6 +148,9 @@ async function getUserData(userId: string): Promise<UserData> {
     }, 0);
   }
 
+  // Get referral payment stats
+  const referralPaymentStats = await getReferralPaymentStats(userId);
+
   return {
     purchases,
     balance,
@@ -133,8 +159,78 @@ async function getUserData(userId: string): Promise<UserData> {
       count: referredUsers.length,
       totalBonus: parseFloat(totalReferralBonus.toFixed(2)),
       purchases: referredUsersPurchases,
+      paymentStats: referralPaymentStats,
     },
   };
+}
+
+async function getReferralPaymentStats(
+  userId: string
+): Promise<ReferralPaymentStats> {
+  try {
+    // Use type assertion to work around Prisma client not having the new model yet
+    // Get completed referral payments
+    const completedPayments = await (prisma as any).referralPayment.findMany({
+      where: {
+        referrerId: userId,
+        status: "COMPLETED",
+      },
+    });
+
+    // Get pending referral payments
+    const pendingPayments = await (prisma as any).referralPayment.findMany({
+      where: {
+        referrerId: userId,
+        status: "PENDING",
+      },
+    });
+
+    // Calculate total paid amount
+    const totalPaidAmount = completedPayments.reduce(
+      (sum: number, payment: any) =>
+        sum + parseFloat(payment.amount.toString()),
+      0
+    );
+
+    // Calculate total pending amount
+    const totalPendingAmount = pendingPayments.reduce(
+      (sum: number, payment: any) =>
+        sum + parseFloat(payment.amount.toString()),
+      0
+    );
+
+    // Calculate USD values
+    const totalPaidUsd = completedPayments.reduce(
+      (sum: number, payment: any) =>
+        sum + parseFloat(payment.amountUsd.toString()),
+      0
+    );
+
+    const totalPendingUsd = pendingPayments.reduce(
+      (sum: number, payment: any) =>
+        sum + parseFloat(payment.amountUsd.toString()),
+      0
+    );
+
+    return {
+      totalPaidAmount,
+      totalPendingAmount,
+      totalPaidUsd,
+      totalPendingUsd,
+      completedPaymentsCount: completedPayments.length,
+      pendingPaymentsCount: pendingPayments.length,
+    };
+  } catch (error) {
+    console.error("Error fetching referral payment stats:", error);
+    return {
+      totalPaidAmount: 0,
+      totalPendingAmount: 0,
+      totalPaidUsd: 0,
+      totalPendingUsd: 0,
+      completedPaymentsCount: 0,
+      pendingPaymentsCount: 0,
+    };
+  }
 }
 
 export default async function ProfilePage() {
@@ -147,12 +243,56 @@ export default async function ProfilePage() {
       count: 0,
       totalBonus: 0,
       purchases: [],
+      paymentStats: {
+        totalPaidAmount: 0,
+        totalPendingAmount: 0,
+        totalPaidUsd: 0,
+        totalPendingUsd: 0,
+        completedPaymentsCount: 0,
+        pendingPaymentsCount: 0,
+      },
     },
   };
 
   // Only fetch user data if the user is authenticated
   if (session?.user?.id) {
     userData = await getUserData(session.user.id);
+
+    // Fetch additional referral stats for the ReferralCard
+    if (session?.user?.referralCode) {
+      try {
+        // Simulate the API call that would be made on the client
+        const referralUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: {
+            id: true,
+            referralCode: true,
+            solanaVerified: true,
+            solanaAddress: true,
+          },
+        });
+
+        // We'll add this data to the userData we pass to the client
+        userData.referrals.referralStats = {
+          totalBonus: userData.referrals.totalBonus.toString(),
+          totalPendingBonus:
+            userData.referrals.paymentStats.totalPendingAmount.toString(),
+          totalUsd: userData.referrals.paymentStats.totalPaidUsd.toString(),
+          totalPendingUsd:
+            userData.referrals.paymentStats.totalPendingUsd.toString(),
+          referralCount: userData.referrals.count,
+          referralCode: referralUser?.referralCode || "",
+          solanaVerified:
+            !!referralUser?.solanaVerified || !!referralUser?.solanaAddress,
+          payments: {
+            completed: userData.referrals.paymentStats.completedPaymentsCount,
+            pending: userData.referrals.paymentStats.pendingPaymentsCount,
+          },
+        };
+      } catch (error) {
+        console.error("Error fetching additional referral stats:", error);
+      }
+    }
   }
 
   // Convert the purchases to a format that's serializable for the client component
@@ -172,12 +312,13 @@ export default async function ProfilePage() {
         createdAt: purchase.createdAt.toISOString(),
         lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
       })),
+      paymentStats: userData.referrals.paymentStats,
+      referralStats: userData.referrals.referralStats,
     },
   };
 
   return (
     <Suspense fallback={<div>Loading profile...</div>}>
-      {/* @ts-ignore - We'll update the component props in the next step */}
       <ProfileClientContent
         userData={serializableUserData}
         initialSession={session}

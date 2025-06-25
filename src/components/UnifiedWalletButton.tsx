@@ -66,9 +66,7 @@ export function UnifiedWalletButton({
         // Wait a moment for connection to settle before showing verification modal
         setTimeout(() => {
           // Show the appropriate verification modal based on the network
-          if (isOnBscNetwork && !hasEvmAddress) {
-            setShowBSCVerificationModal(true);
-          } else if (!isOnBscNetwork && !hasSolanaAddress) {
+          if (!hasSolanaAddress) {
             setShowSolanaVerificationModal(true);
           }
         }, 500);
@@ -76,15 +74,7 @@ export function UnifiedWalletButton({
     } else if (!appKitState?.open) {
       setIsModalOpened(false);
     }
-  }, [
-    appKitState?.open,
-    isConnected,
-    hasSolanaAddress,
-    hasEvmAddress,
-    isOnBscNetwork,
-    isAuthenticated,
-    isModalOpened,
-  ]);
+  }, [appKitState?.open, isConnected, hasSolanaAddress]);
 
   // Effect to prompt for verification when wallet is connected but not verified
   useEffect(() => {

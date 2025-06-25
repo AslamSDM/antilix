@@ -19,20 +19,32 @@ type ReferralStats = {
   };
 };
 
-export default function ReferralStats() {
+interface ReferralStatsProps {
+  serverRenderedStats?: ReferralStats;
+}
+
+export default function ReferralStats({
+  serverRenderedStats,
+}: ReferralStatsProps) {
   const { connected, publicKey } = useWallet();
   const { address } = useAccount();
-  const [stats, setStats] = useState<ReferralStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [stats, setStats] = useState<ReferralStats | null>(
+    serverRenderedStats || null
+  );
+  const [loading, setLoading] = useState<boolean>(!serverRenderedStats);
   const { data: session } = useSession();
 
-  // Get the current wallet address from either Solana or EVM wallet
-  const currentWalletAddress = publicKey?.toBase58() || address || "";
-
-  // Fetch referral stats for the current wallet
+  // Fetch referral stats using session data only if we don't have server-rendered stats
   useEffect(() => {
     const fetchReferralStats = async () => {
-      if (!currentWalletAddress) return;
+      if (!session?.user) return;
+
+      // Skip fetching if we already have server-rendered stats
+      if (serverRenderedStats) {
+        setStats(serverRenderedStats);
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
 
@@ -60,7 +72,7 @@ export default function ReferralStats() {
     };
 
     fetchReferralStats();
-  }, [currentWalletAddress]);
+  }, [session, serverRenderedStats]);
 
   // Copy referral code to clipboard
   const copyReferralCode = () => {
@@ -70,22 +82,27 @@ export default function ReferralStats() {
     }
   };
 
-  if (!currentWalletAddress || !stats) {
+  if (!stats && loading) {
+    return (
+      <div className="animate-pulse bg-black/30 backdrop-blur-md rounded-lg p-4">
+        <div className="h-6 bg-gray-700/50 rounded w-3/4 mb-4"></div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="h-16 bg-gray-700/50 rounded"></div>
+          <div className="h-16 bg-gray-700/50 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user || !stats) {
     return null;
   }
 
   return (
-    <div className="bg-black/30 backdrop-blur-md rounded-lg p-4 mt-4">
+    <div className="bg-black/30 backdrop-blur-md rounded-lg p-4">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-medium">Your Referral Code</h3>
-        <button
-          onClick={copyReferralCode}
-          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
-        >
-          Copy
-        </button>
+        <h3 className="text-sm font-medium">Your Referral Stats</h3>
       </div>
-      <div className="font-mono text-lg">{session?.user.referralCode}</div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="bg-black/20 rounded p-2">
@@ -93,9 +110,10 @@ export default function ReferralStats() {
           <div className="text-lg font-semibold">{stats.referralCount}</div>
         </div>
         <div className="bg-black/20 rounded p-2">
-          <div className="text-xs text-gray-400">Earned TRUMP</div>
+          <div className="text-xs text-gray-400">Total Value</div>
           <div className="text-lg font-semibold">
-            {parseFloat(stats.totalBonus).toLocaleString(undefined, {
+            $
+            {parseFloat(stats.totalUsd).toLocaleString(undefined, {
               maximumFractionDigits: 2,
             })}
           </div>
@@ -103,12 +121,12 @@ export default function ReferralStats() {
       </div>
 
       <div className="mt-2">
-        <div className="text-xs text-gray-400 mb-1">Earned Value</div>
+        <div className="text-xs text-gray-400 mb-1">Earned TRUMP</div>
         <div className="text-sm font-medium">
-          $
-          {parseFloat(stats.totalUsd).toLocaleString(undefined, {
+          {parseFloat(stats.totalBonus).toLocaleString(undefined, {
             maximumFractionDigits: 2,
-          })}
+          })}{" "}
+          TRUMP
         </div>
       </div>
 
@@ -143,6 +161,32 @@ export default function ReferralStats() {
           )}
         </div>
       )}
+
+      {/* Display referral payment stats if available */}
+      {stats.payments &&
+        (stats.payments.completed > 0 || stats.payments.pending > 0) && (
+          <div className="mt-3 bg-primary/10 border border-primary/30 rounded-lg p-3">
+            <div className="text-sm font-medium mb-2">Referral Payments</div>
+
+            {stats.payments.completed > 0 && (
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-gray-400">Completed</span>
+                <span className="text-xs font-medium">
+                  {stats.payments.completed}
+                </span>
+              </div>
+            )}
+
+            {stats.payments.pending > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">Pending</span>
+                <span className="text-xs font-medium text-yellow-300">
+                  {stats.payments.pending}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 }
