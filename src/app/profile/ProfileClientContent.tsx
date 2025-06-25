@@ -2,6 +2,7 @@
 import React, { useState, Suspense, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 import {
   User,
   Wallet,
@@ -22,6 +23,7 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReferralCard from "@/components/ReferralCard";
+import TrumpBalanceCard from "@/components/TrumpBalanceCard";
 
 interface Purchase {
   id: string;
@@ -517,6 +519,17 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                       <UserBalanceDisplay balance={userData.balance} />
                     </div>
                   </motion.div>
+
+                  {/* Trump Balance Card */}
+                  {isAuthenticated && (
+                    <motion.div variants={itemVariants} className="mt-8">
+                      <TrumpBalanceCard
+                        referralStats={userData.referrals.referralStats}
+                        paymentStats={userData.referrals.paymentStats}
+                        referralCount={userData.referrals.count}
+                      />
+                    </motion.div>
+                  )}
                 </div>
               )}
 
@@ -643,7 +656,21 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                 >
                   {isAuthenticated ? (
                     <>
-                      {/* Replace the existing referral content with ReferralCard */}
+                      {/* Note about Trump balance being shown in Overview */}
+                      <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg mb-6">
+                        <div className="flex items-center mb-2">
+                          <Award className="h-5 w-5 text-primary mr-2" />
+                          <h4 className="font-medium text-primary">
+                            TRUMP Balance Summary
+                          </h4>
+                        </div>
+                        <p className="text-sm text-gray-300">
+                          Your detailed TRUMP balance and referral earnings are
+                          now displayed in the Overview tab.
+                        </p>
+                      </div>
+
+                      {/* Referral link generation */}
                       <ReferralCard
                         totalBonus={userData.referrals.totalBonus}
                         referralCount={userData.referrals.count}
