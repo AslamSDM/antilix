@@ -12,6 +12,7 @@ interface Purchase {
   id: string;
   createdAt: Date;
   lmxTokensAllocated: any; // Using 'any' for the Decimal type from Prisma
+  pricePerLmxInUsdt?: any; // Using 'any' for the Decimal type from Prisma
   status: string;
   network: string;
   transactionSignature: string;
@@ -70,6 +71,7 @@ async function getUserData(userId: string): Promise<UserData> {
       id: true,
       createdAt: true,
       lmxTokensAllocated: true,
+      pricePerLmxInUsdt: true,
       status: true,
       network: true,
       transactionSignature: true,
@@ -132,6 +134,9 @@ async function getUserData(userId: string): Promise<UserData> {
       );
       return {
         ...purchase,
+        pricePerLmxInUsdt: purchase.pricePerLmxInUsdt
+          ? purchase.pricePerLmxInUsdt.toString()
+          : null,
         userEmail: referredUser?.email || null,
         userName: null, // We don't have name in the schema
       };
@@ -141,11 +146,17 @@ async function getUserData(userId: string): Promise<UserData> {
     const referralBonusPercentage = 0.1;
 
     totalReferralBonus = referralPurchases.reduce((total, purchase) => {
-      const purchaseAmount =
+      let lmxAmount =
         typeof purchase.lmxTokensAllocated === "object"
           ? parseFloat(purchase.lmxTokensAllocated.toString())
-          : parseFloat(purchase.lmxTokensAllocated || "0") *
-            Number(purchase.pricePerLmxInUsdt || "0");
+          : parseFloat(purchase.lmxTokensAllocated || "0");
+
+      let pricePerLmx =
+        typeof purchase.pricePerLmxInUsdt === "object"
+          ? parseFloat(purchase.pricePerLmxInUsdt.toString())
+          : parseFloat(purchase.pricePerLmxInUsdt || "0");
+
+      const purchaseAmount = lmxAmount * pricePerLmx;
 
       return total + purchaseAmount * referralBonusPercentage;
     }, 0);
@@ -300,21 +311,33 @@ export default async function ProfilePage() {
 
   // Convert the purchases to a format that's serializable for the client component
   const serializableUserData = {
-    purchases: userData.purchases.map((purchase) => ({
-      ...purchase,
-      createdAt: purchase.createdAt.toISOString(),
-      lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
-    })),
+    purchases: userData.purchases.map((purchase) => {
+      const { pricePerLmxInUsdt, ...rest } = purchase;
+      return {
+        ...rest,
+        createdAt: purchase.createdAt.toISOString(),
+        lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
+        pricePerLmxInUsdt: pricePerLmxInUsdt
+          ? pricePerLmxInUsdt.toString()
+          : null,
+      };
+    }),
     balance: userData.balance,
     purchaseCount: userData.purchaseCount,
     referrals: {
       count: userData.referrals.count,
       totalBonus: userData.referrals.totalBonus,
-      purchases: userData.referrals.purchases.map((purchase) => ({
-        ...purchase,
-        createdAt: purchase.createdAt.toISOString(),
-        lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
-      })),
+      purchases: userData.referrals.purchases.map((purchase) => {
+        const { pricePerLmxInUsdt, ...rest } = purchase;
+        return {
+          ...rest,
+          createdAt: purchase.createdAt.toISOString(),
+          lmxTokensAllocated: purchase.lmxTokensAllocated.toString(),
+          pricePerLmxInUsdt: pricePerLmxInUsdt
+            ? pricePerLmxInUsdt.toString()
+            : null,
+        };
+      }),
       paymentStats: userData.referrals.paymentStats,
       referralStats: userData.referrals.referralStats,
     },
