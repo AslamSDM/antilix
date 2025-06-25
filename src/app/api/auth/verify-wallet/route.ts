@@ -122,12 +122,32 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Process any pending referral payments if this is a Solana wallet verification
+    let referralPaymentsProcessed = null;
+    if (walletType === "solana") {
+      try {
+        // Import the processPendingReferralPayments function
+        const { processPendingReferralPayments } = await import(
+          "@/lib/send-referral"
+        );
+
+        // Process any pending payments for this user
+        referralPaymentsProcessed = await processPendingReferralPayments(
+          userId,
+          walletAddress
+        );
+      } catch (err) {
+        console.error("Error processing pending referral payments:", err);
+      }
+    }
+
     // Return success
     return NextResponse.json({
       userId: updatedUser.id,
       message: "Wallet verified successfully",
       verified: true,
       walletType,
+      referralPaymentsProcessed,
     });
   } catch (error: any) {
     console.error("Error verifying wallet:", error);

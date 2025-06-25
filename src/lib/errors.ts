@@ -17,4 +17,5 @@ export const ERROR_TYPES = {
     message: "Signature has expired",
   },
   SERVER_ERROR: { code: "SERVER_ERROR", message: "Server error occurred" },
+  USER_NOT_FOUND: { code: "USER_NOT_FOUND", message: "User not found" },
 };

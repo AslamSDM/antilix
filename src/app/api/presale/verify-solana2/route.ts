@@ -6,7 +6,10 @@ import {
   fetchCryptoPricesServer,
   LMX_PRICE_USD,
 } from "@/lib/price-utils";
-import { sendReferralTokens } from "@/lib/send-referral";
+import {
+  sendReferralTokens,
+  recordPendingReferralPayment,
+} from "@/lib/send-referral";
 import { MASTER_WALLET_ADDRESS } from "@/lib/constants";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth";
@@ -320,18 +323,32 @@ export async function POST(req: NextRequest) {
     if (sender.referrerId) {
       const referrer = await prisma.user.findUnique({
         where: { id: sender.referrerId },
-        select: { id: true, solanaAddress: true },
+        select: { id: true, solanaAddress: true, solanaVerified: true },
       });
 
-      if (referrer?.solanaAddress) {
+      if (referrer) {
         try {
-          referralPaid = await sendReferralTokens(
-            referrer.solanaAddress,
-            solAmount,
-            "sol"
-          );
+          // If referrer has verified Solana wallet, send tokens directly
+          if (referrer.solanaAddress && referrer.solanaVerified) {
+            referralPaid = await sendReferralTokens(
+              referrer.solanaAddress,
+              solAmount,
+              "sol"
+            );
+          } else {
+            // Otherwise, record pending payment
+            const pendingPayment = await recordPendingReferralPayment(
+              referrer.id,
+              existingTransactionRecord.id,
+              solAmount,
+              "sol"
+            );
+
+            // Mark as paid since we've recorded it as pending
+            referralPaid = pendingPayment.success;
+          }
         } catch (error) {
-          console.error("Error sending referral tokens:", error);
+          console.error("Error processing referral payment:", error);
         }
       }
     }

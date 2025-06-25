@@ -24,16 +24,19 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    if (user?.referrer || user?.referrerId) {
-      return NextResponse.json({
-        success: true,
-        referrerId: user.referrerId || user.referrer?.id || null,
-        walletAddress: user.walletAddress || user.evmAddress || null,
-        username: user.referrer?.username || null,
 
-        verified: user.referrer?.verified || false,
-      });
-    }
+    // If the user already has a referrer, return that information
+    // Uncomment the following block if you want to return existing referrer info
+    // if (user?.referrer || user?.referrerId) {
+    //   return NextResponse.json({
+    //     success: true,
+    //     referrerId: user.referrerId || user.referrer?.id || null,
+    //     walletAddress: user.walletAddress || user.evmAddress || null,
+    //     username: user.referrer?.username || null,
+
+    //     verified: user.referrer?.verified || false,
+    //   });
+    // }
 
     // Extract the referral code from the URL query parameters
     const { searchParams } = new URL(req.url);

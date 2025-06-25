@@ -7,8 +7,16 @@ import { useSession } from "next-auth/react";
 
 type ReferralStats = {
   totalBonus: string;
+  totalPendingBonus: string;
+  totalUsd: string;
+  totalPendingUsd: string;
   referralCount: number;
   referralCode: string;
+  solanaVerified: boolean;
+  payments: {
+    completed: number;
+    pending: number;
+  };
 };
 
 export default function ReferralStats() {
@@ -35,8 +43,13 @@ export default function ReferralStats() {
           const data = await response.json();
           setStats({
             totalBonus: data.totalBonus,
+            totalPendingBonus: data.totalPendingBonus || "0",
+            totalUsd: data.totalUsd || "0",
+            totalPendingUsd: data.totalPendingUsd || "0",
             referralCount: data.referralCount,
             referralCode: data.referralCode,
+            solanaVerified: data.solanaVerified || false,
+            payments: data.payments || { completed: 0, pending: 0 },
           });
         }
       } catch (err) {
@@ -80,15 +93,56 @@ export default function ReferralStats() {
           <div className="text-lg font-semibold">{stats.referralCount}</div>
         </div>
         <div className="bg-black/20 rounded p-2">
-          <div className="text-xs text-gray-400">Earned</div>
+          <div className="text-xs text-gray-400">Earned TRUMP</div>
           <div className="text-lg font-semibold">
             {parseFloat(stats.totalBonus).toLocaleString(undefined, {
               maximumFractionDigits: 2,
-            })}{" "}
-            LMX
+            })}
           </div>
         </div>
       </div>
+
+      <div className="mt-2">
+        <div className="text-xs text-gray-400 mb-1">Earned Value</div>
+        <div className="text-sm font-medium">
+          $
+          {parseFloat(stats.totalUsd).toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          })}
+        </div>
+      </div>
+
+      {parseFloat(stats.totalPendingBonus) > 0 && (
+        <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="text-sm text-yellow-300 font-medium">
+              Pending Rewards
+            </div>
+            {!stats.solanaVerified && (
+              <div className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded">
+                Verify Wallet
+              </div>
+            )}
+          </div>
+          <div className="text-sm">
+            <span className="font-semibold">
+              {parseFloat(stats.totalPendingBonus).toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+              })}
+            </span>{" "}
+            TRUMP ($
+            {parseFloat(stats.totalPendingUsd).toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            })}
+            )
+          </div>
+          {!stats.solanaVerified && (
+            <div className="text-xs text-yellow-300/70 mt-1">
+              Verify your Solana wallet to claim your pending rewards
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
