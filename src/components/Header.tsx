@@ -183,21 +183,23 @@ export function Header() {
               </>
             )}
 
-            <Link href="/presale" className="hidden lg:block">
-              <Button
-                size="sm"
-                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none group relative overflow-hidden"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#8a63d2] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <span className="relative z-10 flex items-center justify-center gap-1">
-                  Buy Now
-                  <span className="inline-block group-hover:translate-x-1 transition-transform duration-300">
-                    →
+            {pathname !== "/presale" && (
+              <Link href="/presale" className="hidden lg:block">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white border-none group relative overflow-hidden"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#8a63d2] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 flex items-center justify-center gap-1">
+                    Buy Now
+                    <span className="inline-block group-hover:translate-x-1 transition-transform duration-300">
+                      →
+                    </span>
                   </span>
-                </span>
-              </Button>
-            </Link>
+                </Button>
+              </Link>
+            )}
           </div>
         </nav>
 
