@@ -16,41 +16,40 @@ export function FluxDock() {
       iconDistance={160}
       direction="middle"
     >
-      <Link href="/" className="block">
+      <Link href="/" className="block cursor-pointer">
         <DockIcon
-          className={`flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3 `}
+          className={`flex flex-col items-center justify-center transition-all duration-300 p-3 cursor-pointer ${
+            pathname === "/" ? "text-primary" : "hover:text-primary"
+          }`}
         >
           <div className="flex flex-col items-center justify-center p-2">
             <Home size={28} strokeWidth={1.5} />
-            {/* <span className="text-xs mt-2 opacity-90 font-medium">Home</span> */}
           </div>
         </DockIcon>
       </Link>
-      <Link href="/presale" className="block">
+      <Link href="/presale" className="block cursor-pointer">
         <DockIcon
-          className={`flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3 `}
+          className={`flex flex-col items-center justify-center transition-all duration-300 p-3 cursor-pointer ${
+            pathname === "/presale" ? "text-primary" : "hover:text-primary"
+          }`}
         >
           <div className="flex flex-col items-center justify-center p-2">
             <Sparkle size={28} strokeWidth={1.5} />
-            {/* <span className="text-xs mt-2 opacity-90 font-medium">Profile</span> */}
           </div>
         </DockIcon>
       </Link>
 
-      <Link href="/profile" className="block">
+      <Link href="/profile" className="block cursor-pointer">
         <DockIcon
-          className={`flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3 `}
+          className={`flex flex-col items-center justify-center transition-all duration-300 p-3 cursor-pointer ${
+            pathname === "/profile" ? "text-primary" : "hover:text-primary"
+          }`}
         >
           <div className="flex flex-col items-center justify-center p-2">
             <User size={28} strokeWidth={1.5} />
-            {/* <span className="text-xs mt-2 opacity-90 font-medium">Profile</span> */}
           </div>
         </DockIcon>
       </Link>
-
-      {/* <DockIcon className="flex flex-col items-center justify-center transition-all duration-300 hover:text-primary p-3">
-        <DockThemeToggle />
-      </DockIcon> */}
     </Dock>
   );
 }

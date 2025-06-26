@@ -99,19 +99,21 @@ export default function ReferralStats({
   }
 
   return (
-    <div className="bg-black/30 backdrop-blur-md rounded-lg p-4">
+    <div className="bg-black/30 backdrop-blur-md rounded-lg p-3 sm:p-4">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-medium">Your Referral Stats</h3>
+        <h3 className="text-xs sm:text-sm font-medium">Your Referral Stats</h3>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+      <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="bg-black/20 rounded p-2">
           <div className="text-xs text-gray-400">Referrals</div>
-          <div className="text-lg font-semibold">{stats.referralCount}</div>
+          <div className="text-base sm:text-lg font-semibold">
+            {stats.referralCount}
+          </div>
         </div>
         <div className="bg-black/20 rounded p-2">
           <div className="text-xs text-gray-400">Total Value</div>
-          <div className="text-lg font-semibold">
+          <div className="text-base sm:text-lg font-semibold">
             $
             {parseFloat(stats.totalUsd).toLocaleString(undefined, {
               maximumFractionDigits: 2,
@@ -122,7 +124,7 @@ export default function ReferralStats({
 
       <div className="mt-2">
         <div className="text-xs text-gray-400 mb-1">Earned TRUMP</div>
-        <div className="text-sm font-medium">
+        <div className="text-xs sm:text-sm font-medium">
           {parseFloat(stats.totalBonus).toLocaleString(undefined, {
             maximumFractionDigits: 2,
           })}{" "}
@@ -131,18 +133,18 @@ export default function ReferralStats({
       </div>
 
       {parseFloat(stats.totalPendingBonus) > 0 && (
-        <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="text-sm text-yellow-300 font-medium">
+        <div className="mt-2 sm:mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 sm:p-3">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+            <div className="text-xs sm:text-sm text-yellow-300 font-medium">
               Pending Rewards
             </div>
             {!stats.solanaVerified && (
-              <div className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded">
+              <div className="text-xs bg-yellow-500/20 text-yellow-300 px-1 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs">
                 Verify Wallet
               </div>
             )}
           </div>
-          <div className="text-sm">
+          <div className="text-xs sm:text-sm break-words">
             <span className="font-semibold">
               {parseFloat(stats.totalPendingBonus).toLocaleString(undefined, {
                 maximumFractionDigits: 2,
@@ -155,7 +157,7 @@ export default function ReferralStats({
             )
           </div>
           {!stats.solanaVerified && (
-            <div className="text-xs text-yellow-300/70 mt-1">
+            <div className="text-[10px] sm:text-xs text-yellow-300/70 mt-1">
               Verify your Solana wallet to claim your pending rewards
             </div>
           )}
@@ -165,13 +167,17 @@ export default function ReferralStats({
       {/* Display referral payment stats if available */}
       {stats.payments &&
         (stats.payments.completed > 0 || stats.payments.pending > 0) && (
-          <div className="mt-3 bg-primary/10 border border-primary/30 rounded-lg p-3">
-            <div className="text-sm font-medium mb-2">Referral Payments</div>
+          <div className="mt-2 sm:mt-3 bg-primary/10 border border-primary/30 rounded-lg p-2 sm:p-3">
+            <div className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+              Referral Payments
+            </div>
 
             {stats.payments.completed > 0 && (
               <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-gray-400">Completed</span>
-                <span className="text-xs font-medium">
+                <span className="text-[10px] sm:text-xs text-gray-400">
+                  Completed
+                </span>
+                <span className="text-[10px] sm:text-xs font-medium">
                   {stats.payments.completed}
                 </span>
               </div>
@@ -179,8 +185,10 @@ export default function ReferralStats({
 
             {stats.payments.pending > 0 && (
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">Pending</span>
-                <span className="text-xs font-medium text-yellow-300">
+                <span className="text-[10px] sm:text-xs text-gray-400">
+                  Pending
+                </span>
+                <span className="text-[10px] sm:text-xs font-medium text-yellow-300">
                   {stats.payments.pending}
                 </span>
               </div>

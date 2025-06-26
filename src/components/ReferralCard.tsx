@@ -7,6 +7,7 @@ import LuxuryCard from "./LuxuryCard";
 import { generateReferralUrl } from "@/lib/referral";
 import { useSession } from "next-auth/react";
 import ReferralStats from "./ReferralStats";
+import "./ReferralCard.css";
 
 interface ReferralPaymentStats {
   totalPaidAmount: number;
@@ -105,28 +106,30 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
 
   if (!session?.user?.referralCode) return null;
   return (
-    <LuxuryCard className={`p-6 ${className} w-full`}>
-      <div className="flex items-center mb-4">
+    <LuxuryCard className={`p-3 sm:p-4 md:p-6 ${className} w-full`}>
+      <div className="flex items-center mb-4 flex-wrap">
         <Share2 className="w-6 h-6 text-primary mr-3" />
-        <h3 className="text-xl font-bold">Refer Friends & Earn 10% Bonus</h3>
+        <h3 className="text-xl font-bold sm:text-lg">
+          Refer Friends & Earn 10% Bonus
+        </h3>
       </div>
 
-      <p className="text-gray-300 mb-6">
+      <p className="text-gray-300 mb-6 text-sm sm:text-xs">
         Share your unique referral link with friends and earn 10% bonus in
         $TRUMP tokens on their contribution'
       </p>
 
       <div className="relative">
-        <div className="flex">
+        <div className="flex flex-col sm:flex-row">
           <input
             type="text"
             readOnly
             value={generateReferralUrl(session?.user.referralCode)}
-            className="flex-grow bg-black/50 border border-primary/30 rounded-l-md p-3 text-white/90 focus:outline-none"
+            className="referral-link-input flex-grow bg-black/50 border border-primary/30 sm:rounded-l-md rounded-t-md sm:rounded-tr-none p-3 text-white/90 focus:outline-none text-xs sm:text-sm overflow-ellipsis"
           />
           <button
             onClick={handleCopyReferralLink}
-            className="bg-primary text-primary-foreground px-4 rounded-r-md hover:bg-primary/90 transition-all flex items-center"
+            className="bg-primary text-primary-foreground px-4 sm:rounded-r-md rounded-b-md sm:rounded-bl-none hover:bg-primary/90 transition-all flex items-center justify-center py-2 sm:py-0"
           >
             {copied ? (
               <>
@@ -149,81 +152,102 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({
       </div>
 
       {/* Use ReferralStats component instead of the inline stats */}
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <ReferralStats serverRenderedStats={serverRenderedStats} />
-      </div>
+      </div> */}
 
       {/* Social sharing options */}
-      <div className="flex justify-center mt-6 space-x-4">
-        {["Twitter", "Telegram", "Discord"].map((platform, index) => (
-          <motion.button
-            key={platform}
-            className="bg-black/40 border border-primary/20 rounded-md px-4 py-2 text-sm hover:border-primary/50 transition-all"
+      <div className="flex flex-wrap justify-center mt-6 gap-3">
+        {[
+          {
+            name: "Twitter",
+            url: `https://twitter.com/intent/tweet?text=Join me on Antilix using my referral link&url=${encodeURIComponent(generateReferralUrl(session?.user.referralCode))}`,
+          },
+          {
+            name: "Telegram",
+            url: `https://t.me/share/url?url=${encodeURIComponent(generateReferralUrl(session?.user.referralCode))}&text=Join me on Antilix using my referral link`,
+          },
+        ].map((platform, index) => (
+          <motion.a
+            key={platform.name}
+            href={platform.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="referral-share-button bg-black/40 border border-primary/20 rounded-md px-3 py-2 text-xs sm:text-sm hover:border-primary/50 transition-all inline-block text-center min-w-[90px] flex-1 sm:flex-initial"
             whileHover={{ y: -2, boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }}
             whileTap={{ scale: 0.97 }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + index * 0.1 }}
           >
-            Share on {platform}
-          </motion.button>
+            Share on {platform.name}
+          </motion.a>
         ))}
       </div>
 
       {/* Rewards visualization */}
-      {serverRenderedStats?.referralCount && (
-        <div className="mt-6 pt-6 border-t border-primary/20">
-          <h4 className="font-medium mb-3 text-center">
-            Your Referral Rewards
-          </h4>
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-400">Total Referred</div>
-            <div className="font-medium">
-              {serverRenderedStats ? serverRenderedStats.referralCount : 0}{" "}
-              Users
-            </div>
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <div className="text-sm text-gray-400">Total Value Earned</div>
-            <div className="font-medium text-primary">
-              $
-              {serverRenderedStats
-                ? parseFloat(serverRenderedStats.totalUsd).toLocaleString(
-                    undefined,
-                    { maximumFractionDigits: 2 }
-                  )
-                : "0.00"}
-            </div>
-          </div>
-
-          {/* Payment Stats Summary */}
-          {(paymentStats ||
-            (serverRenderedStats?.payments &&
-              (serverRenderedStats.payments.completed > 0 ||
-                serverRenderedStats.payments.pending > 0))) && (
-            <div className="mt-4">
-              <div className="flex justify-between items-center mt-2">
-                <div className="text-sm text-gray-400">Completed Payments</div>
-                <div className="font-medium text-primary">
-                  {paymentStats?.completedPaymentsCount ||
-                    serverRenderedStats?.payments?.completed ||
-                    0}
-                </div>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <div className="text-sm text-gray-400">Pending Payments</div>
-                <div className="font-medium text-yellow-300">
-                  {paymentStats?.pendingPaymentsCount ||
-                    serverRenderedStats?.payments?.pending ||
-                    0}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </LuxuryCard>
   );
 };
 
 export default ReferralCard;
+
+// {serverRenderedStats?.referralCount && (
+//   <div className="mt-6 pt-6 border-t border-primary/20">
+//     <h4 className="font-medium mb-3 text-center">
+//       Your Referral Rewards
+//     </h4>
+//     <div className="flex flex-wrap justify-between items-center">
+//       <div className="text-xs sm:text-sm text-gray-400">
+//         Total Referred
+//       </div>
+//       <div className="text-sm font-medium">
+//         {serverRenderedStats ? serverRenderedStats.referralCount : 0}{" "}
+//         Users
+//       </div>
+//     </div>
+//     <div className="flex flex-wrap justify-between items-center mt-2">
+//       <div className="text-xs sm:text-sm text-gray-400">
+//         Total Value Earned
+//       </div>
+//       <div className="text-sm font-medium text-primary">
+//         $
+//         {serverRenderedStats
+//           ? parseFloat(serverRenderedStats.totalUsd).toLocaleString(
+//               undefined,
+//               { maximumFractionDigits: 2 }
+//             )
+//           : "0.00"}
+//       </div>
+//     </div>
+
+//     {/* Payment Stats Summary */}
+//     {(paymentStats ||
+//       (serverRenderedStats?.payments &&
+//         (serverRenderedStats.payments.completed > 0 ||
+//           serverRenderedStats.payments.pending > 0))) && (
+//       <div className="mt-4">
+//         <div className="flex flex-wrap justify-between items-center mt-2">
+//           <div className="text-xs sm:text-sm text-gray-400">
+//             Completed Payments
+//           </div>
+//           <div className="text-sm font-medium text-primary">
+//             {paymentStats?.completedPaymentsCount ||
+//               serverRenderedStats?.payments?.completed ||
+//               0}
+//           </div>
+//         </div>
+//         <div className="flex flex-wrap justify-between items-center mt-2">
+//           <div className="text-xs sm:text-sm text-gray-400">
+//             Pending Payments
+//           </div>
+//           <div className="text-sm font-medium text-yellow-300">
+//             {paymentStats?.pendingPaymentsCount ||
+//               serverRenderedStats?.payments?.pending ||
+//               0}
+//           </div>
+//         </div>
+//       </div>
+//     )}
+//   </div>
+// )}
