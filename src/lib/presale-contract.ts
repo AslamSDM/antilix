@@ -9,10 +9,10 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import { toast } from "sonner";
+import { MASTER_WALLET_ADDRESS } from "./constants";
 
 // Contract addresse
-export const SOLANA_PRESALE_ADDRESS =
-  "Y7JGR3z7kp98GtxnwHd6Lm6G7hG2wKD56XNN5TXoN44"; // Solana program address
+export const SOLANA_PRESALE_ADDRESS = MASTER_WALLET_ADDRESS;
 
 // Network configurations
 export const networks = {

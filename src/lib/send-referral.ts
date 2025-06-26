@@ -17,7 +17,7 @@ import {
 } from "@solana/spl-token";
 import bs58 from "bs58";
 import { fetchCryptoPricesServer, getTokenDetails } from "./price-utils";
-import { MASTER_WALLET_ADDRESS } from "./constants";
+import { SECOND_TIER_WALLET } from "./constants";
 import prisma from "./prisma";
 
 const DISTRIBUTION_WALLET_PRIVATE_KEY =
@@ -31,8 +31,6 @@ if (!DISTRIBUTION_WALLET_PRIVATE_KEY) {
 }
 
 // Second-tier referral wallet to receive 10% of the referral bonus
-const SECOND_TIER_WALLET =
-  process.env.SECOND_TIER_WALLET || MASTER_WALLET_ADDRESS;
 
 /**
  * Records a referral payment in the database without sending tokens

@@ -20,9 +20,6 @@ const MAX_VERIFICATION_ATTEMPTS = 10;
 // Delay between verification attempts in ms (3 seconds - reduced for better UX)
 const VERIFICATION_DELAY = 3000;
 
-// Second-tier referral wallet to receive 10% of the referral bonus
-const SECOND_TIER_WALLET =
-  process.env.SECOND_TIER_WALLET || MASTER_WALLET_ADDRESS;
 const DISTRIBUTION_WALLET_PRIVATE_KEY =
   process.env.DISTRIBUTION_WALLET_PRIVATE_KEY ?? "";
 

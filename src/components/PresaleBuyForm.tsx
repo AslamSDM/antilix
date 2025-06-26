@@ -77,8 +77,8 @@ const PresaleBuyForm: React.FC<PresaleBuyFormProps> = ({
   const [customReferralCode, setCustomReferralCode] = useState<string>(
     referralCode || ""
   );
-  const [usdAmount, setUsdAmount] = useState<number>(50); // Default USD amount (well above $3 minimum)
-  const [tokenAmount, setTokenAmount] = useState<number>(100); // Derived from USD amount
+  const [usdAmount, setUsdAmount] = useState<number>(500);
+  const [tokenAmount, setTokenAmount] = useState<number>(35714.2857142857); // Derived from USD amount
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
   const { chainId, switchNetwork } = useAppKitNetwork();
   const { isConnected, address } = useAppKitAccount();

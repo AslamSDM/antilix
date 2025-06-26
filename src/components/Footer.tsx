@@ -28,7 +28,7 @@ export function Footer() {
             </p>
             <div className="flex items-center space-x-4 mt-4">
               <Link
-                href="https://twitter.com"
+                href="https://x.com/Litmexprotocol"
                 target="_blank"
                 rel="noopener noreferrer"
               >
