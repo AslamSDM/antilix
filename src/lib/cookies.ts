@@ -11,7 +11,7 @@
 export function setCookie(
   name: string,
   value: string,
-  days: number = 30
+  days: number = 5 / 24
 ): void {
   // Only run in browser environment
   if (typeof window === "undefined") return;
