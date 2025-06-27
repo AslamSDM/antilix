@@ -37,6 +37,7 @@ interface Purchase {
 interface ReferredUserPurchase extends Purchase {
   userEmail?: string | null;
   userName?: string | null;
+  referralEarnings?: number;
 }
 
 interface UserData {
@@ -158,7 +159,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
       window.history.pushState({}, "", url);
     }
   };
-
+  console.log(userData.referrals.purchases);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -465,7 +466,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                         </h3>
                       </div>
 
-                      {isAuthenticated ? (
+                      {true ? (
                         <div className="space-y-4">
                           {userData.purchases.length > 0 ? (
                             userData.purchases.slice(0, 3).map((purchase) => (
@@ -677,6 +678,83 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                         paymentStats={userData.referrals.paymentStats}
                         serverRenderedStats={userData.referrals.referralStats}
                       />
+                      {userData.referrals.purchases.length > 0 && (
+                        <div className="mt-6">
+                          <h4 className="text-primary font-medium mb-4">
+                            Referred Users Purchases
+                          </h4>
+                          <div className="overflow-auto max-h-96">
+                            <table className="w-full min-w-full">
+                              <thead className="bg-primary/10 border-b border-primary/20">
+                                <tr>
+                                  <th className="text-left py-3 px-4 text-sm font-medium text-primary">
+                                    User
+                                  </th>
+                                  <th className="text-right py-3 px-4 text-sm font-medium text-primary">
+                                    Amount
+                                  </th>
+                                  <th className="text-right py-3 px-4 text-sm font-medium text-primary">
+                                    Network
+                                  </th>
+                                  <th className="text-right py-3 px-4 text-sm font-medium text-primary">
+                                    Date
+                                  </th>
+                                  <th className="text-right py-3 px-4 text-sm font-medium text-primary">
+                                    Earnings
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {userData.referrals.purchases.map(
+                                  (purchase, index) => (
+                                    <>
+                                      <tr
+                                        key={purchase.id}
+                                        className={`border-b border-primary/10 hover:bg-primary/5 transition-colors ${index % 2 === 0 ? "bg-black/20" : "bg-black/10"}`}
+                                      >
+                                        <td className="py-3 px-4 text-sm text-white/90">
+                                          {purchase.userName ||
+                                            (purchase.userEmail
+                                              ? `${purchase.userEmail.substring(0, 3)}...${purchase.userEmail.substring(purchase.userEmail.indexOf("@"))}`
+                                              : "Anonymous User")}
+                                        </td>
+                                        <td className="py-3 px-4 text-sm text-right text-primary">
+                                          {Number(
+                                            purchase.lmxTokensAllocated
+                                          ).toFixed(2)}{" "}
+                                          LMX
+                                        </td>
+
+                                        <td className="py-3 px-4 text-sm text-right text-white/70 capitalize">
+                                          {purchase.network.toLowerCase()}
+                                        </td>
+                                        <td className="py-3 px-4 text-sm text-right text-white/70">
+                                          {new Date(
+                                            purchase.createdAt
+                                          ).toLocaleDateString()}
+                                        </td>
+                                        <td className="py-3 px-4 text-sm text-right text-green-400">
+                                          {purchase.referralEarnings
+                                            ? `${purchase.referralEarnings.toFixed(2)} $TRUMP`
+                                            : "N/A"}
+                                        </td>
+                                      </tr>
+                                    </>
+                                  )
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                          {userData.referrals.purchases.length > 5 && (
+                            <div className="mt-3 text-center">
+                              <span className="text-sm text-primary/80">
+                                Showing {userData.referrals.purchases.length}{" "}
+                                referred purchases
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
                       {connected && currentWalletType === "solana" ? (

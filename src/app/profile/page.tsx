@@ -4,7 +4,10 @@ import { authOptions } from "@/lib/next-auth";
 import prisma from "@/lib/prisma";
 import ProfileClientContent from "./ProfileClientContent";
 import { parse } from "path";
+import SimpleProfileContent from "./SimpleProfileContent";
+import ErrorBoundary from "./ErrorBoundary";
 
+// Route segment config
 export const dynamic = "force-dynamic";
 export const revalidate = 60; // Revalidate data every 60 seconds
 
@@ -126,12 +129,29 @@ async function getUserData(userId: string): Promise<UserData> {
         userId: true,
       },
     });
+    // Calculate bonus as 5% of the referred purchases
+    const referralBonusPercentage = 0.1;
+    // Map purchases to their users and create the referredUsersPurchases array with earnings calculation
 
-    // Map purchases to their users and create the referredUsersPurchases array
     referredUsersPurchases = referralPurchases.map((purchase) => {
       const referredUser = referredUsers.find(
         (user) => user.id === purchase.userId
       );
+
+      // Calculate earnings for this purchase
+      let lmxAmount =
+        typeof purchase.lmxTokensAllocated === "object"
+          ? parseFloat(purchase.lmxTokensAllocated.toString())
+          : parseFloat(purchase.lmxTokensAllocated || "0");
+
+      let pricePerLmx =
+        typeof purchase.pricePerLmxInUsdt === "object"
+          ? parseFloat(purchase.pricePerLmxInUsdt.toString())
+          : parseFloat(purchase.pricePerLmxInUsdt || "0");
+
+      const purchaseAmount = lmxAmount * pricePerLmx;
+      const referralEarnings = purchaseAmount * referralBonusPercentage;
+
       return {
         ...purchase,
         pricePerLmxInUsdt: purchase.pricePerLmxInUsdt
@@ -139,11 +159,9 @@ async function getUserData(userId: string): Promise<UserData> {
           : null,
         userEmail: referredUser?.email || null,
         userName: null, // We don't have name in the schema
+        referralEarnings: parseFloat(referralEarnings.toFixed(2)), // Add earnings information
       };
     });
-
-    // Calculate bonus as 5% of the referred purchases
-    const referralBonusPercentage = 0.1;
 
     totalReferralBonus = referralPurchases.reduce((total, purchase) => {
       let lmxAmount =
@@ -310,9 +328,13 @@ export default async function ProfilePage() {
   }
 
   // Convert the purchases to a format that's serializable for the client component
+  // Make sure all properties are JSON-serializable
   const serializableUserData = {
     purchases: userData.purchases.map((purchase) => {
+      // Extract any Decimal values
       const { pricePerLmxInUsdt, ...rest } = purchase;
+
+      // Return a new object with serialized values
       return {
         ...rest,
         createdAt: purchase.createdAt.toISOString(),
@@ -328,7 +350,10 @@ export default async function ProfilePage() {
       count: userData.referrals.count,
       totalBonus: userData.referrals.totalBonus,
       purchases: userData.referrals.purchases.map((purchase) => {
+        // Extract any Decimal values
         const { pricePerLmxInUsdt, ...rest } = purchase;
+
+        // Return a new object with serialized values
         return {
           ...rest,
           createdAt: purchase.createdAt.toISOString(),
@@ -343,12 +368,36 @@ export default async function ProfilePage() {
     },
   };
 
+  // Convert to JSON and back to ensure all values are serializable
+  const jsonString = JSON.stringify(serializableUserData);
+  const jsonSafeData = JSON.parse(jsonString);
+
+  const LoadingFallback = () => (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="p-8 bg-black/50 backdrop-blur-md rounded-lg border border-primary/20 text-center">
+        <h2 className="text-2xl font-bold mb-4">Loading Profile...</h2>
+        <p className="text-gray-400">
+          Please wait while we load your profile data
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <Suspense fallback={<div>Loading profile...</div>}>
-      <ProfileClientContent
-        userData={serializableUserData}
-        initialSession={session}
-      />
+    <Suspense fallback={<LoadingFallback />}>
+      <ErrorBoundary
+        fallback={
+          <SimpleProfileContent
+            userData={jsonSafeData}
+            initialSession={session}
+          />
+        }
+      >
+        <ProfileClientContent
+          userData={jsonSafeData}
+          initialSession={session}
+        />
+      </ErrorBoundary>
     </Suspense>
   );
 }

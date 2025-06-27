@@ -529,13 +529,14 @@ export async function sendReferralTokens(
       );
 
       console.log("Transaction signature:", signature);
-
+      let referraltxn = null;
       try {
         // Get the referrer's user ID from the wallet address
+        console.log(`Fetching user ID for referrer ${referrer}`);
 
         if (referrerId) {
           // Record successful payment in the database
-          await (prisma as any).referralPayment.create({
+          referraltxn = await (prisma as any).referralPayment.create({
             data: {
               referrerId: referrerId,
               purchaseId: "", // Since we don't have direct purchase ID, we leave it empty
@@ -557,13 +558,13 @@ export async function sendReferralTokens(
         console.error("Error recording successful payment:", recordError);
       }
 
-      return true;
+      return { sent: true, referraltxn, signature };
     } catch (error) {
       console.error("Error sending SPL tokens:", error);
-      return false;
+      return { sent: false };
     }
   } catch (error) {
     console.error("Error processing referral bonus:", error);
-    return false;
+    return { sent: false };
   }
 }
