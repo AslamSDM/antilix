@@ -51,7 +51,7 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
 
       {/* Main description text - scattered on the left */}
       <motion.div
-        className="floating-text center-left slide-in"
+        className="floating-text absolute left-[5%] bottom-[20%] md:bottom-[10%]   transform -translate-y-1/2 slide-in"
         initial={{ opacity: 0, x: -30 }}
         animate={{
           opacity: isVisible ? 1 : 0,
@@ -59,7 +59,7 @@ export default function IntroSection({ isVisible }: IntroSectionProps) {
         }}
         transition={{ duration: 0.8, delay: 0.3 }}
       >
-        <p className="text-xl text-white/90 max-w-lg">
+        <p className="text-xl text-white/90">
           Built on Solana, Litmex combines decentralized prediction markets,
           addictive mini games, and autonomous AI betting agents. It&apos;s not
           just gambling it&apos;s intelligent, automated crypto wagering at

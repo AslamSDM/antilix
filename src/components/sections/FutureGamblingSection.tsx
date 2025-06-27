@@ -52,7 +52,7 @@ export default function FutureGamblingSection({
 
       {/* Main description - center left */}
       <motion.div
-        className="floating-text center-left paragraph-text  slide-in"
+        className="floating-text absolute left-[5%] bottom-[20%] md:bottom-[10%] max-w-[90%]  transform -translate-y-1/2 slide-in"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: isVisible ? 1 : 0, x: isVisible ? 0 : -30 }}
         transition={{ duration: 0.6, delay: 0.2 }}
