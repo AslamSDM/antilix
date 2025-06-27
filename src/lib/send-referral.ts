@@ -86,7 +86,7 @@ export async function recordPendingReferralPayment(
     const payment = await (prisma as any).referralPayment.create({
       data: {
         referrerId,
-        purchaseId,
+        // purchaseId,
         amount: referrerAmountInTokens.toString(),
         amountUsd: bonusAmountInUsd.toString(),
         status: "PENDING",
@@ -538,8 +538,7 @@ export async function sendReferralTokens(
           // Record successful payment in the database
           referraltxn = await (prisma as any).referralPayment.create({
             data: {
-              referrerId: referrerId,
-              purchaseId: "", // Since we don't have direct purchase ID, we leave it empty
+              referrerId: referrerId, // Direct assignment instead of connect
               amount: referrerAmountInTokens.toString(),
               amountUsd: bonusAmountInUsd.toString(),
               status: "COMPLETED",

@@ -64,24 +64,23 @@ model PasswordResetToken {
 }
 
 model Purchase {
-  id                   String            @id @default(cuid())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id                   String         @id @default(cuid())
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
   userId               String
   network              NetworkType
   paymentAmount        Decimal
   paymentCurrency      String
   lmxTokensAllocated   Decimal
   pricePerLmxInUsdt    Decimal
-  transactionSignature String            @unique
-  status               PurchaseStatus    @default(PENDING)
-  referralBonusPaid    Boolean           @default(false)
-  roundId              String            @default("seed")
-  transactionId        String?           @unique
-  referraltxnId        String?           @unique
-  user                 User              @relation(fields: [userId], references: [id])
+  transactionSignature String         @unique
+  status               PurchaseStatus @default(PENDING)
+  referralBonusPaid    Boolean        @default(false)
+  roundId              String         @default("seed")
+  transactionId        String?        @unique
+  referraltxnId        String?        @unique
+  user                 User           @relation(fields: [userId], references: [id])
   Transaction          Transaction[]
-  ReferralPayment      ReferralPayment[]
 
   @@index([userId])
   @@index([transactionSignature])
@@ -133,17 +132,15 @@ model ReferralPayment {
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   referrerId           String // ID of the user who gets the reward
-  purchaseId           String // Related purchase that triggered the referral
   amount               Decimal // Amount of tokens to be paid
   amountUsd            Decimal // USD value at time of payment calculation
   status               TransactionStatus @default(PENDING)
   transactionSignature String? // Blockchain transaction signature when paid
   paymentCurrency      String            @default("SOL")
-  referrer             User              @relation(fields: [referrerId], references: [id])
-  purchase             Purchase          @relation(fields: [purchaseId], references: [id])
+  User                 User?             @relation(fields: [userId], references: [id])
+  userId               String?
 
   @@index([referrerId])
-  @@index([purchaseId])
   @@index([status])
 }
 

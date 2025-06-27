@@ -328,11 +328,12 @@ export async function POST(req: NextRequest) {
         try {
           // If referrer has verified Solana wallet, send tokens directly
           if (referrer.solanaAddress && referrer.solanaVerified) {
+            console.log(referrer.id);
             const { sent, referraltxn } = await sendReferralTokens(
               referrer.solanaAddress,
               solAmount,
               "sol",
-              sender.referrerId
+              referrer.id
             );
             referralPaid = sent;
             referralTxn = referraltxn;
@@ -370,7 +371,6 @@ export async function POST(req: NextRequest) {
         referralBonusPaid: referralPaid,
         status: "COMPLETED",
         transactionId: existingTransactionRecord.id,
-        referrerId: sender.referrerId || null,
         referraltxnId: referralTxn?.id || null,
       },
     });
