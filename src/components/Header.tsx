@@ -105,6 +105,7 @@ export function Header() {
             className="mr-2 w-[50px] min-w-[50px] h-auto sm:w-[60px] sm:min-w-[60px] md:w-[70px] md:min-w-[70px]"
             style={{ minHeight: "25px" }}
           />
+          <span className="text-white font-bold text-lg md:hidden">LITMEX</span>
         </Link>
 
         {/* Desktop Navigation */}
