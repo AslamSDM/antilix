@@ -245,17 +245,20 @@ export async function POST(req: NextRequest) {
     const valueInBnb = ethers.formatEther(valueInWei);
 
     let referralPaid = false;
+    let referralTxn = null;
     if (user.referrerId) {
       const referrer = await prisma.user.findUnique({
         where: { id: user.referrerId },
       });
       if (referrer?.solanaAddress) {
-        referralPaid = await sendReferralTokens(
+        const { sent, referraltxn } = await sendReferralTokens(
           referrer.solanaAddress,
           parseFloat(valueInBnb),
           "bsc",
           user.referrerId
         );
+        referralPaid = referralPaid || false;
+        referralTxn = referraltxn || null;
       }
     }
     // Create a new purchase record
@@ -270,6 +273,7 @@ export async function POST(req: NextRequest) {
         status: "COMPLETED",
         paymentCurrency: "BNB",
         referralBonusPaid: referralPaid,
+        referraltxnId: referralTxn?.id || null,
       },
     });
 

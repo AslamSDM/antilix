@@ -383,17 +383,20 @@ export async function POST(req: NextRequest) {
     }
 
     let referralPaid = false;
+    let referralTxn = null;
     if (user.referrerId) {
       const referrer = await prisma.user.findUnique({
         where: { id: user.referrerId },
       });
       if (referrer?.solanaAddress) {
-        referralPaid = await sendReferralTokens(
+        const { sent, referraltxn } = await sendReferralTokens(
           referrer.solanaAddress,
           parseFloat(usdtAmount),
           "usdt",
           user.referrerId
         );
+        referralPaid = sent || false;
+        referralTxn = referraltxn || null;
       }
     }
 
@@ -409,6 +412,7 @@ export async function POST(req: NextRequest) {
         status: "COMPLETED",
         paymentCurrency: "USDT",
         referralBonusPaid: referralPaid,
+        referraltxnId: referralTxn?.id || null,
         // These fields may be included if they exist in the schema, otherwise remove them
         // Only keep fields that exist in your Prisma schema
       },

@@ -404,6 +404,7 @@ export async function POST(req: NextRequest) {
 
     // Process new purchase
     let referralPaid = false;
+    let referralTxn;
     const sender = await prisma.user.findUnique({
       where: { id: session.user.id },
     });
@@ -421,12 +422,14 @@ export async function POST(req: NextRequest) {
 
       if (referrer?.solanaAddress) {
         try {
-          referralPaid = await sendReferralTokens(
+          const { sent, referraltxn } = await sendReferralTokens(
             referrer.solanaAddress,
             transferAmount,
             "usdt",
             sender.referrerId
           );
+          referralPaid = sent;
+          referralTxn = referraltxn || null;
         } catch (error) {
           console.error("Error sending referral tokens:", error);
         }
@@ -453,6 +456,7 @@ export async function POST(req: NextRequest) {
         referralBonusPaid: referralPaid,
         status: "COMPLETED",
         transactionId: existingTransactionRecord.id,
+        referraltxnId: referralTxn?.id || null,
       },
     });
 

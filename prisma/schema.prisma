@@ -78,6 +78,7 @@ model Purchase {
   referralBonusPaid    Boolean           @default(false)
   roundId              String            @default("seed")
   transactionId        String?           @unique
+  referraltxnId        String?           @unique
   user                 User              @relation(fields: [userId], references: [id])
   Transaction          Transaction[]
   ReferralPayment      ReferralPayment[]
