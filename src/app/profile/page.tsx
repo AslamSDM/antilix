@@ -6,6 +6,8 @@ import ProfileClientContent from "./ProfileClientContent";
 import { parse } from "path";
 import SimpleProfileContent from "./SimpleProfileContent";
 import ErrorBoundary from "./ErrorBoundary";
+import { PublicKey } from "@solana/web3.js";
+import { getTokenDetails } from "@/lib/price-utils";
 
 // Route segment config
 export const dynamic = "force-dynamic";
@@ -367,7 +369,12 @@ export default async function ProfilePage() {
       referralStats: userData.referrals.referralStats,
     },
   };
-
+  // Your SPL token mint address
+  const TOKEN_MINT = new PublicKey(
+    "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+  );
+  const trump = await getTokenDetails(TOKEN_MINT.toString());
+  const trumpPrice = Number(trump?.priceUsd) || 8;
   // Convert to JSON and back to ensure all values are serializable
   const jsonString = JSON.stringify(serializableUserData);
   const jsonSafeData = JSON.parse(jsonString);
@@ -396,6 +403,7 @@ export default async function ProfilePage() {
         <ProfileClientContent
           userData={jsonSafeData}
           initialSession={session}
+          trumpPrice={trumpPrice}
         />
       </ErrorBoundary>
     </Suspense>

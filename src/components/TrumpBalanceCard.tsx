@@ -29,6 +29,7 @@ interface PaymentStats {
 }
 
 interface TrumpBalanceCardProps {
+  trumpPrice?: number; // Default price of TRUMP token
   referralStats?: ReferralStats;
   paymentStats?: PaymentStats;
   referralCount: number;
@@ -36,6 +37,7 @@ interface TrumpBalanceCardProps {
 }
 
 const TrumpBalanceCard: React.FC<TrumpBalanceCardProps> = ({
+  trumpPrice = 8,
   referralStats,
   paymentStats,
   referralCount,
@@ -117,12 +119,9 @@ const TrumpBalanceCard: React.FC<TrumpBalanceCardProps> = ({
               transition={{ duration: 3, repeat: Infinity }}
             >
               {referralStats
-                ? parseFloat(referralStats.totalBonus).toLocaleString(
-                    undefined,
-                    {
-                      maximumFractionDigits: 2,
-                    }
-                  )
+                ? parseFloat(referralStats.totalBonus).toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })
                 : "0"}{" "}
               <span className="text-primary">TRUMP</span>
             </motion.div>
@@ -130,60 +129,63 @@ const TrumpBalanceCard: React.FC<TrumpBalanceCardProps> = ({
           <p className="text-xs text-primary/70 mt-1">
             Value: $
             {referralStats
-              ? parseFloat(referralStats.totalUsd).toLocaleString(undefined, {
+              ? (
+                  parseFloat(referralStats.totalBonus) * trumpPrice
+                ).toLocaleString("en-US", {
                   maximumFractionDigits: 2,
                 })
               : "0.00"}
           </p>
         </div>
 
-        <div className="rounded-lg p-4 border border-primary/30 relative overflow-hidden group hover:border-yellow-400/50 transition-all duration-300 bg-black/40 backdrop-blur-sm">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/10 rounded-full blur-2xl group-hover:bg-yellow-400/20 transition-all duration-300"></div>
-          <h4 className="text-sm text-yellow-300 mb-1 flex items-center">
-            <motion.div
-              animate={{ y: [0, -2, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="mr-1"
-            >
-              <Star className="h-3 w-3 text-yellow-300" />
-            </motion.div>
-            Pending TRUMP
-          </h4>
-          <div className="flex items-center">
-            <motion.div
-              className="text-2xl font-bold text-yellow-300"
-              animate={{
-                textShadow: [
-                  "0 0 0px rgba(234,179,8,0)",
-                  "0 0 8px rgba(234,179,8,0.7)",
-                  "0 0 0px rgba(234,179,8,0)",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
+        {parseFloat(referralStats?.totalPendingBonus ?? "0") > 0 && (
+          <div className="rounded-lg p-4 border border-primary/30 relative overflow-hidden group hover:border-yellow-400/50 transition-all duration-300 bg-black/40 backdrop-blur-sm">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/10 rounded-full blur-2xl group-hover:bg-yellow-400/20 transition-all duration-300"></div>
+            <h4 className="text-sm text-yellow-300 mb-1 flex items-center">
+              <motion.div
+                animate={{ y: [0, -2, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="mr-1"
+              >
+                <Star className="h-3 w-3 text-yellow-300" />
+              </motion.div>
+              Pending TRUMP
+            </h4>
+            <div className="flex items-center">
+              <motion.div
+                className="text-2xl font-bold text-yellow-300"
+                animate={{
+                  textShadow: [
+                    "0 0 0px rgba(234,179,8,0)",
+                    "0 0 8px rgba(234,179,8,0.7)",
+                    "0 0 0px rgba(234,179,8,0)",
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                {referralStats
+                  ? (
+                      parseFloat(referralStats.totalPendingBonus) * trumpPrice
+                    ).toLocaleString("en-US", {
+                      maximumFractionDigits: 2,
+                    })
+                  : "0"}{" "}
+                <span className="text-yellow-200">TRUMP</span>
+              </motion.div>
+            </div>
+            <p className="text-xs text-yellow-300/70 mt-1">
+              Value: $
               {referralStats
-                ? parseFloat(referralStats.totalPendingBonus).toLocaleString(
-                    undefined,
+                ? parseFloat(referralStats.totalPendingUsd).toLocaleString(
+                    "en-US",
                     {
                       maximumFractionDigits: 2,
                     }
                   )
-                : "0"}{" "}
-              <span className="text-yellow-200">TRUMP</span>
-            </motion.div>
+                : "0.00"}
+            </p>
           </div>
-          <p className="text-xs text-yellow-300/70 mt-1">
-            Value: $
-            {referralStats
-              ? parseFloat(referralStats.totalPendingUsd).toLocaleString(
-                  undefined,
-                  {
-                    maximumFractionDigits: 2,
-                  }
-                )
-              : "0.00"}
-          </p>
-        </div>
+        )}
       </div>
 
       <div className="mt-4 border-t border-primary/20 pt-4 relative z-10">
@@ -243,7 +245,7 @@ const TrumpBalanceCard: React.FC<TrumpBalanceCardProps> = ({
               {referralCount > 0 && referralStats
                 ? (
                     parseFloat(referralStats.totalBonus) / referralCount
-                  ).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  ).toLocaleString("en-US", { maximumFractionDigits: 2 })
                 : "0"}{" "}
               TRUMP
             </span>
@@ -252,14 +254,13 @@ const TrumpBalanceCard: React.FC<TrumpBalanceCardProps> = ({
             <span className="text-gray-400">Total Earned:</span>
             <span className="text-primary font-medium">
               {referralStats
-                ? parseFloat(referralStats.totalBonus).toLocaleString(
-                    undefined,
-                    { maximumFractionDigits: 2 }
-                  )
+                ? parseFloat(referralStats.totalBonus).toLocaleString("en-US", {
+                    maximumFractionDigits: 2,
+                  })
                 : "0"}{" "}
               TRUMP ($
               {referralStats
-                ? parseFloat(referralStats.totalUsd).toLocaleString(undefined, {
+                ? parseFloat(referralStats.totalUsd).toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })
                 : "0"}

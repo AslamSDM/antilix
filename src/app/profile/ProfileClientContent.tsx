@@ -76,6 +76,7 @@ interface ReferralPaymentStats {
 
 interface ProfileClientContentProps {
   userData?: UserData;
+  trupPrice?: number;
   initialSession?: Session | null;
 }
 
@@ -98,6 +99,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
       },
     },
   },
+  trupPrice = 8,
   initialSession,
 }) => {
   const appKitState = useAppKitState() as AppKitStateShape;
@@ -528,6 +530,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                         referralStats={userData.referrals.referralStats}
                         paymentStats={userData.referrals.paymentStats}
                         referralCount={userData.referrals.count}
+                        trumpPrice={trupPrice}
                       />
                     </motion.div>
                   )}
