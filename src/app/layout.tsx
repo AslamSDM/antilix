@@ -7,10 +7,8 @@ import ContextProviderAsWalletProviders from "@/components/providers/wallet-prov
 import { AuthProvider } from "@/components/providers/auth-provider";
 import LoadingScreen from "@/components/LoadingScreen";
 import NavigationLoadingHandler from "@/components/NavigationLoadingHandler";
-import PageTransition from "@/components/PageTransition";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
-import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Suspense } from "react";
@@ -24,11 +22,6 @@ import { Toaster } from "sonner";
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
   variable: "--font-display",
-});
-
-const geistSans = Inter({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({

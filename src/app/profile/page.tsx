@@ -403,7 +403,7 @@ export default async function ProfilePage() {
         <ProfileClientContent
           userData={jsonSafeData}
           initialSession={session}
-          trumpPrice={trumpPrice}
+          trupPrice={trumpPrice}
         />
       </ErrorBoundary>
     </Suspense>

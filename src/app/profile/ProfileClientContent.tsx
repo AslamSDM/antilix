@@ -195,7 +195,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
           Your <span className="luxury-text">Profile</span>
         </h1>
         <p className="text-lg max-w-2xl mx-auto text-white/80">
-          {connected
+          {isAuthenticated
             ? "Manage your profile, view activity, and explore features."
             : "Connect your wallet to access exclusive features and track your gaming history"}
         </p>
@@ -232,10 +232,10 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
               </p>
 
               <div className="w-full">
-                {!connected ? (
+                {!isAuthenticated ? (
                   <div className="my-6">
                     <p className="text-muted-foreground text-sm mb-4 text-center">
-                      Connect your wallet to view your full profile
+                      Sign in to view your full profile
                     </p>
                     <Button
                       onClick={handleConnect}
@@ -425,7 +425,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
                       </h3>
                     </div>
 
-                    {connected ? (
+                    {isAuthenticated ? (
                       <div className="flex items-center text-primary">
                         <motion.div
                           animate={{
@@ -761,19 +761,7 @@ const ProfileClientContent: React.FC<ProfileClientContentProps> = ({
 
                       {/* Only show wallet signing section for Solana wallets since that's what the backend supports */}
                       {connected && currentWalletType === "solana" ? (
-                        <div className="bg-black/20 p-6 rounded-lg mt-8">
-                          <h4 className="text-primary mb-4 font-medium">
-                            Wallet Verified Referrals (Solana)
-                          </h4>
-                          <p className="text-white/70 text-sm mb-4">
-                            Sign with your Solana wallet to create
-                            cryptographically-verified referral links that
-                            provide additional bonuses.
-                          </p>
-                          <Button className="bg-primary hover:bg-primary/90 text-black">
-                            Generate Verified Link
-                          </Button>
-                        </div>
+                        <div className="bg-black/20 p-6 rounded-lg mt-8"></div>
                       ) : connected ? (
                         <div className="bg-black/20 p-6 rounded-lg mt-8"></div>
                       ) : null}

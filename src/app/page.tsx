@@ -6,14 +6,13 @@ import { Application } from "@splinetool/runtime";
 import Spline from "@splinetool/react-spline";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
-// import useSectionCentering from "@/components/hooks/useSectionCentering"; // May not be needed if sections are fixed
 import useReferralHandling from "@/components/hooks/useReferralHandling";
 import MusicToggle from "@/components/MusicToggle";
 import LitmexLoader from "@/components/LitmexLoader";
 import NavigationHint from "@/components/NavigationHint";
 import ContinueButton from "@/components/ContinueButton";
 import ReferralIndicator from "@/components/ReferralIndicator";
-import { useSession } from "next-auth/react"; // Add this import
+import { useSession } from "next-auth/react";
 
 // Import section components
 import IntroSection from "@/components/sections/IntroSection";
@@ -23,14 +22,45 @@ import StakeEarnSection from "@/components/sections/StakeEarnSection";
 import SecuritySection from "@/components/sections/SecuritySection";
 import CtaSection from "@/components/sections/CtaSection";
 
-// Define the total "units" your animation and sections will span across.
-// This is arbitrary but helps map the 0-1 scrollYProgress to a more granular scale.
-const TOTAL_SCROLL_ANIMATION_UNITS = 100; // e.g., sections change every 20 units
+const TOTAL_SCROLL_ANIMATION_UNITS = 100;
+const MAX_SPLINE_SCROLL_VALUE = 1000;
 
-// Define the maximum value Spline's scroll animation expects.
-// This MUST match what you've configured in your Spline scene's scroll event.
-// For example, if your Spline animation plays fully when a scroll variable goes from 0 to 1000.
-const MAX_SPLINE_SCROLL_VALUE = 1000; // Adjust this based on your Spline setup!
+// Device detection utilities
+const getDeviceInfo = () => {
+  if (typeof window === "undefined")
+    return { isIOS: false, isMobile: false, memoryLimited: false };
+
+  const userAgent = window.navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+  const isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
+
+  // Detect potentially memory-limited devices
+  const memoryLimited =
+    isIOS ||
+    (typeof (navigator as any).deviceMemory === "number" &&
+      (navigator as any).deviceMemory < 4);
+
+  return { isIOS, isMobile, memoryLimited };
+};
+
+// WebGL capability detection
+const checkWebGLSupport = () => {
+  if (typeof window === "undefined") return { webgl: false, webgl2: false };
+
+  try {
+    const canvas = document.createElement("canvas");
+    const webgl = !!(
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    );
+    const webgl2 = !!canvas.getContext("webgl2");
+    return { webgl, webgl2 };
+  } catch (e) {
+    return { webgl: false, webgl2: false };
+  }
+};
 
 export default function HomePage() {
   const [splineApp, setSplineApp] = useState<Application | null>(null);
@@ -40,17 +70,27 @@ export default function HomePage() {
   const [musicActive, setMusicActive] = useState<boolean>(false);
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
   const [showContinueButton, setShowContinueButton] = useState<boolean>(false);
-  // This will store our mapped progress (e.g., 0 to TOTAL_SCROLL_ANIMATION_UNITS)
   const [mappedScrollProgress, setMappedScrollProgress] = useState<number>(0);
 
-  // Handle referral code from URL
-  const referralInfo = useReferralHandling();
-  const { data: session, status } = useSession(); // Apply referral code if user is authenticated
+  // Device and capability detection
+  const [deviceInfo, setDeviceInfo] = useState({
+    isIOS: false,
+    isMobile: false,
+    memoryLimited: false,
+  });
+  const [webglSupport, setWebglSupport] = useState({
+    webgl: false,
+    webgl2: false,
+  });
+  const [splineError, setSplineError] = useState<string | null>(null);
+  const [useSplineFallback, setUseSplineFallback] = useState<boolean>(false);
 
-  // Get scroll progress (0 to 1) for the containerRef
+  const referralInfo = useReferralHandling();
+  const { data: session, status } = useSession();
+
   const { scrollYProgress, scrollY } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"], // Scroll from the very start to the very end of containerRef
+    offset: ["start start", "end end"],
   });
 
   const sectionChangeSound = useAudioPlayer({
@@ -64,83 +104,131 @@ export default function HomePage() {
     playOnMount: false,
   });
 
-  // Detect small screens on mount
+  // Initialize device detection and WebGL support check
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsSmallScreen(window.innerWidth < 768); // Consider tablets and phones as small screens
-    };
+    const device = getDeviceInfo();
+    const webgl = checkWebGLSupport();
 
-    // Check on mount
-    checkScreenSize();
+    setDeviceInfo(device);
+    setWebglSupport(webgl);
 
-    // Add event listener for window resize
-    window.addEventListener("resize", checkScreenSize);
+    // Pre-emptively use fallback for known problematic scenarios
+    if (!webgl.webgl || (device.isIOS && device.memoryLimited)) {
+      setUseSplineFallback(true);
+      setIsLoading(false);
+      console.log("Using Spline fallback due to device limitations:", {
+        device,
+        webgl,
+      });
+    }
 
-    // Clean up
-    return () => {
-      window.removeEventListener("resize", checkScreenSize);
-    };
+    console.log("Device info:", device);
+    console.log("WebGL support:", webgl);
   }, []);
 
-  // Update mappedScrollProgress and control Spline based on scrollYProgress
+  // Detect small screens and handle resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  // Enhanced scroll progress handling with error catching
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (latest) => {
-      // `latest` is a value from 0 to 1
-      const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
-      setMappedScrollProgress(currentMappedProgress);
+      try {
+        const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
+        setMappedScrollProgress(currentMappedProgress);
 
-      // Update Spline animation if app is loaded
-      if (splineApp) {
-        // Map from 0-1 to 0-MAX_SPLINE_SCROLL_VALUE
-        const splineValue = latest * MAX_SPLINE_SCROLL_VALUE;
+        // Only update Spline if it's loaded and we're not using fallback
+        if (splineApp && !useSplineFallback) {
+          const splineValue = latest * MAX_SPLINE_SCROLL_VALUE;
 
-        // Try common variable names that might control the animation
-        const variableNames = [
-          "scroll",
-          "scrollValue",
-          "animation",
-          "progress",
-          "value",
-          "time",
-          "position",
-        ];
+          const variableNames = [
+            "scroll",
+            "scrollValue",
+            "animation",
+            "progress",
+            "value",
+            "time",
+            "position",
+          ];
 
-        // Try each variable name until one works
-        for (const varName of variableNames) {
-          try {
-            // splineApp.setVariable(varName, splineValue);
-            break; // Exit the loop once we find a working variable
-          } catch (error) {
-            // Variable doesn't exist, continue to the next one
+          for (const varName of variableNames) {
+            try {
+              // Commented out to prevent errors - uncomment when Spline variables are properly configured
+              // splineApp.setVariable(varName, splineValue);
+              break;
+            } catch (error) {
+              // Variable doesn't exist, continue
+            }
           }
         }
+      } catch (error) {
+        console.error("Error updating scroll progress:", error);
       }
     });
     return () => unsubscribe();
-  }, [scrollYProgress, splineApp]);
+  }, [scrollYProgress, splineApp, useSplineFallback]);
 
+  // Enhanced Spline load handler with error recovery
   const handleSplineLoad = useCallback(
     (app: Application) => {
-      setSplineApp(app);
-      setIsLoading(false);
-      console.log("Spline scene loaded successfully");
-      // app.setBackgroundColor("transparent"); // Set background to transparent if needed
-      // You might want to set an initial state for the Spline animation here if needed
-      // app.setVariable("splineScrollValue", 0);
+      try {
+        setSplineApp(app);
+        setIsLoading(false);
+        setSplineError(null);
+        console.log("Spline scene loaded successfully");
 
-      // Log referral information if present
-      if (referralInfo.code) {
-        console.log("Referral detected:", {
-          code: referralInfo.code,
-          referrerId: referralInfo.referrerId,
-          referrerAddress: referralInfo.referrerAddress,
-          referrerUsername: referralInfo.referrerUsername,
-          isValid: referralInfo.isValid,
-        });
+        // Test WebGL context stability on iOS
+        if (deviceInfo.isIOS) {
+          // Add WebGL context loss listener
+          const canvas = document.querySelector("canvas");
+          if (canvas) {
+            canvas.addEventListener("webglcontextlost", (e) => {
+              console.warn("WebGL context lost on iOS");
+              e.preventDefault();
+              setSplineError("WebGL context lost");
+              setUseSplineFallback(true);
+            });
+
+            canvas.addEventListener("webglcontextrestored", () => {
+              console.log("WebGL context restored");
+              setSplineError(null);
+            });
+          }
+        }
+
+        if (referralInfo.code) {
+          console.log("Referral detected:", {
+            code: referralInfo.code,
+            referrerId: referralInfo.referrerId,
+            referrerAddress: referralInfo.referrerAddress,
+            referrerUsername: referralInfo.referrerUsername,
+            isValid: referralInfo.isValid,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading Spline:", error);
+        setSplineError("Failed to load Spline scene");
+        setUseSplineFallback(true);
+        setIsLoading(false);
       }
     },
-    [referralInfo]
+    [referralInfo, deviceInfo.isIOS]
   );
+
+  // Enhanced Spline error handler
+  const handleSplineError = useCallback((error: any) => {
+    console.error("Spline error:", error);
+    setSplineError("Spline failed to load");
+    setUseSplineFallback(true);
+    setIsLoading(false);
+  }, []);
 
   const toggleMusic = useCallback(() => {
     if (musicActive) {
@@ -151,76 +239,68 @@ export default function HomePage() {
     setMusicActive(!musicActive);
   }, [musicActive, backgroundMusic]);
 
-  // Helper function to navigate to a specific section
   const navigateToSection = useCallback(
     (sectionIndex: number) => {
-      // Ensure section index is within bounds
-      const targetSection = Math.max(0, Math.min(sectionIndex, 5));
+      try {
+        const targetSection = Math.max(0, Math.min(sectionIndex, 5));
+        let targetScrollPercentage: number;
 
-      // Calculate target scroll percentage based on section
-      let targetScrollPercentage: number;
+        if (targetSection === 0) {
+          targetScrollPercentage = 0;
+        } else {
+          const sectionThresholds = [
+            TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6),
+            TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6),
+            TOTAL_SCROLL_ANIMATION_UNITS * (3 / 6),
+            TOTAL_SCROLL_ANIMATION_UNITS * (4 / 6),
+            TOTAL_SCROLL_ANIMATION_UNITS * (5 / 6),
+          ];
 
-      if (targetSection === 0) {
-        targetScrollPercentage = 0; // Start of the page
-      } else {
-        // Use the midpoint between section thresholds
-        const sectionThresholds = [
-          TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6),
-          TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6),
-          TOTAL_SCROLL_ANIMATION_UNITS * (3 / 6),
-          TOTAL_SCROLL_ANIMATION_UNITS * (4 / 6),
-          TOTAL_SCROLL_ANIMATION_UNITS * (5 / 6),
-        ];
+          targetScrollPercentage =
+            (sectionThresholds[targetSection - 1] + 1) /
+            TOTAL_SCROLL_ANIMATION_UNITS;
+        }
 
-        // Get the target position (add a small offset to make sure we cross the threshold)
-        targetScrollPercentage =
-          (sectionThresholds[targetSection - 1] + 1) /
-          TOTAL_SCROLL_ANIMATION_UNITS;
-      }
+        const scrollHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const targetScrollPosition = scrollHeight * targetScrollPercentage;
 
-      // Calculate actual pixel position to scroll to
-      const scrollHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const targetScrollPosition = scrollHeight * targetScrollPercentage;
+        window.scrollTo({
+          top: targetScrollPosition,
+          behavior: "smooth",
+        });
 
-      // Perform the scroll
-      window.scrollTo({
-        top: targetScrollPosition,
-        behavior: "smooth",
-      });
+        if (splineApp && !useSplineFallback) {
+          const splineScrollValue =
+            targetScrollPercentage * MAX_SPLINE_SCROLL_VALUE;
 
-      // If we have direct access to the Spline app, update its animation too
-      if (splineApp) {
-        // Calculate the Spline animation value
-        const splineScrollValue =
-          targetScrollPercentage * MAX_SPLINE_SCROLL_VALUE;
+          const variableNames = [
+            "scroll",
+            "scrollValue",
+            "animation",
+            "progress",
+            "value",
+            "time",
+            "position",
+          ];
 
-        // Try common variable names that might control the animation
-        const variableNames = [
-          "scroll",
-          "scrollValue",
-          "animation",
-          "progress",
-          "value",
-          "time",
-          "position",
-        ];
-
-        // Try each variable name until one works
-        for (const varName of variableNames) {
-          try {
-            // splineApp.setVariable(varName, splineScrollValue);
-            break; // Exit the loop once we find a working variable
-          } catch (error) {
-            // Variable doesn't exist, continue to the next one
+          for (const varName of variableNames) {
+            try {
+              // Commented out to prevent errors - uncomment when properly configured
+              // splineApp.setVariable(varName, splineScrollValue);
+              break;
+            } catch (error) {
+              // Variable doesn't exist
+            }
           }
         }
+      } catch (error) {
+        console.error("Error navigating to section:", error);
       }
     },
-    [splineApp]
+    [splineApp, useSplineFallback]
   );
 
-  // Navigation functions for keyboard shortcuts and buttons
   const goToNextSection = useCallback(() => {
     const nextSection = activeSection >= 5 ? 5 : activeSection + 1;
     if (nextSection !== activeSection) {
@@ -251,7 +331,6 @@ export default function HomePage() {
     }
   }, [activeSection, navigateToSection, sectionChangeSound]);
 
-  // Use the keyboard navigation hook
   useKeyboardNavigation({
     onNext: goToNextSection,
     onPrevious: goToPreviousSection,
@@ -259,11 +338,10 @@ export default function HomePage() {
     onEnd: goToLastSection,
   });
 
-  // Show continue button after a period of inactivity
+  // Inactivity timer for continue button
   useEffect(() => {
-    // Initialize user activity detection
     let inactivityTimer: NodeJS.Timeout | null = null;
-    const INACTIVITY_DELAY = 5000; // 5 seconds of inactivity
+    const INACTIVITY_DELAY = 5000;
 
     const resetInactivityTimer = () => {
       if (inactivityTimer) {
@@ -272,13 +350,11 @@ export default function HomePage() {
 
       setShowContinueButton(false);
 
-      // Set a new timer to show the continue button
       inactivityTimer = setTimeout(() => {
         setShowContinueButton(true);
       }, INACTIVITY_DELAY);
     };
 
-    // Detect user activity
     const activityEvents = [
       "scroll",
       "touchmove",
@@ -290,30 +366,26 @@ export default function HomePage() {
       window.addEventListener(event, resetInactivityTimer);
     });
 
-    // Set initial timer
     resetInactivityTimer();
 
-    // Clean up
     return () => {
       if (inactivityTimer) {
         clearTimeout(inactivityTimer);
       }
-
       activityEvents.forEach((event) => {
         window.removeEventListener(event, resetInactivityTimer);
       });
     };
   }, []);
 
-  // Watch for section changes based on mappedScrollProgress
+  // Section change detection
   useEffect(() => {
-    // Define thresholds based on TOTAL_SCROLL_ANIMATION_UNITS
     const sectionThresholds = [
-      TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6), // approx 16.66 for 100 units
-      TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6), // approx 33.33
-      TOTAL_SCROLL_ANIMATION_UNITS * (3 / 6), // approx 50
-      TOTAL_SCROLL_ANIMATION_UNITS * (4 / 6), // approx 66.66
-      TOTAL_SCROLL_ANIMATION_UNITS * (5 / 6), // approx 83.33
+      TOTAL_SCROLL_ANIMATION_UNITS * (1 / 6),
+      TOTAL_SCROLL_ANIMATION_UNITS * (2 / 6),
+      TOTAL_SCROLL_ANIMATION_UNITS * (3 / 6),
+      TOTAL_SCROLL_ANIMATION_UNITS * (4 / 6),
+      TOTAL_SCROLL_ANIMATION_UNITS * (5 / 6),
     ];
 
     let newSection;
@@ -342,7 +414,6 @@ export default function HomePage() {
     }
   }, [mappedScrollProgress, activeSection, sectionChangeSound]);
 
-  // Define section visibility based on activeSection
   const sectionVisibility = [
     activeSection === 0,
     activeSection === 1,
@@ -352,17 +423,40 @@ export default function HomePage() {
     activeSection === 5,
   ];
 
-  return (
-    // This containerRef needs to have a defined height for scrollYProgress to work against.
-    // The artificial scroll height will be created *inside* it.
-    <div
-      ref={containerRef}
-      className="relative w-full" // Removed flex, items-center, justify-center if content is fixed
-      // It needs to be scrollable, so its height matters.
-    >
-      {/* Background music toggle - position it as needed */}
-      {/* <MusicToggle isPlaying={musicActive} onToggle={toggleMusic} /> */}
+  // Fallback component for when Spline fails
+  const SplineFallback = () => (
+    <div className="w-full h-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="text-center text-white">
+        {splineError && (
+          <div className="mb-4 p-3 bg-red-500/20 rounded-lg border border-red-500/30">
+            <p className="text-sm">3D scene unavailable on this device</p>
+            <p className="text-xs text-gray-300 mt-1">
+              {deviceInfo.isIOS
+                ? "iOS WebGL limitations detected"
+                : "WebGL not supported"}
+            </p>
+          </div>
+        )}
+        <div className="relative">
+          <motion.div
+            className="w-32 h-32 border-4 border-white/20 border-t-white rounded-full mx-auto mb-4"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.div
+            className="absolute inset-0 w-24 h-24 border-2 border-blue-400/30 border-b-blue-400 rounded-full m-auto"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+        </div>
+        <p className="text-lg font-semibold">LITMEX</p>
+        <p className="text-sm text-gray-300">Enhanced for your device</p>
+      </div>
+    </div>
+  );
 
+  return (
+    <div ref={containerRef} className="relative w-full">
       {/* Referral indicator */}
       {referralInfo.isValid && referralInfo.code && (
         <ReferralIndicator
@@ -376,7 +470,7 @@ export default function HomePage() {
         {isLoading && <LitmexLoader isLoading={isLoading} />}
       </AnimatePresence>
 
-      {/* Sticky Spline container - z-index adjusted to be behind text sections but above background */}
+      {/* Main 3D scene container */}
       <div className="sticky top-0 left-0 w-full h-screen z-0 overflow-hidden">
         <motion.div
           className="absolute inset-0"
@@ -384,62 +478,27 @@ export default function HomePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
         />
-        <Spline
-          scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
-          // scene="https://prod.spline.design/9X-ehZ9FXPrHcKJy/scene.splinecode"
-          // scene="https://prod.spline.design/vJXoSpt0B2TvAmux/scene.splinecode"
-          onLoad={handleSplineLoad}
-          className="w-full h-full"
-          onMouseDown={(e) => console.log("Spline mousedown:", e)}
-          onScroll={(e) => console.log("Spline scroll:", e)}
-          onKeyDown={(e) => console.log("Spline keydown:", e)}
-          // onSplineScroll is not needed if we drive it via setVariable
-        />
 
-        {/* Scroll hint that fades out as user starts scrolling */}
-        {/* {activeSection === 0 && (
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 flex flex-col items-center z-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: mappedScrollProgress < 5 ? 1 : 0,
-              y: mappedScrollProgress < 5 ? 0 : 20,
+        {useSplineFallback ? (
+          <SplineFallback />
+        ) : (
+          <Spline
+            scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
+            onLoad={handleSplineLoad}
+            onError={handleSplineError}
+            className="w-full h-full"
+            style={{
+              // Optimize for mobile performance
+              willChange: deviceInfo.isMobile ? "auto" : "transform",
             }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{
-                repeat: Infinity,
-                duration: 1.5,
-                ease: "easeInOut",
-              }}
-              className="mb-2"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 5L12 19M12 19L18 13M12 19L6 13"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </motion.div>
-            <span className="text-sm">Scroll to explore</span>
-          </motion.div>
-        )} */}
+            // Reduce quality on memory-limited devices
+            renderOnDemand={deviceInfo.memoryLimited}
+          />
+        )}
       </div>
 
-      {/* Sections container - we no longer need to center it since each section has absolute positioning */}
+      {/* Sections container */}
       <div className="fixed inset-0 pointer-events-none z-20">
-        {/* Each section will control its own pointer-events and positioning */}
         <AnimatePresence mode="wait">
           {sectionVisibility[0] && (
             <IntroSection isVisible={true} key="intro" />
@@ -460,23 +519,8 @@ export default function HomePage() {
         </AnimatePresence>
       </div>
 
-      {/* Continue button
-      <AnimatePresence>
-        {showContinueButton && (
-          <ContinueButton isVisible={true} onClick={goToNextSection} />
-        )}
-      </AnimatePresence> */}
-
-      {/* ---- THE KEY TO INCREASE SCROLL ---- */}
-      {/* This div creates the scrollable height. Adjust height as needed. */}
-      {/* 500vh means 5 screen heights of scrolling. */}
-      {/* This MUST be a direct child of the `containerRef` element if `offset` is `start start, end end` */}
-      {/* Or, ensure `containerRef` itself has this height or contains elements that sum up to it. */}
+      {/* Scrollable height container */}
       <div style={{ height: "600vh" }} aria-hidden="true"></div>
-      {/* The height (e.g., 600vh) determines how much physical scroll distance maps to the 0-1 scrollYProgress.
-          A larger vh value means you have to scroll more for the animation to progress.
-          This needs to "feel right" with your TOTAL_SCROLL_ANIMATION_UNITS and MAX_SPLINE_SCROLL_VALUE.
-      */}
     </div>
   );
 }
