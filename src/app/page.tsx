@@ -7,10 +7,7 @@ import Spline from "@splinetool/react-spline";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 import useReferralHandling from "@/components/hooks/useReferralHandling";
-import MusicToggle from "@/components/MusicToggle";
 import LitmexLoader from "@/components/LitmexLoader";
-import NavigationHint from "@/components/NavigationHint";
-import ContinueButton from "@/components/ContinueButton";
 import ReferralIndicator from "@/components/ReferralIndicator";
 import { useSession } from "next-auth/react";
 
@@ -98,12 +95,6 @@ export default function HomePage() {
     volume: 0.2,
   });
 
-  const backgroundMusic = useAudioPlayer({
-    src: "/sounds/background-ambience.mp3",
-    volume: 0.15,
-    playOnMount: false,
-  });
-
   // Initialize device detection and WebGL support check
   useEffect(() => {
     const device = getDeviceInfo();
@@ -113,14 +104,14 @@ export default function HomePage() {
     setWebglSupport(webgl);
 
     // Pre-emptively use fallback for known problematic scenarios
-    if (!webgl.webgl || (device.isIOS && device.memoryLimited)) {
-      setUseSplineFallback(true);
-      setIsLoading(false);
-      console.log("Using Spline fallback due to device limitations:", {
-        device,
-        webgl,
-      });
-    }
+    // if (!webgl.webgl || (device.isIOS && device.memoryLimited)) {
+    //   setUseSplineFallback(true);
+    //   setIsLoading(false);
+    //   console.log("Using Spline fallback due to device limitations:", {
+    //     device,
+    //     webgl,
+    //   });
+    // }
 
     console.log("Device info:", device);
     console.log("WebGL support:", webgl);
@@ -143,31 +134,6 @@ export default function HomePage() {
       try {
         const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
         setMappedScrollProgress(currentMappedProgress);
-
-        // Only update Spline if it's loaded and we're not using fallback
-        if (splineApp && !useSplineFallback) {
-          const splineValue = latest * MAX_SPLINE_SCROLL_VALUE;
-
-          const variableNames = [
-            "scroll",
-            "scrollValue",
-            "animation",
-            "progress",
-            "value",
-            "time",
-            "position",
-          ];
-
-          for (const varName of variableNames) {
-            try {
-              // Commented out to prevent errors - uncomment when Spline variables are properly configured
-              // splineApp.setVariable(varName, splineValue);
-              break;
-            } catch (error) {
-              // Variable doesn't exist, continue
-            }
-          }
-        }
       } catch (error) {
         console.error("Error updating scroll progress:", error);
       }
@@ -230,15 +196,6 @@ export default function HomePage() {
     setIsLoading(false);
   }, []);
 
-  const toggleMusic = useCallback(() => {
-    if (musicActive) {
-      backgroundMusic.pause();
-    } else {
-      backgroundMusic.play();
-    }
-    setMusicActive(!musicActive);
-  }, [musicActive, backgroundMusic]);
-
   const navigateToSection = useCallback(
     (sectionIndex: number) => {
       try {
@@ -269,31 +226,6 @@ export default function HomePage() {
           top: targetScrollPosition,
           behavior: "smooth",
         });
-
-        if (splineApp && !useSplineFallback) {
-          const splineScrollValue =
-            targetScrollPercentage * MAX_SPLINE_SCROLL_VALUE;
-
-          const variableNames = [
-            "scroll",
-            "scrollValue",
-            "animation",
-            "progress",
-            "value",
-            "time",
-            "position",
-          ];
-
-          for (const varName of variableNames) {
-            try {
-              // Commented out to prevent errors - uncomment when properly configured
-              // splineApp.setVariable(varName, splineScrollValue);
-              break;
-            } catch (error) {
-              // Variable doesn't exist
-            }
-          }
-        }
       } catch (error) {
         console.error("Error navigating to section:", error);
       }
@@ -337,46 +269,6 @@ export default function HomePage() {
     onHome: goToFirstSection,
     onEnd: goToLastSection,
   });
-
-  // Inactivity timer for continue button
-  useEffect(() => {
-    let inactivityTimer: NodeJS.Timeout | null = null;
-    const INACTIVITY_DELAY = 5000;
-
-    const resetInactivityTimer = () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-
-      setShowContinueButton(false);
-
-      inactivityTimer = setTimeout(() => {
-        setShowContinueButton(true);
-      }, INACTIVITY_DELAY);
-    };
-
-    const activityEvents = [
-      "scroll",
-      "touchmove",
-      "mousemove",
-      "keydown",
-      "click",
-    ];
-    activityEvents.forEach((event) => {
-      window.addEventListener(event, resetInactivityTimer);
-    });
-
-    resetInactivityTimer();
-
-    return () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-      activityEvents.forEach((event) => {
-        window.removeEventListener(event, resetInactivityTimer);
-      });
-    };
-  }, []);
 
   // Section change detection
   useEffect(() => {

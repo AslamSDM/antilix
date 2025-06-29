@@ -6,7 +6,6 @@ import { LoadingProvider } from "@/components/providers/loading-provider";
 import ContextProviderAsWalletProviders from "@/components/providers/wallet-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import LoadingScreen from "@/components/LoadingScreen";
-import NavigationLoadingHandler from "@/components/NavigationLoadingHandler";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Header } from "@/components/Header";
@@ -15,7 +14,6 @@ import { Suspense } from "react";
 import localFont from "next/font/local";
 import { headers } from "next/headers"; // Import cookies
 
-import AutomaticReferralHandler from "@/components/AutomaticReferralHandler"; // Import the automatic referral handler
 import { SolanaWalletPrompt } from "@/components/SolanaWalletPrompt";
 import { Toaster } from "sonner";
 
@@ -100,10 +98,9 @@ export default async function RootLayout({
                   <LoadingScreen />
 
                   {/* Handle loading on navigation */}
-                  <NavigationLoadingHandler />
+                  {/* <NavigationLoadingHandler /> */}
 
                   {/* Automatic referral application when user is authenticated */}
-                  <AutomaticReferralHandler />
 
                   {/* Prompt for Solana wallet connection */}
                   <SolanaWalletPrompt />
