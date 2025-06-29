@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LoadingProvider } from "@/components/providers/loading-provider";
 import ContextProviderAsWalletProviders from "@/components/providers/wallet-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
-import LoadingScreen from "@/components/LoadingScreen";
 import { FluxDock } from "@/components/FluxDock";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { Header } from "@/components/Header";
@@ -33,7 +32,7 @@ const geistMono = Geist_Mono({
 // });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://litmex.com"), // Added metadataBase - REPLACE with your actual domain
+  metadataBase: new URL("https://litmexpresale.com"), // Added metadataBase - REPLACE with your actual domain
   title: "Litmex | Premium Web3 Gaming Platform",
   description:
     "A luxury web3 gaming platform offering provably fair games and exclusive rewards",
@@ -47,27 +46,9 @@ export const metadata: Metadata = {
     "Crypto games",
     "Provably fair",
   ],
-  // Icons will be automatically handled by icon.tsx and apple-icon.tsx
   icons: {
     icon: [{ url: "/lit_logo.ico", sizes: "32x32" }],
   },
-  manifest: "/site.webmanifest",
-  appleWebApp: {
-    title: "Litmex",
-    statusBarStyle: "black-translucent",
-  },
-};
-
-export const viewport: Viewport = {
-  // Added viewport export
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#111111" },
-  ],
 };
 
 export default async function RootLayout({
