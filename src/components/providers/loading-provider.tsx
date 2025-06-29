@@ -143,7 +143,6 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []); // Runs only on mount and unmount
   useEffect(() => {
-    console.log("LoadingProvider mounted");
     if (isLoading) {
       setTimeout(() => {
         setIsLoading(false);

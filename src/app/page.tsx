@@ -7,7 +7,6 @@ import Spline from "@splinetool/react-spline";
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 import useReferralHandling from "@/components/hooks/useReferralHandling";
-import LitmexLoader from "@/components/LitmexLoader";
 import ReferralIndicator from "@/components/ReferralIndicator";
 import { useSession } from "next-auth/react";
 
@@ -356,11 +355,6 @@ export default function HomePage() {
           referrerUsername={referralInfo.referrerUsername}
         />
       )}
-
-      {/* Loading screen */}
-      <AnimatePresence mode="wait">
-        {isLoading && <LitmexLoader isLoading={isLoading} />}
-      </AnimatePresence>
 
       {/* Main 3D scene container */}
       <div className="sticky top-0 left-0 w-full h-screen z-0 overflow-hidden">

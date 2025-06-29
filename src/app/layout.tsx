@@ -95,7 +95,6 @@ export default async function RootLayout({
                 <ContextProviderAsWalletProviders cookies={cookies}>
                   {/* Global loading screen */}
                   <Toaster />
-                  <LoadingScreen />
 
                   {/* Handle loading on navigation */}
                   {/* <NavigationLoadingHandler /> */}
@@ -105,24 +104,17 @@ export default async function RootLayout({
                   {/* Prompt for Solana wallet connection */}
                   <SolanaWalletPrompt />
 
-                  <div className="min-h-screen flex flex-col text-foreground">
-                    {/* Navigation Header */}
-                    <Header />
+                  {/* Navigation Header */}
+                  <Header />
 
-                    {/* Animated background grid pattern */}
-                    {/* <AnimatedBackgroundGrid className="z-0" /> */}
+                  <main className="flex-grow relative z-20 pt-0">
+                    <ScrollProgress />
+                    {children}
+                    <FluxDock />
+                  </main>
 
-                    <main className="flex-grow relative z-20 pt-0">
-                      <ScrollProgress />
-                      {/* <PageTransition> */}
-                      {children}
-                      {/* </PageTransition> */}
-                      <FluxDock />
-                    </main>
-
-                    {/* Footer */}
-                    <Footer />
-                  </div>
+                  {/* Footer */}
+                  <Footer />
                 </ContextProviderAsWalletProviders>
               </AuthProvider>
             </ThemeProvider>

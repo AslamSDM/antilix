@@ -40,7 +40,7 @@ importers:
         version: 1.7.8(@react-native-async-storage/async-storage@1.24.0(react-native@0.79.2(@babel/core@7.27.3)(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.0.0)(utf-8-validate@5.0.10)))(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51)
       '@reown/appkit-adapter-wagmi':
         specifier: 1.7.8
-        version: 1.7.8(1931b4f156de432b2df8c75b93c20495)
+        version: 1.7.8(tfebqotvbbnkrjgcgpqk6vhl6q)
       '@solana/spl-memo':
         specifier: ^0.2.5
         version: 0.2.5(@solana/web3.js@1.98.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))
@@ -67,7 +67,7 @@ importers:
         version: 2.7.1(@wagmi/core@2.17.2(@tanstack/query-core@5.77.2)(@types/react@19.1.6)(react@19.0.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.30.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51)))(viem@2.30.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51))
       '@web3modal/wagmi':
         specifier: ^5.1.11
-        version: 5.1.11(cebdabd1481f69bbca45f3ea4b00421e)
+        version: 5.1.11(rkvb3gpn6fr7vu3dol5s754lw4)
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -6473,7 +6473,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@reown/appkit-adapter-wagmi@1.7.8(1931b4f156de432b2df8c75b93c20495)':
+  '@reown/appkit-adapter-wagmi@1.7.8(tfebqotvbbnkrjgcgpqk6vhl6q)':
     dependencies:
       '@reown/appkit': 1.7.8(@react-native-async-storage/async-storage@1.24.0(react-native@0.79.2(@babel/core@7.27.3)(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.0.0)(utf-8-validate@5.0.10)))(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51)
       '@reown/appkit-common': 1.7.8(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51)
@@ -8789,7 +8789,7 @@ snapshots:
       lit: 3.1.0
       qrcode: 1.5.3
 
-  '@web3modal/wagmi@5.1.11(cebdabd1481f69bbca45f3ea4b00421e)':
+  '@web3modal/wagmi@5.1.11(rkvb3gpn6fr7vu3dol5s754lw4)':
     dependencies:
       '@wagmi/connectors': 5.8.3(@react-native-async-storage/async-storage@1.24.0(react-native@0.79.2(@babel/core@7.27.3)(@types/react@19.1.6)(bufferutil@4.0.9)(react@19.0.0)(utf-8-validate@5.0.10)))(@types/react@19.1.6)(@wagmi/core@2.17.2(@tanstack/query-core@5.77.2)(@types/react@19.1.6)(react@19.0.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.30.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51)))(bufferutil@4.0.9)(react@19.0.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.30.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51))(zod@3.25.51)
       '@wagmi/core': 2.17.2(@tanstack/query-core@5.77.2)(@types/react@19.1.6)(react@19.0.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.0))(viem@2.30.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.51))
