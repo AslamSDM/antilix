@@ -89,10 +89,10 @@ export default function HomePage() {
     offset: ["start start", "end end"],
   });
 
-  const sectionChangeSound = useAudioPlayer({
-    src: "/sounds/section-change.mp3",
-    volume: 0.2,
-  });
+  // const sectionChangeSound = useAudioPlayer({
+  //   src: "/sounds/section-change.mp3",
+  //   volume: 0.2,
+  // });
 
   // Initialize device detection and WebGL support check
   useEffect(() => {
@@ -236,31 +236,31 @@ export default function HomePage() {
     const nextSection = activeSection >= 5 ? 5 : activeSection + 1;
     if (nextSection !== activeSection) {
       navigateToSection(nextSection);
-      sectionChangeSound.play();
+      // sectionChangeSound.play();
     }
-  }, [activeSection, navigateToSection, sectionChangeSound]);
+  }, [activeSection, navigateToSection]);
 
   const goToPreviousSection = useCallback(() => {
     const prevSection = activeSection <= 0 ? 0 : activeSection - 1;
     if (prevSection !== activeSection) {
       navigateToSection(prevSection);
-      sectionChangeSound.play();
+      // sectionChangeSound.play();
     }
-  }, [activeSection, navigateToSection, sectionChangeSound]);
+  }, [activeSection, navigateToSection]);
 
   const goToFirstSection = useCallback(() => {
     if (activeSection !== 0) {
       navigateToSection(0);
-      sectionChangeSound.play();
+      // sectionChangeSound.play();
     }
-  }, [activeSection, navigateToSection, sectionChangeSound]);
+  }, [activeSection, navigateToSection]);
 
   const goToLastSection = useCallback(() => {
     if (activeSection !== 5) {
       navigateToSection(5);
-      sectionChangeSound.play();
+      // sectionChangeSound.play();
     }
-  }, [activeSection, navigateToSection, sectionChangeSound]);
+  }, [activeSection, navigateToSection]);
 
   useKeyboardNavigation({
     onNext: goToNextSection,
@@ -296,14 +296,14 @@ export default function HomePage() {
 
     if (newSection !== activeSection) {
       setActiveSection(newSection);
-      sectionChangeSound.play();
+      // sectionChangeSound.play();
       console.log(
         `Section changed to: ${newSection}, at mapped progress: ${mappedScrollProgress.toFixed(
           2
         )}`
       );
     }
-  }, [mappedScrollProgress, activeSection, sectionChangeSound]);
+  }, [mappedScrollProgress, activeSection]);
 
   const sectionVisibility = [
     activeSection === 0,
