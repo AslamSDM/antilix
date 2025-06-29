@@ -16,10 +16,13 @@ const queryClient = new QueryClient();
 
 // Set up metadata
 const metadata = {
-  name: "next-reown-appkit",
-  description: "next-reown-appkit",
-  url: "https://github.com/0xonerb/next-reown-appkit-ssr", // origin must match your domain & subdomain
-  icons: ["https://avatars.githubusercontent.com/u/179229932"],
+  name: "Litmex",
+  description:
+    "A luxury web3 gaming platform offering provably fair games and exclusive rewards",
+  url: "https://www.litmexpresale.com", // origin must match your domain & subdomain
+  icons: [
+    "https://www.litmexpresale.com/_next/image?url=%2Flit_logo.png&w=64&q=75",
+  ],
 };
 
 // Create the modal
@@ -51,7 +54,7 @@ export const modal = createAppKit({
   defaultAccountTypes: {
     solana: "eoa",
   },
-  debug: true, // Disable debug mode in production
+  // debug: true, // Disable debug mode in production
 
   allowUnsupportedChain: false,
   enableWalletConnect: true,
