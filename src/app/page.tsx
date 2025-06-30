@@ -1,13 +1,18 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  Suspense,
+} from "react";
 import {
   motion,
   useScroll,
   AnimatePresence,
   useMotionValueEvent,
 } from "framer-motion";
-import Spline from "@splinetool/react-spline";
 import useReferralHandling from "@/components/hooks/useReferralHandling";
 import ReferralIndicator from "@/components/ReferralIndicator";
 
@@ -20,6 +25,8 @@ import SecuritySection from "@/components/sections/SecuritySection";
 import CtaSection from "@/components/sections/CtaSection";
 
 const TOTAL_SCROLL_ANIMATION_UNITS = 100;
+const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
+
 const MAX_SPLINE_SCROLL_VALUE = 1000;
 
 export default function HomePage() {
@@ -180,17 +187,18 @@ export default function HomePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
         />
-
-        <Spline
-          scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
-          className="w-full h-full"
-          // style={{
-          //   // Optimize for mobile performance
-          //   willChange: deviceInfo.isMobile ? "auto" : "transform",
-          // }}
-          // Reduce quality on memory-limited devices
-          renderOnDemand={deviceInfo.memoryLimited}
-        />
+        <Suspense fallback={<div className="w-full h-full bg-gray-100" />}>
+          <DynamicSpline
+            scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
+            className="w-full h-full"
+            // style={{
+            //   // Optimize for mobile performance
+            //   willChange: deviceInfo.isMobile ? "auto" : "transform",
+            // }}
+            // Reduce quality on memory-limited devices
+            renderOnDemand={deviceInfo.memoryLimited}
+          />
+        </Suspense>
       </div>
 
       {/* Sections container */}
