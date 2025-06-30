@@ -12,7 +12,7 @@ interface CtaSectionProps {
 export default function CtaSection({ isVisible }: CtaSectionProps) {
   return (
     <motion.div
-      className="sticky top-0 left-0 w-screen h-screen z-10 overflow-hidden flex flex-col justify-between"
+      className="sticky top-0 left-0 w-screen h-screen overflow-hidden flex flex-col justify-between -z-1"
       animate={{
         opacity: isVisible ? 1 : 0,
       }}
