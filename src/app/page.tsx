@@ -8,10 +8,8 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import Spline from "@splinetool/react-spline";
-import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 import useReferralHandling from "@/components/hooks/useReferralHandling";
 import ReferralIndicator from "@/components/ReferralIndicator";
-import { useSession } from "next-auth/react";
 
 // Import section components
 import IntroSection from "@/components/sections/IntroSection";
@@ -25,13 +23,8 @@ const TOTAL_SCROLL_ANIMATION_UNITS = 100;
 const MAX_SPLINE_SCROLL_VALUE = 1000;
 
 export default function HomePage() {
-  // const [splineApp, setSplineApp] = useState<Application | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<number>(0);
-  // const [isLoading, setIsLoading] = useState<boolean>(true);
-  // const [musicActive, setMusicActive] = useState<boolean>(false);
-  // const [isSmallScreen, setIsSmallScreen] = useState<boolean>(false);
-  // const [showContinueButton, setShowContinueButton] = useState<boolean>(false);
   const [mappedScrollProgress, setMappedScrollProgress] = useState<number>(0);
 
   // Device and capability detection
@@ -56,81 +49,6 @@ export default function HomePage() {
   useMotionValueEvent(scrollY, "change", (latest) => {
     setMappedScrollProgress(latest / 50);
   });
-  // const sectionChangeSound = useAudioPlayer({
-  //   src: "/sounds/section-change.mp3",
-  //   volume: 0.2,
-  // });
-
-  // Detect small screens and handle resize
-
-  // Enhanced scroll progress handling with error catching
-  // useEffect(() => {
-  //   const unsubscribe = scrollYProgress.on("change", (latest) => {
-  //     console.log(latest, scrollYProgress.current);
-  //     try {
-  //       const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
-  //       setMappedScrollProgress(currentMappedProgress);
-  //     } catch (error) {
-  //       console.error("Error updating scroll progress:", error);
-  //     }
-  //   });
-  //   return () => unsubscribe();
-  // }, [scrollYProgress, useSplineFallback]);
-
-  // // Enhanced Spline load handler with error recovery
-  // const handleSplineLoad = useCallback(
-  //   (app: Application) => {
-  //     try {
-  //       setSplineApp(app);
-  //       setIsLoading(false);
-  //       setSplineError(null);
-  //       console.log("Spline scene loaded successfully");
-
-  //       // Test WebGL context stability on iOS
-  //       if (deviceInfo.isIOS) {
-  //         // Add WebGL context loss listener
-  //         const canvas = document.querySelector("canvas");
-  //         if (canvas) {
-  //           canvas.addEventListener("webglcontextlost", (e) => {
-  //             console.warn("WebGL context lost on iOS");
-  //             e.preventDefault();
-  //             setSplineError("WebGL context lost");
-  //             setUseSplineFallback(true);
-  //           });
-
-  //           canvas.addEventListener("webglcontextrestored", () => {
-  //             console.log("WebGL context restored");
-  //             setSplineError(null);
-  //           });
-  //         }
-  //       }
-
-  //       if (referralInfo.code) {
-  //         console.log("Referral detected:", {
-  //           code: referralInfo.code,
-  //           referrerId: referralInfo.referrerId,
-  //           referrerAddress: referralInfo.referrerAddress,
-  //           referrerUsername: referralInfo.referrerUsername,
-  //           isValid: referralInfo.isValid,
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error("Error loading Spline:", error);
-  //       setSplineError("Failed to load Spline scene");
-  //       setUseSplineFallback(true);
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [referralInfo, deviceInfo.isIOS]
-  // );
-
-  // // Enhanced Spline error handler
-  // const handleSplineError = useCallback((error: any) => {
-  //   console.error("Spline error:", error);
-  //   setSplineError("Spline failed to load");
-  //   setUseSplineFallback(true);
-  //   setIsLoading(false);
-  // }, []);
 
   const navigateToSection = useCallback(
     (sectionIndex: number) => {
@@ -199,12 +117,6 @@ export default function HomePage() {
     }
   }, [activeSection, navigateToSection]);
 
-  useKeyboardNavigation({
-    onNext: goToNextSection,
-    onPrevious: goToPreviousSection,
-    onHome: goToFirstSection,
-    onEnd: goToLastSection,
-  });
   // Section change detection
   useEffect(() => {
     const sectionThresholds = [
