@@ -50,6 +50,17 @@ export const metadata: Metadata = {
     icon: [{ url: "/lit_logo.ico", sizes: "32x32" }],
   },
 };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover", // Important for iOS safe areas
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
+  ],
+};
 
 export default async function RootLayout({
   children,
@@ -65,7 +76,13 @@ export default async function RootLayout({
         style={
           {
             "--header-height": "3.5rem", // Define header height for use in other components
-            scrollBehavior: "smooth", // Smooth scrolling for the entire app
+            scrollBehavior: "smooth", // Smooth scrolling for the entire app      {
+            // // iOS-specific optimizations
+            ...(typeof navigator !== "undefined" &&
+              /iPad|iPhone|iPod/.test(navigator.userAgent) && {
+                WebkitOverflowScrolling: "touch",
+                WebkitTransform: "translateZ(0)",
+              }),
           } as React.CSSProperties
         }
       >
