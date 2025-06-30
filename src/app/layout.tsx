@@ -15,6 +15,7 @@ import { headers } from "next/headers"; // Import cookies
 
 import { SolanaWalletPrompt } from "@/components/SolanaWalletPrompt";
 import { Toaster } from "sonner";
+import { FakeHeader } from "@/components/FakeHeader";
 
 const blackBird = localFont({
   src: "../../public/fonts/ductile.otf",
@@ -67,8 +68,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersData = await headers();
-  const cookies = headersData.get("cookie");
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -90,30 +89,17 @@ export default async function RootLayout({
           <Suspense fallback={<></>}>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
               <AuthProvider>
-                <ContextProviderAsWalletProviders cookies={cookies}>
-                  {/* Global loading screen */}
-                  <Toaster />
+                {/* Global loading screen */}
+                <Toaster />
+                <FakeHeader />
+                <main className="flex-grow relative z-20 pt-0">
+                  <ScrollProgress />
+                  {children}
+                  <FluxDock />
+                  <Footer />
+                </main>
 
-                  {/* Handle loading on navigation */}
-                  {/* <NavigationLoadingHandler /> */}
-
-                  {/* Automatic referral application when user is authenticated */}
-
-                  {/* Prompt for Solana wallet connection */}
-                  <SolanaWalletPrompt />
-
-                  {/* Navigation Header */}
-                  <Header />
-
-                  <main className="flex-grow relative z-20 pt-0">
-                    <ScrollProgress />
-                    {children}
-                    <FluxDock />
-                    <Footer />
-                  </main>
-
-                  {/* Footer */}
-                </ContextProviderAsWalletProviders>
+                {/* Footer */}
               </AuthProvider>
             </ThemeProvider>
           </Suspense>

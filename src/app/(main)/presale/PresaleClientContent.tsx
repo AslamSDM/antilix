@@ -28,7 +28,7 @@ import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pa
 import useAudioPlayer from "@/components/hooks/useAudioPlayer";
 import ScrollIndicator from "@/components/ScrollIndicator";
 import { useSession } from "next-auth/react";
-import "../../components/sections/animation-utils.css";
+import "../../../components/sections/animation-utils.css";
 
 // Use the /next import for Spline with React.lazy
 const DynamicSpline = React.lazy(() => import("@splinetool/react-spline"));
