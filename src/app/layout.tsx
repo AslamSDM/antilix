@@ -92,10 +92,10 @@ export default async function RootLayout({
                     <ScrollProgress />
                     {children}
                     <FluxDock />
+                    <Footer />
                   </main>
 
                   {/* Footer */}
-                  <Footer />
                 </ContextProviderAsWalletProviders>
               </AuthProvider>
             </ThemeProvider>

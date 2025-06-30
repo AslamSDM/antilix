@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { motion, useScroll, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  AnimatePresence,
+  useMotionValueEvent,
+} from "framer-motion";
 import Spline from "@splinetool/react-spline";
 import useKeyboardNavigation from "@/components/hooks/useKeyboardNavigation";
 import useReferralHandling from "@/components/hooks/useReferralHandling";
@@ -40,15 +45,17 @@ export default function HomePage() {
     webgl2: false,
   });
   const [splineError, setSplineError] = useState<string | null>(null);
-  const [useSplineFallback, setUseSplineFallback] = useState<boolean>(false);
-
   const referralInfo = useReferralHandling();
 
-  const { scrollYProgress, scrollY } = useScroll({
+  const { scrollY } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
+  const [useSplineFallback, setUseSplineFallback] = useState<boolean>(false);
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setMappedScrollProgress(latest / 50);
+  });
   // const sectionChangeSound = useAudioPlayer({
   //   src: "/sounds/section-change.mp3",
   //   volume: 0.2,
@@ -57,17 +64,18 @@ export default function HomePage() {
   // Detect small screens and handle resize
 
   // Enhanced scroll progress handling with error catching
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on("change", (latest) => {
-      try {
-        const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
-        setMappedScrollProgress(currentMappedProgress);
-      } catch (error) {
-        console.error("Error updating scroll progress:", error);
-      }
-    });
-    return () => unsubscribe();
-  }, [scrollYProgress, useSplineFallback]);
+  // useEffect(() => {
+  //   const unsubscribe = scrollYProgress.on("change", (latest) => {
+  //     console.log(latest, scrollYProgress.current);
+  //     try {
+  //       const currentMappedProgress = latest * TOTAL_SCROLL_ANIMATION_UNITS;
+  //       setMappedScrollProgress(currentMappedProgress);
+  //     } catch (error) {
+  //       console.error("Error updating scroll progress:", error);
+  //     }
+  //   });
+  //   return () => unsubscribe();
+  // }, [scrollYProgress, useSplineFallback]);
 
   // // Enhanced Spline load handler with error recovery
   // const handleSplineLoad = useCallback(
@@ -197,7 +205,6 @@ export default function HomePage() {
     onHome: goToFirstSection,
     onEnd: goToLastSection,
   });
-
   // Section change detection
   useEffect(() => {
     const sectionThresholds = [
@@ -265,17 +272,17 @@ export default function HomePage() {
         <Spline
           scene="https://prod.spline.design/ypLMYfb0s1KZPBHq/scene.splinecode"
           className="w-full h-full"
-          style={{
-            // Optimize for mobile performance
-            willChange: deviceInfo.isMobile ? "auto" : "transform",
-          }}
+          // style={{
+          //   // Optimize for mobile performance
+          //   willChange: deviceInfo.isMobile ? "auto" : "transform",
+          // }}
           // Reduce quality on memory-limited devices
           renderOnDemand={deviceInfo.memoryLimited}
         />
       </div>
 
       {/* Sections container */}
-      <div className="fixed inset-0 pointer-events-none z-20">
+      <div className="fixed inset-0 pointer-events-none z-0">
         <AnimatePresence mode="wait">
           {sectionVisibility[0] && (
             <IntroSection isVisible={true} key="intro" />
