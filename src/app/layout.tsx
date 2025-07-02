@@ -75,19 +75,17 @@ export default async function RootLayout({
         }
       >
         <LoadingProvider>
-          <Suspense fallback={<></>}>
-            {/* <ThemeProvider attribute="class" defaultTheme="dark" enableSystem> */}
-            <AuthProvider>
-              <Toaster />
-              <FakeHeader />
-              <main className="flex-grow relative z-20 pt-0">
-                {children}
-                <FluxDock />
-                <Footer />
-              </main>
-            </AuthProvider>
-            {/* </ThemeProvider> */}
-          </Suspense>
+          {/* <ThemeProvider attribute="class" defaultTheme="dark" enableSystem> */}
+          <AuthProvider>
+            <Toaster />
+            <FakeHeader />
+            <main className="flex-grow relative z-20 pt-0">
+              {children}
+              <FluxDock />
+              <Footer />
+            </main>
+          </AuthProvider>
+          {/* </ThemeProvider> */}
         </LoadingProvider>
       </body>
     </html>
