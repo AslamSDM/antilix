@@ -50,6 +50,7 @@ export const { auth } = {
     function middleware(req) {
       const token = req.nextauth.token;
       console.log("Token in middleware:", token);
+      if (req.nextUrl.pathname === "/") return NextResponse.next();
       // Path to verification needed page
       const verificationNeededPath = "/auth/verification-needed";
       if (token && !token.verified) {
